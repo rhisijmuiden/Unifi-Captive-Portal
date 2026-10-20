@@ -27,13 +27,20 @@ function TenantForm({ tenant, onClose }: { tenant: Tenant | null; onClose: () =>
     status: tenant?.status ?? 'active',
     notes: tenant?.notes ?? '',
   });
+  const [admin, setAdmin] = useState({ name: '', email: '' });
   const [slugTouched, setSlugTouched] = useState(Boolean(tenant));
   const save = useMutation({
-    mutationFn: () => (tenant ? api.put(`/tenants/${tenant.id}`, form) : api.post('/tenants', form)),
-    onSuccess: () => {
+    mutationFn: () =>
+      tenant
+        ? api.put<{ invited?: string | null; inviteError?: string | null }>(`/tenants/${tenant.id}`, form)
+        : api.post<{ invited?: string | null; inviteError?: string | null }>('/tenants', { ...form, admin: admin.email.trim() ? admin : null }),
+    onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['tenants'] });
+      qc.invalidateQueries({ queryKey: ['users'] });
       qc.invalidateQueries({ queryKey: ['dashboard'] });
-      toast.success(tenant ? t('tenants.updated') : t('tenants.created'));
+      if (res.inviteError) toast.warning(t('tenants.inviteFailed', { error: res.inviteError }));
+      else if (res.invited) toast.success(t('tenants.createdInvited', { email: res.invited }));
+      else toast.success(tenant ? t('tenants.updated') : t('tenants.created'));
       onClose();
     },
   });
@@ -84,6 +91,20 @@ function TenantForm({ tenant, onClose }: { tenant: Tenant | null; onClose: () =>
             </Select>
           </Field>
         </div>
+        {!tenant && (
+          <div className="rounded-xl border border-line p-4">
+            <p className="text-sm font-semibold">{t('tenants.adminTitle')}</p>
+            <p className="mb-3 text-xs text-muted">{t('tenants.adminHint')}</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label={t('tenants.adminName')} htmlFor="t-admin-name">
+                <Input id="t-admin-name" value={admin.name} onChange={(e) => setAdmin({ ...admin, name: e.target.value })} />
+              </Field>
+              <Field label={t('tenants.adminEmail')} htmlFor="t-admin-mail">
+                <Input id="t-admin-mail" type="email" value={admin.email} onChange={(e) => setAdmin({ ...admin, email: e.target.value })} />
+              </Field>
+            </div>
+          </div>
+        )}
         <Field label={t('tenants.notes')} htmlFor="t-notes">
           <Textarea id="t-notes" rows={3} className="font-sans text-sm" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
         </Field>

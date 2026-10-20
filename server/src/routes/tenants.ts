@@ -3,7 +3,9 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db, schema } from '../db/index.js';
 import { audit, requireSuperadmin, requireTenantAdmin } from '../lib/auth.js';
-import { badRequest, notFound } from '../lib/errors.js';
+import { badRequest, notFound, translateError } from '../lib/errors.js';
+import { requestLocale } from '../i18n/index.js';
+import { sendInvite } from '../services/tokens.js';
 
 const tenantInput = z.object({
   name: z.string().trim().min(1).max(120),
@@ -16,6 +18,12 @@ const tenantInput = z.object({
   status: z.enum(['active', 'suspended']).default('active'),
   notes: z.string().max(2000).nullable().optional(),
 });
+
+// Optional first administrator, invited by e-mail right away
+const adminInput = z
+  .object({ name: z.string().trim().min(1).max(120), email: z.string().trim().toLowerCase().email() })
+  .nullable()
+  .optional();
 
 export async function tenantRoutes(app: FastifyInstance) {
   app.get('/api/tenants', async (req) => {
@@ -39,11 +47,24 @@ export async function tenantRoutes(app: FastifyInstance) {
   app.post('/api/tenants', async (req) => {
     requireSuperadmin(req);
     const body = tenantInput.parse(req.body);
+    const admin = adminInput.parse((req.body as { admin?: unknown } | null)?.admin);
     const exists = await db.query.tenants.findFirst({ where: eq(schema.tenants.slug, body.slug) });
     if (exists) throw badRequest('errors.slugTaken');
-    const [tenant] = await db.insert(schema.tenants).values(body).returning();
+    if (admin && (await db.query.users.findFirst({ where: eq(schema.users.email, admin.email) }))) throw badRequest('errors.emailTaken');
+    const { tenant, user } = await db.transaction(async (tx) => {
+      const [tenant] = await tx.insert(schema.tenants).values(body).returning();
+      const [user] = admin
+        ? await tx.insert(schema.users).values({ name: admin.name, email: admin.email, role: 'tenant_admin', tenantId: tenant.id, locale: requestLocale(req) }).returning()
+        : [null];
+      return { tenant, user };
+    });
     await audit(req, 'tenant.created', { name: tenant.name }, tenant.id);
-    return { tenant };
+    let inviteError: string | null = null;
+    if (user) {
+      await audit(req, 'user.created', { email: user.email, role: user.role }, tenant.id);
+      await sendInvite(user).catch((err: Error) => (inviteError = translateError(err, requestLocale(req))));
+    }
+    return { tenant, invited: user?.email ?? null, inviteError };
   });
 
   app.put<{ Params: { id: string } }>('/api/tenants/:id', async (req) => {

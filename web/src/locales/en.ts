@@ -186,6 +186,12 @@ const en: Messages = {
     deleteTitle: 'Delete customer?',
     deleteText: '{{name}} and all of its users will be deleted permanently.',
     deleteTip: 'Tip: choose "Suspended" if you only want to block the customer for a while.',
+    adminTitle: 'First administrator',
+    adminHint: 'Optional. This person gets an e-mail invitation right away to set a password and sign in at this same address.',
+    adminName: 'Name',
+    adminEmail: 'E-mail address',
+    createdInvited: 'Customer created and invitation sent to {{email}}',
+    inviteFailed: 'Customer created, but the invitation could not be sent: {{error}}. Check E-mail (SMTP) and resend it under Users.',
     deleteConfirm: 'Delete permanently',
   },
   users: {
