@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Activity, ArrowRight, Building2, CheckCircle2, Circle, Globe, KeyRound, Mail, Palette, Router, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Card, CardHeader, PageHeader, Spinner } from '../components/ui';
 import { api } from '../lib/api';
@@ -13,21 +14,7 @@ type Dashboard = {
   activity: { id: string; action: string; details: Record<string, unknown> | null; createdAt: string; userName: string | null }[];
 };
 
-const actionLabels: Record<string, string> = {
-  'setup.completed': 'Platform geïnstalleerd',
-  'auth.login': 'Ingelogd',
-  'auth.password_changed': 'Wachtwoord gewijzigd',
-  'auth.password_reset': 'Wachtwoord opnieuw ingesteld',
-  'tenant.created': 'Klant aangemaakt',
-  'tenant.updated': 'Klant bijgewerkt',
-  'tenant.deleted': 'Klant verwijderd',
-  'user.created': 'Gebruiker toegevoegd',
-  'user.updated': 'Gebruiker bijgewerkt',
-  'user.deleted': 'Gebruiker verwijderd',
-  'user.invited': 'Uitnodiging verstuurd',
-  'settings.updated': 'Instellingen gewijzigd',
-  'system.update_requested': 'Update gestart',
-};
+
 
 function Stat({ icon, label, value, to }: { icon: ReactNode; label: string; value: ReactNode; to?: string }) {
   const body = (
@@ -44,6 +31,7 @@ function Stat({ icon, label, value, to }: { icon: ReactNode; label: string; valu
 }
 
 export function DashboardPage() {
+  const { t } = useTranslation();
   const { data: auth } = useAuth();
   const user = auth!.user!;
   const isAdmin = user.role === 'superadmin';
@@ -52,36 +40,36 @@ export function DashboardPage() {
   const sso = useQuery({ queryKey: ['settings', 'sso'], queryFn: () => api.get<{ entraEnabled: boolean }>('/settings/sso'), enabled: isAdmin });
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Goedemorgen' : hour < 18 ? 'Goedemiddag' : 'Goedenavond';
+  const greetingKey = hour < 12 ? 'dashboard.morning' : hour < 18 ? 'dashboard.afternoon' : 'dashboard.evening';
 
   const steps = isAdmin
     ? [
-        { done: Boolean(smtp.data?.enabled), label: 'Stel de mailserver in', hint: 'Voor uitnodigingen en wachtwoordherstel', to: '/settings/smtp', icon: Mail },
-        { done: Boolean(sso.data?.entraEnabled), label: 'Zet Microsoft SSO aan', hint: 'Optioneel, voor inloggen met Entra ID', to: '/settings/sso', icon: KeyRound },
-        { done: (data?.tenants ?? 0) > 0, label: 'Voeg je eerste klant toe', hint: 'Elke klant krijgt een eigen omgeving', to: '/tenants', icon: Building2 },
-        { done: false, label: 'Koppel een UniFi-console', hint: 'Komt in de volgende versie', icon: Router },
+        { done: Boolean(smtp.data?.enabled), label: t('dashboard.stepSmtp'), hint: t('dashboard.stepSmtpHint'), to: '/settings/smtp', icon: Mail },
+        { done: Boolean(sso.data?.entraEnabled), label: t('dashboard.stepSso'), hint: t('dashboard.stepSsoHint'), to: '/settings/sso', icon: KeyRound },
+        { done: (data?.tenants ?? 0) > 0, label: t('dashboard.stepTenant'), hint: t('dashboard.stepTenantHint'), to: '/tenants', icon: Building2 },
+        { done: false, label: t('dashboard.stepConsole'), hint: t('dashboard.nextVersion'), icon: Router },
       ]
     : [
-        { done: false, label: 'Koppel je UniFi-console', hint: 'Komt in de volgende versie', icon: Router },
-        { done: false, label: 'Ontwerp je portal', hint: 'Komt in een volgende versie', icon: Palette },
-        { done: false, label: 'Stel je eigen domein in', hint: 'Bijvoorbeeld gast.jouwbedrijf.nl', icon: Globe },
+        { done: false, label: t('dashboard.stepConsoleOwn'), hint: t('dashboard.nextVersion'), icon: Router },
+        { done: false, label: t('dashboard.stepPortal'), hint: t('dashboard.nextVersion'), icon: Palette },
+        { done: false, label: t('dashboard.stepDomain'), hint: t('dashboard.stepDomainHint'), icon: Globe },
       ];
   const doneCount = steps.filter((s) => s.done).length;
 
   return (
     <>
-      <PageHeader eyebrow="Overzicht" title={`${greeting}, ${user.name.split(' ')[0]}`} description={isAdmin ? 'Zo staat het platform er nu voor.' : 'Welkom in je beheeromgeving voor gastwifi.'} />
+      <PageHeader eyebrow={t('dashboard.eyebrow')} title={t(greetingKey, { name: user.name.split(' ')[0] })} description={isAdmin ? t('dashboard.adminIntro') : t('dashboard.tenantIntro')} />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {isAdmin && <Stat icon={<Building2 className="size-5" />} label="Klanten" value={isLoading ? <Spinner /> : data?.tenants} to="/tenants" />}
-        <Stat icon={<Users className="size-5" />} label={isAdmin ? 'Gebruikers' : 'Teamleden'} value={isLoading ? <Spinner /> : data?.users} to={user.role !== 'tenant_user' ? '/users' : undefined} />
-        <Stat icon={<Palette className="size-5" />} label="Actieve portals" value="0" />
-        <Stat icon={<Router className="size-5" />} label="Gekoppelde consoles" value="0" />
+        {isAdmin && <Stat icon={<Building2 className="size-5" />} label={t('dashboard.tenants')} value={isLoading ? <Spinner /> : data?.tenants} to="/tenants" />}
+        <Stat icon={<Users className="size-5" />} label={isAdmin ? t('dashboard.users') : t('dashboard.teamMembers')} value={isLoading ? <Spinner /> : data?.users} to={user.role !== 'tenant_user' ? '/users' : undefined} />
+        <Stat icon={<Palette className="size-5" />} label={t('dashboard.activePortals')} value="0" />
+        <Stat icon={<Router className="size-5" />} label={t('dashboard.consoles')} value="0" />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-3">
-          <CardHeader title="Aan de slag" description={`${doneCount} van ${steps.length} stappen afgerond`} />
+          <CardHeader title={t('dashboard.gettingStarted')} description={t('dashboard.stepsDone', { done: doneCount, total: steps.length })} />
           <div className="px-6 pt-4">
             <div className="h-1.5 overflow-hidden rounded-full bg-sunken">
               <div className="h-full rounded-full bg-koraal transition-all" style={{ width: `${(doneCount / steps.length) * 100}%` }} />
@@ -105,7 +93,7 @@ export function DashboardPage() {
         </Card>
 
         <Card className="lg:col-span-2">
-          <CardHeader title="Recente activiteit" />
+          <CardHeader title={t('dashboard.activity')} />
           {isLoading ? (
             <div className="p-6">
               <Spinner />
@@ -119,19 +107,19 @@ export function DashboardPage() {
                   </span>
                   <div className="min-w-0 text-sm">
                     <p className="font-medium">
-                      {actionLabels[a.action] ?? a.action}
+                      {t(`dashboard.actions.${a.action}`, { defaultValue: a.action })}
                       {typeof a.details?.name === 'string' && <span className="font-normal text-muted"> · {a.details.name}</span>}
                       {typeof a.details?.email === 'string' && <span className="font-normal text-muted"> · {a.details.email}</span>}
                     </p>
                     <p className="text-xs text-muted">
-                      {a.userName ?? 'Systeem'} · {timeAgo(a.createdAt)}
+                      {a.userName ?? t('common.system')} · {timeAgo(a.createdAt)}
                     </p>
                   </div>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="p-6 text-sm text-muted">Nog geen activiteit.</p>
+            <p className="p-6 text-sm text-muted">{t('dashboard.noActivity')}</p>
           )}
         </Card>
       </div>

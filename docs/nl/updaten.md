@@ -1,5 +1,7 @@
 # Updaten en releasekanalen
 
+> 🇬🇧 [English version](../en/updating.md)
+
 ## Releasekanalen
 
 | Kanaal | Wat je krijgt | Voor wie |

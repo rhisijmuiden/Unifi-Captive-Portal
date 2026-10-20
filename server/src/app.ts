@@ -7,7 +7,8 @@ import Fastify from 'fastify';
 import { ZodError } from 'zod';
 import { config } from './config.js';
 import { loadUser } from './lib/auth.js';
-import { HttpError } from './lib/errors.js';
+import { requestLocale, t } from './i18n/index.js';
+import { AppError } from './lib/errors.js';
 import { authRoutes } from './routes/auth.js';
 import { settingsRoutes } from './routes/settings.js';
 import { systemRoutes } from './routes/system.js';
@@ -31,7 +32,7 @@ export async function buildApp() {
     if (!req.url.startsWith('/api/')) return;
     // A custom header cannot be sent cross-site without a CORS preflight, which we never allow
     if (MUTATING.has(req.method) && req.headers['x-requested-with'] !== 'captive-portal') {
-      return reply.code(403).send({ error: 'Ongeldige aanvraag' });
+      return reply.code(403).send({ error: t(requestLocale(req), 'errors.invalidRequest') });
     }
     req.user = await loadUser(req);
   });
@@ -42,13 +43,19 @@ export async function buildApp() {
   });
 
   app.setErrorHandler((err, req, reply) => {
+    const locale = requestLocale(req);
     if (err instanceof ZodError) {
-      return reply.code(400).send({ error: err.issues[0]?.message ?? 'Ongeldige invoer', issues: err.issues });
+      const issue = err.issues[0];
+      // Schema messages that are translation keys ("errors.…") are translated; others become a generic message
+      const error = issue?.message.startsWith('errors.')
+        ? t(locale, issue.message as Parameters<typeof t>[1])
+        : t(locale, 'errors.invalidInput', { field: issue?.path.join('.') || '?' });
+      return reply.code(400).send({ error, issues: err.issues });
     }
-    if (err instanceof HttpError) return reply.code(err.statusCode).send({ error: err.message });
+    if (err instanceof AppError) return reply.code(err.statusCode).send({ error: t(locale, err.key, err.params) });
     const status = (err as { statusCode?: number }).statusCode ?? 500;
     if (status >= 500) req.log.error(err);
-    return reply.code(status).send({ error: status >= 500 ? 'Er ging iets mis op de server' : (err as Error).message });
+    return reply.code(status).send({ error: status >= 500 ? t(locale, 'errors.serverError') : (err as Error).message });
   });
 
   await app.register(authRoutes);
@@ -62,7 +69,7 @@ export async function buildApp() {
   }
   app.setNotFoundHandler((req, reply) => {
     if (req.url.startsWith('/api/') || req.method !== 'GET' || !existsSync(webDist)) {
-      return reply.code(404).send({ error: 'Niet gevonden' });
+      return reply.code(404).send({ error: t(requestLocale(req), 'errors.notFound') });
     }
     return reply.sendFile('index.html');
   });

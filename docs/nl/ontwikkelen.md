@@ -1,5 +1,7 @@
 # Ontwikkelen en releasen
 
+> 🇬🇧 [English version](../en/development.md)
+
 ## Lokaal draaien
 
 Vereist: Node.js 22 of nieuwer en PostgreSQL.
@@ -19,16 +21,36 @@ Open http://localhost:5173. Bij de eerste keer start de installatiewizard.
 server/            Fastify API (TypeScript)
   src/routes/      API-endpoints: auth, tenants, users, settings, system
   src/services/    mailer, Entra SSO, instellingen, updater, tokens
+  src/i18n/        vertalingen van de server (foutmeldingen, e-mails)
   src/db/          Drizzle-schema en migraties (server/drizzle/)
   test/            unit tests (node --test)
-web/               React-beheeromgeving (Vite, Tailwind)
+web/               React-beheeromgeving (Vite, Tailwind, i18next)
+  src/locales/     vertalingen van de interface
   src/pages/       schermen
   src/components/  layout, Info-dialoog, UI-bouwstenen
 install/           install.sh (Debian 13), update.sh, LXC-installscript
 ct/                Proxmox LXC-script
 deploy/systemd/    service- en updater-units
-docs/              handleidingen
+docs/en, docs/nl   handleidingen in het Engels en Nederlands
 ```
+
+## Vertalingen en nieuwe talen
+
+Alle teksten staan in vertaalbestanden; er staat geen tekst vast in de code.
+
+| Waar | Bestanden |
+| --- | --- |
+| Webinterface | `web/src/locales/nl.ts`, `web/src/locales/en.ts` |
+| Server (foutmeldingen, e-mails) | `server/src/i18n/nl.ts`, `server/src/i18n/en.ts` |
+
+Een taal toevoegen, bijvoorbeeld Duits:
+
+1. Kopieer `web/src/locales/en.ts` naar `de.ts` en vertaal de teksten. TypeScript controleert dat er geen sleutel ontbreekt.
+2. Registreer de taal in `web/src/i18n.ts` (lijst `languages` en `resources`).
+3. Doe hetzelfde voor `server/src/i18n/` (bestand plus `locales` in `index.ts`).
+4. Voeg de handleidingen toe in `docs/de/`.
+
+De taal van de interface volgt de keuze van de gebruiker (opgeslagen op het account), anders de browser. E-mails gaan in de taal van de ontvanger.
 
 ## Database wijzigen
 
@@ -48,7 +70,7 @@ GitHub Actions draait dezelfde controles bij elke push en pull request.
 
 ## Een release publiceren
 
-1. Werk `CHANGELOG.md` en `ROADMAP.md` bij.
+1. Werk `CHANGELOG.md`, `CHANGELOG.nl.md`, `ROADMAP.md` en `ROADMAP.nl.md` bij.
 2. Zet het versienummer in alle `package.json`-bestanden:
    ```bash
    npm version 0.2.0 --workspaces --include-workspace-root --no-git-tag-version

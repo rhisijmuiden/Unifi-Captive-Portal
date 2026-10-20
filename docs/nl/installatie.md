@@ -1,5 +1,7 @@
 # Installatie
 
+> 🇬🇧 [English version](../en/installation.md)
+
 Captive Portal draait op **Debian 13 (Trixie)**, als Proxmox LXC of op een VM of fysieke server. De webinterface luistert op **poort 8080**.
 
 ## Systeemeisen

@@ -89,6 +89,7 @@ export function publicUser(u: User) {
     ssoLinked: Boolean(u.entraOid),
     lastLoginAt: u.lastLoginAt,
     createdAt: u.createdAt,
+    locale: u.locale,
   };
 }
 

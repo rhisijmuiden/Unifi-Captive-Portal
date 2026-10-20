@@ -35,7 +35,8 @@ export const ssoSchema = z.object({
   entraClientSecret: z.string().default(''),
   // Hide the password form once SSO works; superadmins can always fall back via ?local=1
   allowLocalLogin: z.boolean().default(true),
-  buttonLabel: z.string().default('Inloggen met Microsoft'),
+  // Empty = translated default in the visitor's language
+  buttonLabel: z.string().default(''),
 });
 
 export const systemSchema = z.object({

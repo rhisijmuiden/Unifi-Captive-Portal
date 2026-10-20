@@ -1,52 +1,56 @@
 # Roadmap
 
-Laatst bijgewerkt: 20 oktober 2026. Deze roadmap wordt na elke grote build bijgewerkt.
+**English** · [Nederlands](ROADMAP.nl.md)
 
-Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
+Last updated: 20 October 2026. This roadmap is updated after every major build.
 
-## Stap 1: Fundament (v0.1) ✅
+Legend: ✅ done · 🚧 in progress · 📋 planned
 
-- ✅ Multi-tenant basis: klanten, gebruikers en rollen (platformbeheerder, klantbeheerder, medewerker)
-- ✅ Eerste-installatiewizard, uitnodigen en wachtwoordherstel per e-mail
-- ✅ Microsoft Entra ID single sign-on (optioneel, met fallback voor beheerders)
-- ✅ Eigen SMTP-server: STARTTLS/TLS, minimale TLS-versie, OAuth 2.0, DKIM, testbericht
-- ✅ Info-knop met versie, update-check, **stable- en test-releasekanaal** en de hele installatie bijwerken vanuit de webinterface
-- ✅ Automatische databaseback-up voor elke update, met rollback als de update mislukt
-- ✅ Moderne beheeromgeving in RHIS-huisstijl (menu links, licht/donker, mobiel), "Powered by RHIS" en "Designed by RHIS"
-- ✅ Installer voor Debian 13 (VM/fysiek) en Proxmox LXC-script op basis van community-scripts
-- ✅ CI (typecheck, tests, build) en release-workflow voor GitHub
+## Step 1: Foundation (v0.1) ✅
 
-## Stap 2: UniFi-koppeling en hosting 📋
+- ✅ Multi-tenant base: customers, users and roles (platform admin, customer admin, staff member)
+- ✅ First-run setup wizard, invitations and password reset by e-mail
+- ✅ Microsoft Entra ID single sign-on (optional, with a fallback for admins)
+- ✅ Your own SMTP server: STARTTLS/TLS, minimum TLS version, OAuth 2.0, DKIM, test message
+- ✅ Info button with version, update check, **stable and test release channels** and updating the whole installation from the web interface
+- ✅ Automatic database backup before every update, with rollback when the update fails
+- ✅ Bilingual (English and Dutch): interface, server messages and e-mails, language per user
+- ✅ Modern admin interface in the RHIS house style (menu on the left, light/dark, mobile), "Powered by RHIS" and "Designed by RHIS"
+- ✅ Installer for Debian 13 (VM/physical) and a Proxmox LXC script based on community-scripts
+- ✅ CI (typecheck, tests, build) and a release workflow on GitHub
 
-- 📋 UniFi OS consoles koppelen (UDM, UDM Pro, UDM SE, UCG Ultra/Max, Cloud Gateway, UniFi Network Application)
-  - via de UniFi Site Manager API met een API-sleutel van de klant, zodat er geen poorten open hoeven
-  - directe verbinding met de console als terugvaloptie
-- 📋 External portal endpoint: gasten opvangen, klant herkennen aan site en access point
-- 📋 Gasten toegang geven met tijdslimiet, datalimiet en snelheidslimiet
-- 📋 Caddy als reverse proxy met automatische Let's Encrypt per klant-hostname (bijv. `gast.bedrijf.nl`)
-- 📋 Controle of het A-record naar de server wijst voordat een certificaat wordt aangevraagd
-- 📋 Stap-voor-stap handleiding per console voor de koppeling (hotspot-instellingen, pre-authorization)
+## Step 2: UniFi integration and hosting 📋
 
-## Stap 3: Editor, registratie, betaling en notificaties 📋
+- 📋 Connect UniFi OS consoles (UDM, UDM Pro, UDM SE, UCG Ultra/Max, Cloud Gateway, UniFi Network Application)
+  - through the UniFi Site Manager API with the customer's API key, so no ports need to be opened
+  - a direct connection to the console as a fallback
+- 📋 External portal endpoint: receive guests and recognise the customer by site and access point
+- 📋 Give guests access with time, data and speed limits
+- 📋 Caddy as reverse proxy with automatic Let's Encrypt per customer hostname (e.g. `guest.company.com`)
+- 📋 Check that the A record points to the server before requesting a certificate
+- 📋 Step-by-step guide per console for connecting it (hotspot settings, pre-authorization)
 
-- 📋 Visuele drag-and-drop portal-editor met sjablonen en eigen huisstijl per klant
-- 📋 Registratie via e-mail, vouchers of akkoord op voorwaarden
-- 📋 Betaalde toegang via Mollie of Stripe
-- 📋 **Notificaties**
-  - 📋 Melding zodra het A-record gevalideerd is en het SSL-certificaat geregeld is
-  - 📋 Maandrapportage aan het einde van de maand: aantal gasten, nieuwe registraties, betalingen en piekmomenten
-- 📋 **Mail-template ontwerper**, zowel visueel als in HTML, voor uitnodigingen, meldingen en rapportages
+## Step 3: Editor, registration, payments and notifications 📋
 
-## Stap 4: Backups en handleidingen 📋
+- 📋 Visual drag-and-drop portal editor with templates and per-customer branding
+- 📋 Guest portals in multiple languages (at least English and Dutch), chosen by the guest
+- 📋 Registration by e-mail, vouchers or accepting the terms
+- 📋 Paid access through Mollie or Stripe
+- 📋 **Notifications**
+  - 📋 Alert as soon as the A record is validated and the SSL certificate is in place
+  - 📋 Monthly report at the end of each month: number of guests, new registrations, payments and peak times
+- 📋 **E-mail template designer**, both visual and in HTML, for invitations, notifications and reports
 
-- 📋 Volledige en incrementele back-ups (database en bestanden)
-- 📋 Remote backuplocaties: FTP, FTPS en SCP
-- 📋 Herstellen vanaf de remote locatie, vanuit de webinterface
-- 📋 Back-upschema en bewaartermijnen
-- 📋 Complete handleidingen voor klanten en beheerders
+## Step 4: Backups and guides 📋
+
+- 📋 Full and incremental backups (database and files)
+- 📋 Remote backup locations: FTP, FTPS and SCP
+- 📋 Restore from the remote location, from the web interface
+- 📋 Backup schedule and retention
+- 📋 Complete guides for customers and admins
 
 ## Later
 
-- 📋 Entra SSO per klant (klanten loggen in met hun eigen Microsoft-tenant)
-- 📋 Tweestapsverificatie (TOTP) voor wachtwoordaccounts
-- 📋 Meertalige gastportals (NL, EN, DE, FR)
+- 📋 Entra SSO per customer (customers sign in with their own Microsoft tenant)
+- 📋 Two-factor authentication (TOTP) for password accounts
+- 📋 More languages for the admin interface and guest portals (e.g. German and French)

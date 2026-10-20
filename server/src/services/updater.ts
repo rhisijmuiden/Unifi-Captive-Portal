@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { hostname, uptime } from 'node:os';
 import { join } from 'node:path';
 import { config } from '../config.js';
+import { badRequest } from '../lib/errors.js';
 
 const updateDir = join(config.dataDir, 'update');
 const requestFile = join(updateDir, 'request.json');
@@ -46,7 +47,7 @@ async function github<T>(path: string): Promise<T | null> {
     signal: AbortSignal.timeout(10_000),
   });
   if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`GitHub antwoordde met ${res.status}`);
+  if (!res.ok) throw badRequest('errors.githubStatus', { status: res.status });
   return (await res.json()) as T;
 }
 
@@ -99,7 +100,7 @@ export async function selfUpdateEnabled() {
   return readFile(enabledFile).then(() => true, () => false);
 }
 
-export type UpdateStatus = { state: 'idle' | 'queued' | 'running' | 'success' | 'failed'; version?: string; message?: string; log?: string; updatedAt?: string };
+export type UpdateStatus = { state: 'idle' | 'queued' | 'running' | 'success' | 'failed'; code?: string; version?: string; message?: string; log?: string; updatedAt?: string };
 
 export async function readUpdateStatus(): Promise<UpdateStatus> {
   try {
@@ -114,14 +115,14 @@ export async function readUpdateStatus(): Promise<UpdateStatus> {
  * which runs install/update.sh. The app itself never runs as root.
  */
 export async function requestUpdate(version: string, includeSystem: boolean, requestedBy: string) {
-  if (!(await selfUpdateEnabled())) throw new Error('Updaten vanuit de interface is niet geactiveerd op deze server');
+  if (!(await selfUpdateEnabled())) throw badRequest('errors.selfUpdateDisabled');
   const status = await readUpdateStatus();
   // A request older than 30 minutes is considered stuck (e.g. the updater unit was stopped)
   const fresh = status.updatedAt && Date.now() - new Date(status.updatedAt).getTime() < 30 * 60_000;
-  if ((status.state === 'queued' || status.state === 'running') && fresh) throw new Error('Er loopt al een update');
+  if ((status.state === 'queued' || status.state === 'running') && fresh) throw badRequest('errors.updateRunning');
   await mkdir(updateDir, { recursive: true });
   const now = new Date().toISOString();
-  await writeFile(statusFile, JSON.stringify({ state: 'queued', version, message: 'Update staat in de wachtrij', updatedAt: now }));
+  await writeFile(statusFile, JSON.stringify({ state: 'queued', code: 'queued', version, message: 'Update queued', updatedAt: now }));
   // update.sh only accepts a plain version string and a boolean from this file
   await writeFile(requestFile, JSON.stringify({ version, system: includeSystem, requestedBy, requestedAt: now }));
 }

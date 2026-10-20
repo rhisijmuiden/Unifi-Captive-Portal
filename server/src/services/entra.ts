@@ -40,7 +40,7 @@ export async function completeEntraLogin(cfg: oidc.Configuration, callbackUrl: U
     expectedNonce: flow.nonce,
   });
   const claims = tokens.claims();
-  if (!claims) throw new Error('Geen ID-token ontvangen');
+  if (!claims) throw new Error('No ID token received');
   const email = String(claims.email ?? claims.preferred_username ?? '').toLowerCase();
   return { oid: String(claims.oid ?? claims.sub), email, name: String(claims.name ?? email) };
 }

@@ -1,14 +1,17 @@
 # Changelog
 
-Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
+**English** · [Nederlands](CHANGELOG.nl.md)
 
-## [0.1.0] - nog niet uitgebracht
+All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
-Eerste versie: het fundament van het platform.
+## [0.1.0] - unreleased
 
-- Klanten, gebruikers en rollen, eerste-installatiewizard, uitnodigingen en wachtwoordherstel
+First version: the foundation of the platform.
+
+- Customers, users and roles, first-run setup wizard, invitations and password reset
 - Microsoft Entra ID single sign-on
-- SMTP-instellingen met STARTTLS/TLS, OAuth 2.0, DKIM en testbericht
-- Info & updates met stable- en testkanaal en updaten van de volledige installatie vanuit de webinterface
-- Installer voor Debian 13 en Proxmox LXC-script
-- Beheeromgeving in RHIS-huisstijl
+- SMTP settings with STARTTLS/TLS, OAuth 2.0, DKIM and a test message
+- Info & updates with stable and test channels, and updating the whole installation from the web interface
+- Installer for Debian 13 and a Proxmox LXC script
+- Admin interface in the RHIS house style
+- Bilingual: English and Dutch, language per user

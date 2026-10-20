@@ -25,6 +25,8 @@ export const users = pgTable(
     tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
     isActive: boolean('is_active').notNull().default(true),
     entraOid: text('entra_oid').unique(),
+    // Preferred language for the interface and e-mails (null = follow the browser)
+    locale: text('locale'),
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },

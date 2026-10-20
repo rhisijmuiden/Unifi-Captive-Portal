@@ -3,7 +3,8 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db, schema } from '../db/index.js';
 import { audit, requireSuperadmin, requireUser } from '../lib/auth.js';
-import { badRequest } from '../lib/errors.js';
+import { requestLocale } from '../i18n/index.js';
+import { badRequest, translateError } from '../lib/errors.js';
 import { getSettings } from '../services/settings.js';
 import { checkForUpdates, readUpdateStatus, requestUpdate, selfUpdateEnabled, systemInfo } from '../services/updater.js';
 
@@ -25,7 +26,7 @@ export async function systemRoutes(app: FastifyInstance) {
       const { updateChannel } = await getSettings('system');
       return await checkForUpdates(updateChannel, req.query.force === '1');
     } catch (err) {
-      throw badRequest(`Controleren op updates mislukt: ${(err as Error).message}`);
+      throw badRequest('errors.updateCheckFailed', { reason: translateError(err, requestLocale(req)) });
     }
   });
 
@@ -42,7 +43,7 @@ export async function systemRoutes(app: FastifyInstance) {
     try {
       await requestUpdate(version, system, user.email);
     } catch (err) {
-      throw badRequest((err as Error).message);
+      throw err;
     }
     await audit(req, 'system.update_requested', { version, system }, null);
     return { ok: true };

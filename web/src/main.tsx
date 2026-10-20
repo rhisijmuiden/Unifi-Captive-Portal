@@ -13,6 +13,7 @@ import { DashboardPage } from './pages/Dashboard';
 import { SmtpSettingsPage, SsoSettingsPage } from './pages/Settings';
 import { TenantsPage } from './pages/Tenants';
 import { UsersPage } from './pages/Users';
+import './i18n';
 import './styles.css';
 
 const queryClient = new QueryClient({

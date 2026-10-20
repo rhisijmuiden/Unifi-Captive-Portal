@@ -9,8 +9,9 @@ import { buildEntraLogin, completeEntraLogin, entraConfig } from '../services/en
 import { getSettings } from '../services/settings.js';
 import { consumeToken, sendPasswordReset } from '../services/tokens.js';
 import { config } from '../config.js';
+import { isLocale, requestLocale } from '../i18n/index.js';
 
-const password = z.string().min(10, 'Wachtwoord moet minimaal 10 tekens zijn').max(200);
+const password = z.string().min(10, 'errors.passwordTooShort').max(200);
 const FLOW_COOKIE = 'cp_entra_flow';
 const loginLimit = { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } };
 
@@ -34,10 +35,10 @@ export async function authRoutes(app: FastifyInstance) {
     const user = await db.transaction(async (tx) => {
       await tx.execute(sql`lock table users in exclusive mode`);
       const [{ value }] = await tx.select({ value: count() }).from(schema.users);
-      if (value > 0) throw badRequest('Installatie is al voltooid');
+      if (value > 0) throw badRequest('errors.setupDone');
       const [created] = await tx
         .insert(schema.users)
-        .values({ name: body.name, email: body.email.toLowerCase(), passwordHash: await hashPassword(body.password), role: 'superadmin' })
+        .values({ name: body.name, email: body.email.toLowerCase(), passwordHash: await hashPassword(body.password), role: 'superadmin', locale: requestLocale(req) })
         .returning();
       return created;
     });
@@ -52,13 +53,13 @@ export async function authRoutes(app: FastifyInstance) {
     const sso = await getSettings('sso');
     const user = await db.query.users.findFirst({ where: eq(schema.users.email, body.email.toLowerCase().trim()) });
     const ok = user?.passwordHash ? await verifyPassword(user.passwordHash, body.password) : false;
-    if (!user || !ok || !user.isActive) throw unauthorized('Onjuist e-mailadres of wachtwoord');
+    if (!user || !ok || !user.isActive) throw unauthorized('errors.badCredentials');
     if (sso.entraEnabled && !sso.allowLocalLogin && user.role !== 'superadmin') {
-      throw unauthorized('Log in met Microsoft');
+      throw unauthorized('errors.useMicrosoft');
     }
     if (user.tenantId) {
       const tenant = await db.query.tenants.findFirst({ where: eq(schema.tenants.id, user.tenantId) });
-      if (tenant?.status === 'suspended') throw unauthorized('Dit klantaccount is opgeschort');
+      if (tenant?.status === 'suspended') throw unauthorized('errors.tenantSuspended');
     }
     await createSession(req, reply, user);
     req.user = user;
@@ -73,11 +74,18 @@ export async function authRoutes(app: FastifyInstance) {
 
   app.get('/api/auth/me', async (req) => ({ user: publicUser(requireUser(req)) }));
 
+  app.put('/api/auth/locale', async (req) => {
+    const user = requireUser(req);
+    const { locale } = z.object({ locale: z.string().refine(isLocale) }).parse(req.body);
+    await db.update(schema.users).set({ locale }).where(eq(schema.users.id, user.id));
+    return { ok: true, locale };
+  });
+
   app.post('/api/auth/password', async (req) => {
     const user = requireUser(req);
     const body = z.object({ current: z.string().optional(), password }).parse(req.body);
     if (user.passwordHash && !(await verifyPassword(user.passwordHash, body.current ?? ''))) {
-      throw badRequest('Huidig wachtwoord klopt niet');
+      throw badRequest('errors.wrongPassword');
     }
     await db.update(schema.users).set({ passwordHash: await hashPassword(body.password) }).where(eq(schema.users.id, user.id));
     await audit(req, 'auth.password_changed');
@@ -95,7 +103,7 @@ export async function authRoutes(app: FastifyInstance) {
   app.post('/api/auth/reset', loginLimit, async (req, reply) => {
     const body = z.object({ token: z.string().min(10), password }).parse(req.body);
     const user = await consumeToken(body.token);
-    if (!user || !user.isActive) throw badRequest('Deze link is ongeldig of verlopen');
+    if (!user || !user.isActive) throw badRequest('errors.linkInvalid');
     await db.update(schema.users).set({ passwordHash: await hashPassword(body.password) }).where(eq(schema.users.id, user.id));
     await createSession(req, reply, user);
     req.user = user;

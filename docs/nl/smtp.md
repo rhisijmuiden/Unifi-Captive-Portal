@@ -1,5 +1,7 @@
 # E-mail (SMTP)
 
+> 🇬🇧 [English version](../en/smtp.md)
+
 Captive Portal verstuurt mail via je eigen mailserver: uitnodigingen, wachtwoordherstel, en later meldingen en maandrapportages. Instellen via **Systeem → E-mail (SMTP)**.
 
 ## Instellingen

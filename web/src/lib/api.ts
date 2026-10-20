@@ -1,3 +1,5 @@
+import { currentLocale } from '../i18n';
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -13,12 +15,13 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     credentials: 'same-origin',
     headers: {
       'x-requested-with': 'captive-portal',
+      'x-locale': currentLocale(),
       ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   const data = res.headers.get('content-type')?.includes('json') ? await res.json() : null;
-  if (!res.ok) throw new ApiError(res.status, data?.error ?? `Fout ${res.status}`);
+  if (!res.ok) throw new ApiError(res.status, data?.error ?? `HTTP ${res.status}`);
   return data as T;
 }
 
@@ -42,6 +45,7 @@ export type User = {
   ssoLinked: boolean;
   lastLoginAt: string | null;
   createdAt: string;
+  locale: string | null;
 };
 
 export type Tenant = {
@@ -61,10 +65,4 @@ export type AuthState = {
   sso: { entraEnabled: boolean; buttonLabel: string; allowLocalLogin: boolean };
   passwordResetAvailable: boolean;
   version: string;
-};
-
-export const roleLabel: Record<Role, string> = {
-  superadmin: 'Platformbeheerder',
-  tenant_admin: 'Klantbeheerder',
-  tenant_user: 'Medewerker',
 };

@@ -3,6 +3,7 @@ import { config } from '../config.js';
 import { db, schema } from '../db/index.js';
 import type { User } from '../db/schema.js';
 import { randomToken, sha256 } from '../lib/crypto.js';
+import { DEFAULT_LOCALE, normalizeLocale, t } from '../i18n/index.js';
 import { renderEmail, sendMail } from './mailer.js';
 
 type Purpose = 'invite' | 'password_reset';
@@ -28,25 +29,21 @@ export async function consumeToken(token: string) {
 export async function sendInvite(user: User) {
   const token = await issueToken(user.id, 'invite');
   const url = `${config.publicUrl}/reset-password?token=${token}&invite=1`;
+  const locale = normalizeLocale(user.locale) ?? DEFAULT_LOCALE;
   await sendMail(
     user.email,
-    'Je account voor het Captive Portal',
-    renderEmail(`Welkom, ${user.name}`, ['Er is een account voor je aangemaakt. Kies via de knop een wachtwoord om in te loggen. De link is 7 dagen geldig.'], {
-      label: 'Wachtwoord instellen',
-      url,
-    }),
+    t(locale, 'mail.inviteSubject'),
+    renderEmail(locale, t(locale, 'mail.inviteTitle', { name: user.name }), [t(locale, 'mail.inviteBody')], { label: t(locale, 'mail.inviteButton'), url }),
   );
 }
 
 export async function sendPasswordReset(user: User) {
   const token = await issueToken(user.id, 'password_reset');
   const url = `${config.publicUrl}/reset-password?token=${token}`;
+  const locale = normalizeLocale(user.locale) ?? DEFAULT_LOCALE;
   await sendMail(
     user.email,
-    'Wachtwoord opnieuw instellen',
-    renderEmail('Nieuw wachtwoord', ['Je hebt gevraagd je wachtwoord opnieuw in te stellen. De link is 1 uur geldig. Heb je dit niet gevraagd, dan kun je deze e-mail negeren.'], {
-      label: 'Nieuw wachtwoord kiezen',
-      url,
-    }),
+    t(locale, 'mail.resetSubject'),
+    renderEmail(locale, t(locale, 'mail.resetTitle'), [t(locale, 'mail.resetBody')], { label: t(locale, 'mail.resetButton'), url }),
   );
 }

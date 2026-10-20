@@ -11,7 +11,7 @@ const tenantInput = z.object({
     .string()
     .trim()
     .toLowerCase()
-    .regex(/^[a-z0-9](?:[a-z0-9-]{0,48}[a-z0-9])?$/, 'Gebruik kleine letters, cijfers en streepjes'),
+    .regex(/^[a-z0-9](?:[a-z0-9-]{0,48}[a-z0-9])?$/, 'errors.slugFormat'),
   contactEmail: z.string().email().nullable().optional().or(z.literal('').transform(() => null)),
   status: z.enum(['active', 'suspended']).default('active'),
   notes: z.string().max(2000).nullable().optional(),
@@ -40,7 +40,7 @@ export async function tenantRoutes(app: FastifyInstance) {
     requireSuperadmin(req);
     const body = tenantInput.parse(req.body);
     const exists = await db.query.tenants.findFirst({ where: eq(schema.tenants.slug, body.slug) });
-    if (exists) throw badRequest('Deze korte naam is al in gebruik');
+    if (exists) throw badRequest('errors.slugTaken');
     const [tenant] = await db.insert(schema.tenants).values(body).returning();
     await audit(req, 'tenant.created', { name: tenant.name }, tenant.id);
     return { tenant };

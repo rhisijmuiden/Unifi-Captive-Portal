@@ -3,7 +3,8 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db, schema } from '../db/index.js';
 import { audit, publicUser, requireTenantAdmin, requireUser } from '../lib/auth.js';
-import { badRequest, forbidden, notFound } from '../lib/errors.js';
+import { badRequest, forbidden, notFound, translateError } from '../lib/errors.js';
+import { requestLocale } from '../i18n/index.js';
 import { sendInvite } from '../services/tokens.js';
 
 const userInput = z.object({
@@ -37,17 +38,18 @@ export async function userRoutes(app: FastifyInstance) {
     }
     requireTenantAdmin(req, body.tenantId ?? null);
     if (body.role === 'superadmin') body.tenantId = null;
-    else if (!body.tenantId) throw badRequest('Kies een klant voor deze gebruiker');
+    else if (!body.tenantId) throw badRequest('errors.chooseTenant');
     if (await db.query.users.findFirst({ where: eq(schema.users.email, body.email) })) {
-      throw badRequest('Er bestaat al een gebruiker met dit e-mailadres');
+      throw badRequest('errors.emailTaken');
     }
     const [user] = await db
       .insert(schema.users)
-      .values({ name: body.name, email: body.email, role: body.role, tenantId: body.tenantId, isActive: body.isActive })
+      // New users start in the language of the person inviting them
+      .values({ name: body.name, email: body.email, role: body.role, tenantId: body.tenantId, isActive: body.isActive, locale: requestLocale(req) })
       .returning();
     await audit(req, 'user.created', { email: user.email, role: user.role }, user.tenantId);
     let inviteError: string | null = null;
-    if (body.sendInvite) await sendInvite(user).catch((err: Error) => (inviteError = err.message));
+    if (body.sendInvite) await sendInvite(user).catch((err: Error) => (inviteError = translateError(err, requestLocale(req))));
     return { user: publicUser(user), inviteError };
   });
 
@@ -62,12 +64,12 @@ export async function userRoutes(app: FastifyInstance) {
       delete body.tenantId;
     }
     if (target.id === me.id && (body.isActive === false || (body.role && body.role !== me.role))) {
-      throw badRequest('Je kunt je eigen rol of status niet wijzigen');
+      throw badRequest('errors.ownRole');
     }
     if (body.role === 'superadmin') body.tenantId = null;
     if (body.email && body.email !== target.email) {
       const clash = await db.query.users.findFirst({ where: and(eq(schema.users.email, body.email), ne(schema.users.id, target.id)) });
-      if (clash) throw badRequest('Er bestaat al een gebruiker met dit e-mailadres');
+      if (clash) throw badRequest('errors.emailTaken');
     }
     const [user] = await db.update(schema.users).set(body).where(eq(schema.users.id, target.id)).returning();
     if (body.isActive === false) await db.delete(schema.sessions).where(eq(schema.sessions.userId, user.id));
@@ -89,7 +91,7 @@ export async function userRoutes(app: FastifyInstance) {
     const target = await db.query.users.findFirst({ where: eq(schema.users.id, req.params.id) });
     if (!target) throw notFound();
     requireTenantAdmin(req, target.tenantId);
-    if (target.id === me.id) throw badRequest('Je kunt jezelf niet verwijderen');
+    if (target.id === me.id) throw badRequest('errors.deleteSelf');
     if (target.role === 'superadmin' && me.role !== 'superadmin') throw forbidden();
     await db.delete(schema.users).where(eq(schema.users.id, target.id));
     await audit(req, 'user.deleted', { email: target.email }, target.tenantId);

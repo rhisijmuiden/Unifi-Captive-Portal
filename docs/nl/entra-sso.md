@@ -1,5 +1,7 @@
 # Microsoft Entra ID (single sign-on)
 
+> 🇬🇧 [English version](../en/entra-sso.md)
+
 Met Entra SSO loggen gebruikers in met hun Microsoft-werkaccount. Wachtwoorden en MFA regelt Microsoft.
 
 ## 1. App-registratie in Entra

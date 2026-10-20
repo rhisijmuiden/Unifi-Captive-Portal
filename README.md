@@ -4,56 +4,59 @@
 
 <h1 align="center">Captive Portal</h1>
 
+<p align="center"><b>English</b> · <a href="README.nl.md">Nederlands</a></p>
+
 <p align="center">
-  Een gehost platform waarop meerdere bedrijven hun eigen captive portal voor UniFi-gastwifi bouwen en beheren.<br>
+  A hosted platform where multiple companies build and manage their own captive portal for UniFi guest Wi-Fi.<br>
   Designed by <a href="https://rhis.nl">RHIS</a>.
 </p>
 
 ---
 
-## Wat is het?
+## What is it?
 
-Captive Portal is een multi-tenant webapplicatie. Jij (de platformbeheerder) host één server; je klanten loggen in, bouwen hun eigen gastportal in een editor, koppelen hun UniFi OS console (UDM, UDM Pro, UCG Ultra, Cloud Gateway, enz.) en laten gasten registreren, eventueel tegen betaling. Elke klant kan een eigen hostname gebruiken, zoals `gast.bedrijf.nl`, met automatisch een Let's Encrypt-certificaat.
+Captive Portal is a multi-tenant web application. You (the platform admin) host one server; your customers sign in, build their own guest portal in an editor, connect their UniFi OS console (UDM, UDM Pro, UCG Ultra, Cloud Gateway and more) and let guests register, optionally for a fee. Every customer can use their own hostname, such as `guest.company.com`, with an automatic Let's Encrypt certificate.
 
-Zie de [roadmap](ROADMAP.md) voor wat er al werkt en wat eraan komt.
+See the [roadmap](ROADMAP.md) for what works today and what is coming.
 
-## Wat zit er nu in (v0.1)
+## What's included (v0.1)
 
-- **Klanten (tenants) en gebruikers** met drie rollen: platformbeheerder, klantbeheerder en medewerker. Uitnodigen per e-mail.
-- **Microsoft Entra ID single sign-on** (OpenID Connect met PKCE), naast of in plaats van inloggen met wachtwoord.
-- **Eigen mailserver (SMTP)**: STARTTLS of TLS, minimale TLS-versie, gebruikersnaam/wachtwoord of OAuth 2.0 (Microsoft 365), DKIM-ondertekening en een testknop.
-- **Info & updates**: huidige versie, controleren op updates, kiezen tussen het **stable**- en **test**-kanaal, en de **hele installatie bijwerken** (app plus Debian-pakketten) vanuit de webinterface, met automatische databaseback-up en rollback.
-- **Moderne beheeromgeving** in de RHIS-huisstijl: menu links, licht en donker thema, werkt op telefoon.
-- **Installatie** als Proxmox LXC (Debian 13) of op een Debian 13 VM of fysieke server. De webinterface draait op **poort 8080**.
+- **Customers (tenants) and users** with three roles: platform admin, customer admin and staff member. Invitations by e-mail.
+- **Microsoft Entra ID single sign-on** (OpenID Connect with PKCE), next to or instead of password sign-in.
+- **Your own mail server (SMTP)**: STARTTLS or TLS, minimum TLS version, username/password or OAuth 2.0 (Microsoft 365), DKIM signing and a test button.
+- **Info & updates**: current version, check for updates, choose between the **stable** and **test** channel, and **update the whole installation** (app plus Debian packages) from the web interface, with an automatic database backup and rollback.
+- **Bilingual**: English and Dutch in the interface, error messages and e-mails. Every user picks a language; new languages are added with one translation file.
+- **Modern admin interface** in the RHIS house style: menu on the left, light and dark theme, works on phones.
+- **Installation** as a Proxmox LXC (Debian 13) or on a Debian 13 VM or physical server. The web interface runs on **port 8080**.
 
-## Installeren
+## Install
 
-| Waar | Commando |
+| Where | Command |
 | --- | --- |
-| **Proxmox LXC** (op de Proxmox-host) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/ct/captive-portal.sh)"` |
-| **Debian 13 VM of server** (als root) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/install/install.sh)"` |
+| **Proxmox LXC** (on the Proxmox host) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/ct/captive-portal.sh)"` |
+| **Debian 13 VM or server** (as root) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/install/install.sh)"` |
 
-Open daarna `http://<ip-van-de-server>:8080` en maak het eerste beheerdersaccount aan. Uitgebreide stappen staan in [docs/installatie.md](docs/installatie.md).
+Then open `http://<server-ip>:8080` and create the first administrator account. Detailed steps are in [docs/en/installation.md](docs/en/installation.md).
 
-## Handleidingen
+## Guides
 
-- [Installatie](docs/installatie.md): LXC, VM en fysieke server, eerste start, configuratiebestand
-- [Updaten en releasekanalen](docs/updaten.md): stable en test, updaten vanuit de interface of de terminal, rollback
-- [Microsoft Entra SSO](docs/entra-sso.md): app-registratie en koppeling
-- [E-mail (SMTP)](docs/smtp.md): Microsoft 365, Google Workspace, eigen server, DKIM
-- [Ontwikkelen en releasen](docs/ontwikkelen.md): lokaal draaien, projectstructuur, een release publiceren
+- [Installation](docs/en/installation.md): LXC, VM and physical server, first start, configuration file
+- [Updating and release channels](docs/en/updating.md): stable and test, updating from the interface or the terminal, rollback
+- [Microsoft Entra SSO](docs/en/entra-sso.md): app registration and setup
+- [E-mail (SMTP)](docs/en/smtp.md): Microsoft 365, Google Workspace, your own server, DKIM
+- [Development and releases](docs/en/development.md): running locally, project layout, translations, publishing a release
 
-## Techniek
+## Technology
 
-| Onderdeel | Keuze |
+| Part | Choice |
 | --- | --- |
 | Backend | Node.js 24, TypeScript, Fastify 5 |
-| Database | PostgreSQL (Debian 13 levert versie 17) met Drizzle ORM en migraties |
-| Frontend | React 19, Vite, Tailwind CSS 4, TanStack Query |
-| Inloggen | Argon2id-wachtwoorden, sessies in de database, Entra ID via OpenID Connect |
-| Beveiliging | Geheimen versleuteld opgeslagen (AES-256-GCM), CSRF-bescherming, rate limiting, systemd-hardening |
-| Reverse proxy en SSL (stap 2) | Caddy met automatische Let's Encrypt per klant-hostname |
+| Database | PostgreSQL (Debian 13 ships version 17) with Drizzle ORM and migrations |
+| Frontend | React 19, Vite, Tailwind CSS 4, TanStack Query, i18next |
+| Sign-in | Argon2id passwords, database sessions, Entra ID through OpenID Connect |
+| Security | Secrets stored encrypted (AES-256-GCM), CSRF protection, rate limiting, systemd hardening |
+| Reverse proxy and SSL (step 2) | Caddy with automatic Let's Encrypt per customer hostname |
 
-## Licentie
+## License
 
-© RHIS. Alle rechten voorbehouden.
+© RHIS. All rights reserved.

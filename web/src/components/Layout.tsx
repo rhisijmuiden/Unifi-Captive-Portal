@@ -22,48 +22,51 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
-import { api, roleLabel, type User } from '../lib/api';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
+import { api, type User } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { DesignedBy } from './DesignedBy';
 import { InfoDialog } from './InfoDialog';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import { cx } from './ui';
 
 type Item = { to: string; label: string; icon: LucideIcon; soon?: boolean; end?: boolean };
 type Section = { title?: string; items: Item[] };
 
-function navFor(user: User): Section[] {
+function navFor(user: User, t: TFunction): Section[] {
   const portal: Section = {
-    title: 'Captive portals',
+    title: t('nav.portals'),
     items: [
-      { to: '/portals', label: 'Portal-editor', icon: Palette, soon: true },
-      { to: '/hostnames', label: 'Hostnames & SSL', icon: Globe, soon: true },
-      { to: '/consoles', label: 'UniFi-consoles', icon: Router, soon: true },
-      { to: '/guests', label: 'Gasten', icon: UserCheck, soon: true },
-      { to: '/payments', label: 'Betalingen', icon: CreditCard, soon: true },
+      { to: '/portals', label: t('nav.editor'), icon: Palette, soon: true },
+      { to: '/hostnames', label: t('nav.hostnames'), icon: Globe, soon: true },
+      { to: '/consoles', label: t('nav.consoles'), icon: Router, soon: true },
+      { to: '/guests', label: t('nav.guests'), icon: UserCheck, soon: true },
+      { to: '/payments', label: t('nav.payments'), icon: CreditCard, soon: true },
     ],
   };
   if (user.role === 'superadmin') {
     return [
       {
         items: [
-          { to: '/', label: 'Overzicht', icon: LayoutDashboard, end: true },
-          { to: '/tenants', label: 'Klanten', icon: Building2 },
-          { to: '/users', label: 'Gebruikers', icon: Users },
+          { to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, end: true },
+          { to: '/tenants', label: t('nav.tenants'), icon: Building2 },
+          { to: '/users', label: t('nav.users'), icon: Users },
         ],
       },
       portal,
       {
-        title: 'Systeem',
+        title: t('nav.system'),
         items: [
-          { to: '/settings/smtp', label: 'E-mail (SMTP)', icon: Mail },
-          { to: '/settings/sso', label: 'Single sign-on', icon: KeyRound },
-          { to: '/backups', label: 'Backups', icon: DatabaseBackup, soon: true },
+          { to: '/settings/smtp', label: t('nav.smtp'), icon: Mail },
+          { to: '/settings/sso', label: t('nav.sso'), icon: KeyRound },
+          { to: '/backups', label: t('nav.backups'), icon: DatabaseBackup, soon: true },
         ],
       },
     ];
   }
-  const base: Item[] = [{ to: '/', label: 'Overzicht', icon: LayoutDashboard, end: true }];
-  if (user.role === 'tenant_admin') base.push({ to: '/users', label: 'Team', icon: Users });
+  const base: Item[] = [{ to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, end: true }];
+  if (user.role === 'tenant_admin') base.push({ to: '/users', label: t('nav.team'), icon: Users });
   return [{ items: base }, portal];
 }
 
@@ -98,8 +101,15 @@ export function Layout() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { isDark, toggle } = useTheme();
+  const { t } = useTranslation();
 
   useEffect(() => setMobileOpen(false), [location.pathname]);
+
+  // Follow the language saved on the account (e.g. chosen on another device)
+  const { i18n } = useTranslation();
+  useEffect(() => {
+    if (user.locale && user.locale !== i18n.resolvedLanguage) i18n.changeLanguage(user.locale);
+  }, [user.locale, i18n]);
 
   const logout = async () => {
     await api.post('/auth/logout');
@@ -114,13 +124,13 @@ export function Layout() {
           <img src="/rhis-logo-wit.svg" alt="RHIS" className="h-7 w-auto" />
           <p className="mt-2 text-[11px] font-semibold tracking-[0.18em] text-lucht/80 uppercase">Captive Portal</p>
         </div>
-        <button className="rounded-lg p-1.5 text-white/60 hover:bg-white/10 lg:hidden" onClick={() => setMobileOpen(false)} aria-label="Menu sluiten">
+        <button className="rounded-lg p-1.5 text-white/60 hover:bg-white/10 lg:hidden" onClick={() => setMobileOpen(false)} aria-label={t('nav.closeMenu')}>
           <X className="size-5" />
         </button>
       </div>
 
       <nav className="flex-1 space-y-6 overflow-y-auto px-3 pb-4">
-        {navFor(user).map((section, i) => (
+        {navFor(user, t).map((section, i) => (
           <div key={i}>
             {section.title && <p className="mb-2 px-3 text-[11px] font-semibold tracking-wider text-white/40 uppercase">{section.title}</p>}
             <ul className="space-y-0.5">
@@ -130,7 +140,7 @@ export function Layout() {
                     <span className="flex cursor-default items-center gap-3 rounded-[10px] px-3 py-2 text-sm text-white/35">
                       <item.icon className="size-[18px]" />
                       <span className="flex-1">{item.label}</span>
-                      <span className="rounded-full bg-white/8 px-2 py-0.5 text-[10px] font-semibold text-white/45">Binnenkort</span>
+                      <span className="rounded-full bg-white/8 px-2 py-0.5 text-[10px] font-semibold text-white/45">{t('common.soon')}</span>
                     </span>
                   ) : (
                     <NavLink
@@ -162,7 +172,7 @@ export function Layout() {
       <div className="space-y-1 border-t border-white/10 p-3">
         <button onClick={() => setInfoOpen(true)} className="flex w-full items-center gap-3 rounded-[10px] px-3 py-2 text-sm text-white/70 transition hover:bg-white/5 hover:text-white">
           <Info className="size-[18px] text-white/55" />
-          <span className="flex-1 text-left">Info & updates</span>
+          <span className="flex-1 text-left">{t('nav.info')}</span>
           <span className="rounded-full bg-white/10 px-2 py-0.5 font-mono text-[11px] text-lucht">v{data!.version}</span>
         </button>
         <a
@@ -173,23 +183,26 @@ export function Layout() {
         >
           <img src="/rhis-logo-wit.svg" alt="RHIS" className="h-4 w-auto" />
           <span className="text-[11px] text-white/50">
-            Powered by <span className="font-semibold text-white/80">RHIS</span>
+            {t('common.poweredBy')} <span className="font-semibold text-white/80">RHIS</span>
           </span>
         </a>
-        <div className="flex items-center gap-3 rounded-[10px] px-3 py-2.5">
-          <NavLink to="/account" className="flex min-w-0 flex-1 items-center gap-3" title="Mijn account">
+        <div className="flex items-center justify-between px-2 pt-1">
+          <LanguageSwitcher tone="dark" />
+          <button onClick={toggle} className="rounded-lg p-1.5 text-white/55 hover:bg-white/10 hover:text-white" aria-label={t('nav.theme')} title={t('nav.theme')}>
+            {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </button>
+        </div>
+        <div className="flex items-center gap-3 rounded-[10px] px-3 py-2">
+          <NavLink to="/account" className="flex min-w-0 flex-1 items-center gap-3" title={t('nav.account')}>
             <span className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-koraal to-[#ff9a7a] text-sm font-bold text-nacht">
               {user.name.slice(0, 1).toUpperCase()}
             </span>
             <span className="min-w-0">
               <span className="block truncate text-sm font-medium">{user.name}</span>
-              <span className="block truncate text-xs text-white/50">{roleLabel[user.role]}</span>
+              <span className="block truncate text-xs text-white/50">{t(`roles.${user.role}`)}</span>
             </span>
           </NavLink>
-          <button onClick={toggle} className="rounded-lg p-1.5 text-white/55 hover:bg-white/10 hover:text-white" aria-label="Thema wisselen" title="Licht of donker">
-            {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-          </button>
-          <button onClick={logout} className="rounded-lg p-1.5 text-white/55 hover:bg-white/10 hover:text-white" aria-label="Uitloggen" title="Uitloggen">
+          <button onClick={logout} className="rounded-lg p-1.5 text-white/55 hover:bg-white/10 hover:text-white" aria-label={t('nav.logout')} title={t('nav.logout')}>
             <LogOut className="size-4" />
           </button>
         </div>
@@ -209,12 +222,13 @@ export function Layout() {
       )}
 
       <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-line bg-raised/80 px-4 backdrop-blur lg:hidden">
-        <button onClick={() => setMobileOpen(true)} className="rounded-lg p-2 hover:bg-sunken" aria-label="Menu openen">
+        <button onClick={() => setMobileOpen(true)} className="rounded-lg p-2 hover:bg-sunken" aria-label={t('nav.openMenu')}>
           <Menu className="size-5" />
         </button>
         <img src="/rhis-logo.svg" alt="RHIS" className="h-5 dark:hidden" />
         <img src="/rhis-logo-wit.svg" alt="RHIS" className="hidden h-5 dark:block" />
-        <NavLink to="/account" className="ml-auto rounded-lg p-2 hover:bg-sunken" aria-label="Mijn account">
+        <LanguageSwitcher className="ml-auto" />
+        <NavLink to="/account" className="rounded-lg p-2 hover:bg-sunken" aria-label={t('nav.account')}>
           <UserCircle className="size-5" />
         </NavLink>
       </header>

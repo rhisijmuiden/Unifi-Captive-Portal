@@ -1,14 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { KeyRound, MailPlus, Pencil, Plus, Search, Trash2, Users as UsersIcon } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { Badge, Button, Card, EmptyState, Field, Input, Modal, PageHeader, Select, Spinner, Switch } from '../components/ui';
-import { api, roleLabel, type Role, type Tenant, type User } from '../lib/api';
+import { api, type Role, type Tenant, type User } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { timeAgo } from '../lib/format';
 
 function UserForm({ user, tenants, defaultTenant, onClose }: { user: User | null; tenants: Tenant[]; defaultTenant?: string; onClose: () => void }) {
+  const { t } = useTranslation();
   const { data: auth } = useAuth();
   const me = auth!.user!;
   const qc = useQueryClient();
@@ -28,8 +30,8 @@ function UserForm({ user, tenants, defaultTenant, onClose }: { user: User | null
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['users'] });
       const inviteError = (res as { inviteError?: string | null })?.inviteError;
-      if (inviteError) toast.warning(`Gebruiker aangemaakt, maar uitnodiging niet verstuurd: ${inviteError}`);
-      else toast.success(user ? 'Gebruiker bijgewerkt' : form.sendInvite ? 'Uitnodiging verstuurd' : 'Gebruiker aangemaakt');
+      if (inviteError) toast.warning(t('users.inviteFailed', { error: inviteError }));
+      else toast.success(user ? t('users.updated') : form.sendInvite ? t('users.inviteSent') : t('users.created'));
       onClose();
     },
   });
@@ -39,52 +41,52 @@ function UserForm({ user, tenants, defaultTenant, onClose }: { user: User | null
     <Modal
       open
       onClose={onClose}
-      title={user ? 'Gebruiker bewerken' : 'Gebruiker uitnodigen'}
+      title={user ? t('users.editTitle') : t('users.inviteTitle')}
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>
-            Annuleren
+            {t('common.cancel')}
           </Button>
           <Button variant="accent" loading={save.isPending} onClick={() => save.mutate()}>
-            {user ? 'Opslaan' : form.sendInvite ? 'Uitnodigen' : 'Aanmaken'}
+            {user ? t('common.save') : form.sendInvite ? t('users.invite') : t('users.create')}
           </Button>
         </>
       }
     >
       <div className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Naam" htmlFor="u-name">
+          <Field label={t('users.name')} htmlFor="u-name">
             <Input id="u-name" autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </Field>
-          <Field label="E-mailadres" htmlFor="u-mail">
+          <Field label={t('users.email')} htmlFor="u-mail">
             <Input id="u-mail" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </Field>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Rol" htmlFor="u-role">
+          <Field label={t('users.role')} htmlFor="u-role">
             <Select id="u-role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as Role })} disabled={user?.id === me.id}>
               {roles.map((r) => (
                 <option key={r} value={r}>
-                  {roleLabel[r]}
+                  {t(`roles.${r}`)}
                 </option>
               ))}
             </Select>
           </Field>
           {me.role === 'superadmin' && form.role !== 'superadmin' && (
-            <Field label="Klant" htmlFor="u-tenant">
+            <Field label={t('users.tenant')} htmlFor="u-tenant">
               <Select id="u-tenant" value={form.tenantId} onChange={(e) => setForm({ ...form, tenantId: e.target.value })}>
-                {!tenants.length && <option value="">Maak eerst een klant aan</option>}
-                {tenants.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
+                {!tenants.length && <option value="">{t('users.noTenants')}</option>}
+                {tenants.map((tn) => (
+                  <option key={tn.id} value={tn.id}>
+                    {tn.name}
                   </option>
                 ))}
               </Select>
             </Field>
           )}
         </div>
-        {user && user.id !== me.id && <Switch checked={form.isActive} onChange={(v) => setForm({ ...form, isActive: v })} label="Account actief" description="Een inactief account kan niet meer inloggen." />}
-        {!user && <Switch checked={form.sendInvite} onChange={(v) => setForm({ ...form, sendInvite: v })} label="Stuur uitnodiging per e-mail" description="De gebruiker kiest zelf een wachtwoord, of logt in met Microsoft." />}
+        {user && user.id !== me.id && <Switch checked={form.isActive} onChange={(v) => setForm({ ...form, isActive: v })} label={t('users.accountActive')} description={t('users.accountActiveHint')} />}
+        {!user && <Switch checked={form.sendInvite} onChange={(v) => setForm({ ...form, sendInvite: v })} label={t('users.sendInvite')} description={t('users.sendInviteHint')} />}
         {save.error && <p className="text-sm text-offline">{save.error.message}</p>}
       </div>
     </Modal>
@@ -92,6 +94,7 @@ function UserForm({ user, tenants, defaultTenant, onClose }: { user: User | null
 }
 
 export function UsersPage() {
+  const { t } = useTranslation();
   const { data: auth } = useAuth();
   const me = auth!.user!;
   const qc = useQueryClient();
@@ -106,18 +109,18 @@ export function UsersPage() {
     queryKey: ['users', tenantFilter],
     queryFn: () => api.get<{ users: User[] }>(`/users${tenantFilter ? `?tenantId=${tenantFilter}` : ''}`),
   });
-  const tenantName = (id: string | null) => tenants.data?.tenants.find((t) => t.id === id)?.name;
+  const tenantName = (id: string | null) => tenants.data?.tenants.find((tn) => tn.id === id)?.name;
 
   const invite = useMutation({
     mutationFn: (id: string) => api.post(`/users/${id}/invite`),
-    onSuccess: () => toast.success('Uitnodiging opnieuw verstuurd'),
+    onSuccess: () => toast.success(t('users.inviteResent')),
     onError: (e: Error) => toast.error(e.message),
   });
   const remove = useMutation({
     mutationFn: (id: string) => api.del(`/users/${id}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] });
-      toast.success('Gebruiker verwijderd');
+      toast.success(t('users.deleted'));
       setDeleting(null);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -128,12 +131,12 @@ export function UsersPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Beheer"
-        title={me.role === 'superadmin' ? 'Gebruikers' : 'Team'}
-        description={me.role === 'superadmin' ? 'Platformbeheerders en de gebruikers van je klanten.' : 'Collega’s die jullie portals mogen beheren.'}
+        eyebrow={t('users.eyebrow')}
+        title={me.role === 'superadmin' ? t('users.titleAdmin') : t('users.titleTeam')}
+        description={me.role === 'superadmin' ? t('users.descriptionAdmin') : t('users.descriptionTeam')}
         actions={
           <Button variant="accent" icon={<Plus className="size-4" />} onClick={() => setEditing('new')}>
-            Uitnodigen
+            {t('users.invite')}
           </Button>
         }
       />
@@ -141,14 +144,14 @@ export function UsersPage() {
         <div className="flex flex-wrap gap-3 border-b border-line p-4">
           <div className="relative min-w-[220px] flex-1 sm:max-w-sm">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
-            <Input placeholder="Zoek op naam of e-mail…" className="pl-9" value={query} onChange={(e) => setQuery(e.target.value)} />
+            <Input placeholder={t('users.search')} className="pl-9" value={query} onChange={(e) => setQuery(e.target.value)} />
           </div>
           {me.role === 'superadmin' && (
             <Select className="w-auto min-w-[200px]" value={tenantFilter} onChange={(e) => setParams(e.target.value ? { tenant: e.target.value } : {})}>
-              <option value="">Alle klanten</option>
-              {tenants.data?.tenants.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
+              <option value="">{t('users.allTenants')}</option>
+              {tenants.data?.tenants.map((tn) => (
+                <option key={tn.id} value={tn.id}>
+                  {tn.name}
                 </option>
               ))}
             </Select>
@@ -159,7 +162,7 @@ export function UsersPage() {
             <Spinner />
           </div>
         ) : !list.length ? (
-          <EmptyState icon={<UsersIcon className="size-6" />} title="Geen gebruikers" description="Nodig iemand uit om samen portals te beheren." />
+          <EmptyState icon={<UsersIcon className="size-6" />} title={t('users.empty')} description={t('users.emptyHint')} />
         ) : (
           <ul className="divide-y divide-line">
             {list.map((u) => (
@@ -170,8 +173,8 @@ export function UsersPage() {
                 <div className="min-w-[180px] flex-1">
                   <p className="flex flex-wrap items-center gap-2 font-medium">
                     {u.name}
-                    {u.id === me.id && <Badge>Jij</Badge>}
-                    {!u.isActive && <Badge tone="offline">Inactief</Badge>}
+                    {u.id === me.id && <Badge>{t('common.you')}</Badge>}
+                    {!u.isActive && <Badge tone="offline">{t('common.inactive')}</Badge>}
                     {u.ssoLinked && (
                       <Badge tone="info">
                         <KeyRound className="size-3" /> SSO
@@ -181,21 +184,21 @@ export function UsersPage() {
                   <p className="text-sm text-muted">{u.email}</p>
                 </div>
                 <div className="hidden min-w-[160px] text-sm md:block">
-                  <p>{roleLabel[u.role]}</p>
-                  <p className="text-xs text-muted">{u.role === 'superadmin' ? 'Platform' : (tenantName(u.tenantId) ?? '')}</p>
+                  <p>{t(`roles.${u.role}`)}</p>
+                  <p className="text-xs text-muted">{u.role === 'superadmin' ? t('users.platform') : (tenantName(u.tenantId) ?? '')}</p>
                 </div>
-                <div className="hidden w-32 text-xs text-muted lg:block">{u.lastLoginAt ? `Actief ${timeAgo(u.lastLoginAt)}` : u.hasPassword || u.ssoLinked ? 'Nog niet ingelogd' : <Badge tone="warning">Uitgenodigd</Badge>}</div>
+                <div className="hidden w-32 text-xs text-muted lg:block">{u.lastLoginAt ? t('users.activeAgo', { when: timeAgo(u.lastLoginAt) }) : u.hasPassword || u.ssoLinked ? t('users.neverLoggedIn') : <Badge tone="warning">{t('users.invited')}</Badge>}</div>
                 <div className="ml-auto flex gap-1">
                   {!u.hasPassword && !u.ssoLinked && (
-                    <Button variant="ghost" size="sm" onClick={() => invite.mutate(u.id)} aria-label="Uitnodiging opnieuw sturen" title="Uitnodiging opnieuw sturen">
+                    <Button variant="ghost" size="sm" onClick={() => invite.mutate(u.id)} aria-label={t('users.resendInvite')} title={t('users.resendInvite')}>
                       <MailPlus className="size-4" />
                     </Button>
                   )}
-                  <Button variant="ghost" size="sm" onClick={() => setEditing(u)} aria-label="Bewerken">
+                  <Button variant="ghost" size="sm" onClick={() => setEditing(u)} aria-label={t('common.edit')}>
                     <Pencil className="size-4" />
                   </Button>
                   {u.id !== me.id && (
-                    <Button variant="ghost" size="sm" onClick={() => setDeleting(u)} aria-label="Verwijderen">
+                    <Button variant="ghost" size="sm" onClick={() => setDeleting(u)} aria-label={t('common.delete')}>
                       <Trash2 className="size-4" />
                     </Button>
                   )}
@@ -210,15 +213,15 @@ export function UsersPage() {
       <Modal
         open={Boolean(deleting)}
         onClose={() => setDeleting(null)}
-        title="Gebruiker verwijderen?"
-        description={`${deleting?.name} (${deleting?.email}) kan daarna niet meer inloggen.`}
+        title={t('users.deleteTitle')}
+        description={t('users.deleteText', { name: deleting?.name, email: deleting?.email })}
         footer={
           <>
             <Button variant="ghost" onClick={() => setDeleting(null)}>
-              Annuleren
+              {t('common.cancel')}
             </Button>
             <Button variant="danger" loading={remove.isPending} onClick={() => deleting && remove.mutate(deleting.id)}>
-              Verwijderen
+              {t('common.delete')}
             </Button>
           </>
         }
