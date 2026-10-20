@@ -4,8 +4,9 @@ import { audit, requireSuperadmin } from '../lib/auth.js';
 import { badRequest, translateError } from '../lib/errors.js';
 import { entraRedirectUri } from '../services/entra.js';
 import { clearHostnameCache } from '../services/hostnames.js';
-import { requestLocale, t } from '../i18n/index.js';
-import { renderEmail, sendMail } from '../services/mailer.js';
+import { requestLocale } from '../i18n/index.js';
+import { sendMail } from '../services/mailer.js';
+import { renderTemplate } from '../services/mailTemplates.js';
 import { getPublicSettings, getSettings, saveSettings, smtpSchema, type SettingsKey } from '../services/settings.js';
 
 const keys: SettingsKey[] = ['smtp', 'sso', 'system', 'hosting'];
@@ -43,7 +44,8 @@ export async function settingsRoutes(app: FastifyInstance) {
     });
     try {
       const locale = requestLocale(req);
-      const info = await sendMail(to, t(locale, 'mail.testSubject'), renderEmail(locale, t(locale, 'mail.testTitle'), [t(locale, 'mail.testBody')]), merged);
+      const { subject, html, text } = await renderTemplate('smtpTest', locale, null, { vars: {} });
+      const info = await sendMail(to, subject, { html, text }, merged);
       return { ok: true, messageId: info.messageId, response: info.response };
     } catch (err) {
       return { ok: false, error: translateError(err, requestLocale(req)) };
