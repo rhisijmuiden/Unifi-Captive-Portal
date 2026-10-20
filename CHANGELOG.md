@@ -4,6 +4,10 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.3.0-beta.2] - 2026-10-20 (test channel)
+
+- New customer: optionally fill in the first administrator (name and e-mail address). They get the invitation e-mail right away and sign in at the same address as the admin panel. If the e-mail cannot be sent, you see why.
+
 ## [0.3.0-beta.1] - 2026-10-20 (test channel)
 
 Step 3: editor, registration, payments and notifications.
