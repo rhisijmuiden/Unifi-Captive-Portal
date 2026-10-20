@@ -4,6 +4,12 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.2.1-beta.1] - 2026-10-20 (test channel)
+
+- The platform admin panel now only manages customers and the server: tenants, users, e-mail, SSO and Hosting & SSL. UniFi consoles, portal settings, hostnames and guests are only available in the customer's own environment, and the API refuses them for platform admins. The customer picker on those pages is gone.
+- Dashboard for the platform admin: the step "Connect a UniFi console" is replaced by "Invite a customer administrator".
+- The menu shows the platform API (step 5) as coming soon.
+
 ## [0.2.0] - 2026-10-20
 
 Stable release of step 2, identical to 0.2.0-beta.2.

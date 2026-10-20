@@ -26,8 +26,8 @@ export async function hostnameRoutes(app: FastifyInstance) {
     return reply.code(ok ? 200 : 404).send(ok ? 'ok' : 'unknown');
   });
 
-  app.get<{ Querystring: { tenantId?: string } }>('/api/hostnames', async (req) => {
-    const tenantId = tenantScope(req, req.query.tenantId);
+  app.get('/api/hostnames', async (req) => {
+    const tenantId = tenantScope(req);
     const [rows, hosting] = await Promise.all([
       db.query.hostnames.findMany({ where: eq(schema.hostnames.tenantId, tenantId), orderBy: asc(schema.hostnames.createdAt) }),
       getSettings('hosting'),
@@ -37,8 +37,8 @@ export async function hostnameRoutes(app: FastifyInstance) {
   });
 
   app.post('/api/hostnames', async (req) => {
-    const body = z.object({ tenantId: z.string().optional(), hostname: z.string().min(1).max(253) }).parse(req.body);
-    const tenantId = tenantScope(req, body.tenantId, true);
+    const body = z.object({ hostname: z.string().min(1).max(253) }).parse(req.body);
+    const tenantId = tenantScope(req, true);
     const hostname = normalizeHostname(body.hostname);
     if (!isValidHostname(hostname)) throw badRequest('errors.hostnameFormat');
     if ((await adminHostnames()).has(hostname)) throw badRequest('errors.hostnameReserved');
@@ -51,8 +51,8 @@ export async function hostnameRoutes(app: FastifyInstance) {
     return { hostname: row };
   });
 
-  app.post<{ Params: { id: string }; Querystring: { tenantId?: string } }>('/api/hostnames/:id/check', async (req) => {
-    const tenantId = tenantScope(req, req.query.tenantId, true);
+  app.post<{ Params: { id: string } }>('/api/hostnames/:id/check', async (req) => {
+    const tenantId = tenantScope(req, true);
     const row = await db.query.hostnames.findFirst({ where: and(eq(schema.hostnames.id, req.params.id), eq(schema.hostnames.tenantId, tenantId)) });
     if (!row) throw notFound();
     const updated = await checkHostname(row);
@@ -60,8 +60,8 @@ export async function hostnameRoutes(app: FastifyInstance) {
     return { hostname: updated };
   });
 
-  app.delete<{ Params: { id: string }; Querystring: { tenantId?: string } }>('/api/hostnames/:id', async (req) => {
-    const tenantId = tenantScope(req, req.query.tenantId, true);
+  app.delete<{ Params: { id: string } }>('/api/hostnames/:id', async (req) => {
+    const tenantId = tenantScope(req, true);
     const [row] = await db
       .delete(schema.hostnames)
       .where(and(eq(schema.hostnames.id, req.params.id), eq(schema.hostnames.tenantId, tenantId)))

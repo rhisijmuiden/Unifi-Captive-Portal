@@ -24,7 +24,7 @@ See the [roadmap](ROADMAP.md) for what works today and what is coming.
 - **UniFi integration**: connect UniFi OS consoles (UDM, UCG, Dream Router, Cloud Key, self-hosted Network) through the UniFi Site Manager cloud or directly, using the official UniFi Network API. Guests are recognised by access point and let through with time, data and speed limits.
 - **Guest portal** as external portal server: bilingual guest page with your texts, terms and colour, plus a live preview and a guest overview.
 - **Own hostnames with automatic SSL**: Caddy on ports 80/443 with on-demand Let's Encrypt certificates, only after the DNS record has been verified. The admin panel can get its own HTTPS hostname too.
-- **Customers (tenants) and users** with three roles: platform admin, customer admin and staff member. Invitations by e-mail.
+- **Customers (tenants) and users** with three roles: platform admin, customer admin and staff member. Invitations by e-mail. The platform admin manages customers and the server (public IP, admin hostname and SSL, e-mail, SSO); consoles, portals, hostnames and guests live in each customer's own environment.
 - **Microsoft Entra ID single sign-on** (OpenID Connect with PKCE), next to or instead of password sign-in.
 - **Your own mail server (SMTP)**: STARTTLS or TLS, minimum TLS version, username/password or OAuth 2.0 (Microsoft 365), DKIM signing and a test button.
 - **Info & updates**: current version, check for updates, choose between the **stable** and **test** channel, and **update the whole installation** (app plus Debian packages) from the web interface, with an automatic database backup and rollback.

@@ -7,7 +7,7 @@ import { Badge, Button, Card, CardHeader, EmptyState, Input, Modal, PageHeader, 
 import { api } from '../lib/api';
 import { guideUrl } from '../lib/docs';
 import { formatDate, timeAgo } from '../lib/format';
-import { ChooseTenant, TenantPicker, useTenantScope } from '../lib/tenant';
+import { useTenantScope } from '../lib/tenant';
 
 export type HostnameStatus = 'pending' | 'dns_ok' | 'active' | 'error';
 type Hostname = { id: string; hostname: string; status: HostnameStatus; lastError: string | null; lastCheckedAt: string | null; activatedAt: string | null; createdAt: string };
@@ -73,13 +73,13 @@ export function HostnamesPage() {
   const [deleting, setDeleting] = useState<Hostname | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ['hostnames', scope.tenantId],
-    queryFn: () => api.get<{ hostnames: Hostname[]; target: { ipv4: string | null; ipv6: string | null } }>(`/hostnames${scope.qs}`),
+    queryFn: () => api.get<{ hostnames: Hostname[]; target: { ipv4: string | null; ipv6: string | null } }>('/hostnames'),
     enabled: Boolean(scope.tenantId),
     // Keep the status fresh while a certificate is on its way
     refetchInterval: (q) => (q.state.data?.hostnames.some((h) => h.status !== 'active') ? 15_000 : false),
   });
   const add = useMutation({
-    mutationFn: () => api.post('/hostnames', { ...scope.body, hostname }),
+    mutationFn: () => api.post('/hostnames', { hostname }),
     onSuccess: () => {
       setHostname('');
       qc.invalidateQueries({ queryKey: ['hostnames'] });
@@ -89,7 +89,7 @@ export function HostnamesPage() {
     },
   });
   const check = useMutation({
-    mutationFn: (id: string) => api.post<{ hostname: Hostname }>(`/hostnames/${id}/check${scope.qs}`),
+    mutationFn: (id: string) => api.post<{ hostname: Hostname }>(`/hostnames/${id}/check`),
     onSuccess: (d) => {
       qc.invalidateQueries({ queryKey: ['hostnames'] });
       if (d.hostname.status === 'active') toast.success(t('hostnames.nowActive', { host: d.hostname.hostname }));
@@ -98,7 +98,7 @@ export function HostnamesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
   const remove = useMutation({
-    mutationFn: (id: string) => api.del(`/hostnames/${id}${scope.qs}`),
+    mutationFn: (id: string) => api.del(`/hostnames/${id}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['hostnames'] });
       toast.success(t('hostnames.deleted'));
@@ -111,10 +111,8 @@ export function HostnamesPage() {
 
   return (
     <>
-      <PageHeader eyebrow={t('nav.portals')} title={t('hostnames.title')} description={t('hostnames.description')} actions={<TenantPicker scope={scope} />} />
-      {!scope.tenantId ? (
-        scope.loading ? <Spinner /> : <Card><ChooseTenant /></Card>
-      ) : isLoading ? (
+      <PageHeader eyebrow={t('nav.portals')} title={t('hostnames.title')} description={t('hostnames.description')} />
+      {isLoading ? (
         <Spinner />
       ) : (
         <div className="grid gap-6 xl:grid-cols-3">

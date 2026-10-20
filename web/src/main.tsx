@@ -40,6 +40,9 @@ function RequireAuth({ children, roles }: { children: ReactNode; roles?: string[
   return children;
 }
 
+// Portal pages belong to a customer's own environment
+const TENANT = ['tenant_admin', 'tenant_user'];
+
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/setup', element: <SetupPage /> },
@@ -59,10 +62,10 @@ const router = createBrowserRouter([
       { path: 'settings/smtp', element: <RequireAuth roles={['superadmin']}><SmtpSettingsPage /></RequireAuth> },
       { path: 'settings/sso', element: <RequireAuth roles={['superadmin']}><SsoSettingsPage /></RequireAuth> },
       { path: 'settings/hosting', element: <RequireAuth roles={['superadmin']}><HostingSettingsPage /></RequireAuth> },
-      { path: 'consoles', element: <ConsolesPage /> },
-      { path: 'portal-settings', element: <PortalSettingsPage /> },
-      { path: 'hostnames', element: <HostnamesPage /> },
-      { path: 'guests', element: <GuestsPage /> },
+      { path: 'consoles', element: <RequireAuth roles={TENANT}><ConsolesPage /></RequireAuth> },
+      { path: 'portal-settings', element: <RequireAuth roles={TENANT}><PortalSettingsPage /></RequireAuth> },
+      { path: 'hostnames', element: <RequireAuth roles={TENANT}><HostnamesPage /></RequireAuth> },
+      { path: 'guests', element: <RequireAuth roles={TENANT}><GuestsPage /></RequireAuth> },
       { path: 'account', element: <AccountPage /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],

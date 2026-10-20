@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Badge, Card, EmptyState, PageHeader, Spinner } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDate } from '../lib/format';
-import { ChooseTenant, TenantPicker, useTenantScope } from '../lib/tenant';
+import { useTenantScope } from '../lib/tenant';
 
 type Guest = {
   id: string;
@@ -36,7 +36,7 @@ export function GuestsPage() {
   const scope = useTenantScope();
   const { data, isLoading } = useQuery({
     queryKey: ['guests', scope.tenantId],
-    queryFn: () => api.get<{ guests: Guest[]; stats: { today: number; active: number } }>(`/guests${scope.qs}`),
+    queryFn: () => api.get<{ guests: Guest[]; stats: { today: number; active: number } }>('/guests'),
     enabled: Boolean(scope.tenantId),
     refetchInterval: 30_000,
   });
@@ -50,10 +50,8 @@ export function GuestsPage() {
 
   return (
     <>
-      <PageHeader eyebrow={t('nav.portals')} title={t('guests.title')} description={t('guests.description')} actions={<TenantPicker scope={scope} />} />
-      {!scope.tenantId ? (
-        scope.loading ? <Spinner /> : <Card><ChooseTenant /></Card>
-      ) : isLoading ? (
+      <PageHeader eyebrow={t('nav.portals')} title={t('guests.title')} description={t('guests.description')} />
+      {isLoading ? (
         <Spinner />
       ) : (
         <>

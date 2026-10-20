@@ -4,6 +4,12 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.2.1-beta.1] - 2026-10-20 (testkanaal)
+
+- Het beheerpaneel van het platform beheert nu alleen klanten en de server: klanten, gebruikers, e-mail, SSO en Hosting & SSL. UniFi-consoles, portalinstellingen, hostnamen en gasten staan alleen in de eigen omgeving van de klant, en de API weigert ze voor platformbeheerders. De klantkiezer op die pagina's is weg.
+- Dashboard voor de platformbeheerder: de stap "Koppel een UniFi-console" is vervangen door "Nodig de beheerder van een klant uit".
+- Het menu toont de platform-API (stap 5) als binnenkort beschikbaar.
+
 ## [0.2.0] - 2026-10-20
 
 Stabiele release van stap 2, gelijk aan 0.2.0-beta.2.

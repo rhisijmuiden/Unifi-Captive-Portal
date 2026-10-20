@@ -7,7 +7,7 @@ import { Badge, Button, Card, EmptyState, Field, Input, Modal, PageHeader, Spinn
 import { api } from '../lib/api';
 import { guideUrl } from '../lib/docs';
 import { timeAgo } from '../lib/format';
-import { ChooseTenant, TenantPicker, useTenantScope } from '../lib/tenant';
+import { useTenantScope } from '../lib/tenant';
 
 type Site = { id: string; unifiSiteId: string; siteName: string; displayName: string; enabled: boolean; deviceCount: number };
 type UnifiConsole = {
@@ -61,14 +61,14 @@ function ConnectWizard({ scope, onClose }: { scope: Scope; onClose: () => void }
   const [selected, setSelected] = useState<string[]>([]);
 
   const discover = useMutation({
-    mutationFn: () => api.post<{ hosts: Host[] }>('/consoles/discover', { ...scope.body, apiKey: form.apiKey }),
+    mutationFn: () => api.post<{ hosts: Host[] }>('/consoles/discover', { apiKey: form.apiKey }),
     onSuccess: (d) => {
       setHosts(d.hosts);
       if (d.hosts.length === 1) setForm((f) => ({ ...f, hostId: d.hosts[0].id, name: f.name || d.hosts[0].name }));
     },
   });
   const test = useMutation({
-    mutationFn: () => api.post<{ sites: UnifiSite[] }>('/consoles/test', { ...scope.body, ...form }),
+    mutationFn: () => api.post<{ sites: UnifiSite[] }>('/consoles/test', { ...form }),
     onSuccess: (d) => {
       setSites(d.sites);
       setSelected(d.sites.length === 1 ? [d.sites[0].id] : []);
@@ -78,7 +78,6 @@ function ConnectWizard({ scope, onClose }: { scope: Scope; onClose: () => void }
   const save = useMutation({
     mutationFn: () =>
       api.post<{ sync: { ok: boolean; error?: string } }>('/consoles', {
-        ...scope.body,
         ...form,
         name: form.name || t('consoles.defaultName'),
         sites: sites.filter((s) => selected.includes(s.id)),
@@ -226,14 +225,13 @@ function EditConsole({ scope, console: c, onClose }: { scope: Scope; console: Un
   const [verifyTls, setVerifyTls] = useState(c.verifyTls);
   const sites = useQuery({
     queryKey: ['console-sites', c.id, apiKey],
-    queryFn: () => api.post<{ sites: UnifiSite[] }>('/consoles/test', { ...scope.body, consoleId: c.id, apiKey: apiKey || undefined, connection: c.connection, hostId: c.hostId, baseUrl: c.baseUrl, verifyTls }),
+    queryFn: () => api.post<{ sites: UnifiSite[] }>('/consoles/test', { consoleId: c.id, apiKey: apiKey || undefined, connection: c.connection, hostId: c.hostId, baseUrl: c.baseUrl, verifyTls }),
     enabled: false,
   });
   const [selected, setSelected] = useState(c.sites.filter((s) => s.enabled).map((s) => s.unifiSiteId));
   const save = useMutation({
     mutationFn: () =>
       api.put<{ sync: { ok: boolean; error?: string } }>(`/consoles/${c.id}`, {
-        ...scope.body,
         name,
         verifyTls,
         apiKey: apiKey || undefined,
@@ -299,11 +297,11 @@ export function ConsolesPage() {
   const [deleting, setDeleting] = useState<UnifiConsole | null>(null);
   const { data, isLoading } = useQuery({
     queryKey: ['consoles', scope.tenantId],
-    queryFn: () => api.get<{ consoles: UnifiConsole[]; portalAddress: string | null }>(`/consoles${scope.qs}`),
+    queryFn: () => api.get<{ consoles: UnifiConsole[]; portalAddress: string | null }>('/consoles'),
     enabled: Boolean(scope.tenantId),
   });
   const sync = useMutation({
-    mutationFn: (id: string) => api.post<{ ok: boolean; error?: string }>(`/consoles/${id}/sync${scope.qs}`),
+    mutationFn: (id: string) => api.post<{ ok: boolean; error?: string }>(`/consoles/${id}/sync`),
     onSuccess: (d) => {
       qc.invalidateQueries({ queryKey: ['consoles'] });
       if (d.ok) toast.success(t('consoles.synced'));
@@ -311,7 +309,7 @@ export function ConsolesPage() {
     },
   });
   const remove = useMutation({
-    mutationFn: (id: string) => api.del(`/consoles/${id}${scope.qs}`),
+    mutationFn: (id: string) => api.del(`/consoles/${id}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['consoles'] });
       toast.success(t('consoles.deleted'));
@@ -330,19 +328,14 @@ export function ConsolesPage() {
         title={t('consoles.title')}
         description={t('consoles.description')}
         actions={
-          <>
-            <TenantPicker scope={scope} />
-            {scope.canManage && scope.tenantId && (
-              <Button variant="accent" icon={<Plus className="size-4" />} onClick={() => setWizard(true)}>
-                {t('consoles.add')}
-              </Button>
-            )}
-          </>
+          scope.canManage && (
+            <Button variant="accent" icon={<Plus className="size-4" />} onClick={() => setWizard(true)}>
+              {t('consoles.add')}
+            </Button>
+          )
         }
       />
-      {!scope.tenantId ? (
-        scope.loading ? <Spinner /> : <Card><ChooseTenant /></Card>
-      ) : isLoading ? (
+      {isLoading ? (
         <Spinner />
       ) : (
         <div className="grid gap-6 xl:grid-cols-3">

@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Building2,
+  Code,
   CreditCard,
   DatabaseBackup,
   Globe,
@@ -48,6 +49,7 @@ function navFor(user: User, t: TFunction): Section[] {
       { to: '/payments', label: t('nav.payments'), icon: CreditCard, soon: true },
     ],
   };
+  // The platform admin manages customers and the server; portals live in each customer's own environment
   if (user.role === 'superadmin') {
     return [
       {
@@ -57,13 +59,13 @@ function navFor(user: User, t: TFunction): Section[] {
           { to: '/users', label: t('nav.users'), icon: Users },
         ],
       },
-      portal,
       {
         title: t('nav.system'),
         items: [
           { to: '/settings/smtp', label: t('nav.smtp'), icon: Mail },
           { to: '/settings/sso', label: t('nav.sso'), icon: KeyRound },
           { to: '/settings/hosting', label: t('nav.hosting'), icon: Server },
+          { to: '/api', label: t('nav.api'), icon: Code, soon: true },
           { to: '/backups', label: t('nav.backups'), icon: DatabaseBackup, soon: true },
         ],
       },

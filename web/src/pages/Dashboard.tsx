@@ -53,7 +53,7 @@ export function DashboardPage() {
         { done: Boolean(sso.data?.entraEnabled), label: t('dashboard.stepSso'), hint: t('dashboard.stepSsoHint'), to: '/settings/sso', icon: KeyRound },
         { done: Boolean(data?.hostingReady), label: t('dashboard.stepHosting'), hint: t('dashboard.stepHostingHint'), to: '/settings/hosting', icon: Server },
         { done: (data?.tenants ?? 0) > 0, label: t('dashboard.stepTenant'), hint: t('dashboard.stepTenantHint'), to: '/tenants', icon: Building2 },
-        { done: (data?.consoles ?? 0) > 0, label: t('dashboard.stepConsole'), hint: t('dashboard.stepConsoleHint'), to: '/consoles', icon: Router },
+        { done: (data?.users ?? 0) > 1, label: t('dashboard.stepInvite'), hint: t('dashboard.stepInviteHint'), to: '/users', icon: Users },
       ]
     : [
         { done: (data?.consoles ?? 0) > 0, label: t('dashboard.stepConsoleOwn'), hint: t('dashboard.stepConsoleHint'), to: '/consoles', icon: Router },
