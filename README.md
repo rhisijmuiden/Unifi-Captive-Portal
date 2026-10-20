@@ -19,10 +19,13 @@ Captive Portal is a multi-tenant web application. You (the platform admin) host 
 
 See the [roadmap](ROADMAP.md) for what works today and what is coming.
 
-## What's included (v0.2)
+## What's included (v0.3)
 
 - **UniFi integration**: connect UniFi OS consoles (UDM, UCG, Dream Router, Cloud Key, self-hosted Network) through the UniFi Site Manager cloud or directly, using the official UniFi Network API. Guests are recognised by access point and let through with time, data and speed limits.
-- **Guest portal** as external portal server: bilingual guest page with your texts, terms and colour, plus a live preview and a guest overview.
+- **Guest portal** as external portal server, designed in a **drag-and-drop portal editor** with templates, images, colours and fonts, in English and Dutch (the customer picks the languages, the guest picks one).
+- **Ways to connect**: free with one tap, registration by e-mail (with marketing opt-in), **vouchers** with a print sheet, **paid access** through Mollie or Stripe with packages and an adjustable time to pay, and **Continue with Facebook**.
+- **Notifications and reports**: an e-mail as soon as a hostname is live (A record validated and SSL in place) and a monthly report with guests, registrations, payments and peak times.
+- **E-mail template designer**: every e-mail, visual or in HTML, per language, per customer and platform-wide.
 - **Own hostnames with automatic SSL**: Caddy on ports 80/443 with on-demand Let's Encrypt certificates, only after the DNS record has been verified. The admin panel can get its own HTTPS hostname too.
 - **Customers (tenants) and users** with three roles: platform admin, customer admin and staff member. Invitations by e-mail. The platform admin manages customers and the server (public IP, admin hostname and SSL, e-mail, SSO); consoles, portals, hostnames and guests live in each customer's own environment.
 - **Microsoft Entra ID single sign-on** (OpenID Connect with PKCE), next to or instead of password sign-in.
@@ -46,6 +49,9 @@ Then open `http://<server-ip>:8080` and create the first administrator account. 
 - [Installation](docs/en/installation.md): LXC, VM and physical server, first start, configuration file
 - [Connecting a UniFi console](docs/en/unifi-setup.md): Site Manager or direct, hotspot settings, pre-authorization, troubleshooting
 - [Hostnames and SSL](docs/en/hostnames-ssl.md): DNS records, automatic certificates, HTTPS for the admin panel
+- [Portal editor](docs/en/portal-editor.md): blocks, templates, images and languages
+- [Guest access](docs/en/guest-access.md): sign-in methods, vouchers, Mollie and Stripe, time to pay, Facebook login, pre-authorization
+- [Notifications, reports and e-mail templates](docs/en/notifications-mail.md)
 - [Updating and release channels](docs/en/updating.md): stable and test, updating from the interface or the terminal, rollback
 - [Microsoft Entra SSO](docs/en/entra-sso.md): app registration and setup
 - [E-mail (SMTP)](docs/en/smtp.md): Microsoft 365, Google Workspace, your own server, DKIM
@@ -62,6 +68,8 @@ Then open `http://<server-ip>:8080` and create the first administrator account. 
 | Security | Secrets stored encrypted (AES-256-GCM), CSRF protection, rate limiting, systemd hardening |
 | Reverse proxy and SSL | Caddy with on-demand Let's Encrypt per hostname, approved by the app |
 | UniFi | Official UniFi Network Integration API, through Site Manager (api.ui.com) or directly |
+| Editors | dnd-kit (drag and drop), CodeMirror 6 (HTML) |
+| Payments | Mollie and Stripe REST APIs with verified webhooks |
 
 ## License
 

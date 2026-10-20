@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport/index.js';
-import { t, type Locale } from '../i18n/index.js';
 import { badRequest } from '../lib/errors.js';
 import { getSettings, type SettingsValue } from './settings.js';
 
@@ -39,20 +38,6 @@ export async function createTransport(s: Smtp) {
     options.dkim = { domainName: s.dkimDomain, keySelector: s.dkimSelector, privateKey: s.dkimPrivateKey };
   }
   return nodemailer.createTransport(options);
-}
-
-export function renderEmail(locale: Locale, title: string, paragraphs: string[], action?: { label: string; url: string }) {
-  const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
-  const body = paragraphs.map((p) => `<p style="margin:0 0 16px;line-height:1.55">${esc(p)}</p>`).join('');
-  const button = action
-    ? `<p style="margin:24px 0"><a href="${esc(action.url)}" style="background:#FF6B57;color:#14213D;text-decoration:none;font-weight:700;padding:12px 22px;border-radius:10px;display:inline-block">${esc(action.label)}</a></p>`
-    : '';
-  const html = `<!doctype html><html lang="${locale}"><body style="margin:0;background:#F6F7FB;font-family:Archivo,Segoe UI,Arial,sans-serif;color:#14213D">
-<div style="max-width:560px;margin:0 auto;padding:32px 16px"><div style="background:#fff;border:1px solid #DCE1EB;border-radius:16px;padding:32px">
-<h1 style="font-size:22px;margin:0 0 20px">${esc(title)}</h1>${body}${button}</div>
-<p style="font-size:12px;color:#4F5B73;text-align:center;margin-top:20px">${esc(t(locale, 'mail.footer'))} <a href="https://rhis.nl" style="color:#B8392A">RHIS</a></p></div></body></html>`;
-  const text = [title, '', ...paragraphs, ...(action ? ['', `${action.label}: ${action.url}`] : [])].join('\n');
-  return { html, text };
 }
 
 export async function sendMail(to: string, subject: string, content: { html: string; text: string }, override?: Smtp) {

@@ -12,13 +12,19 @@ import { requestLocale, t } from './i18n/index.js';
 import { AppError } from './lib/errors.js';
 import { authRoutes } from './routes/auth.js';
 import { consoleRoutes } from './routes/consoles.js';
+import { editorRoutes } from './routes/editor.js';
 import { guestPortalRoutes } from './routes/guestPortal.js';
 import { hostnameRoutes } from './routes/hostnames.js';
+import { mailTemplateRoutes } from './routes/mailTemplates.js';
+import { notificationRoutes } from './routes/notifications.js';
+import { paymentRoutes } from './routes/payments.js';
 import { portalRoutes } from './routes/portal.js';
 import { settingsRoutes } from './routes/settings.js';
+import { socialRoutes } from './routes/social.js';
 import { systemRoutes } from './routes/system.js';
 import { tenantRoutes } from './routes/tenants.js';
 import { userRoutes } from './routes/users.js';
+import { voucherRoutes } from './routes/vouchers.js';
 import { cachedHosting, hostnameTenant } from './services/hostnames.js';
 
 const webDist = fileURLToPath(new URL('../../web/dist', import.meta.url));
@@ -91,6 +97,12 @@ export async function buildApp() {
   await app.register(consoleRoutes);
   await app.register(hostnameRoutes);
   await app.register(portalRoutes);
+  await app.register(editorRoutes);
+  await app.register(voucherRoutes);
+  await app.register(paymentRoutes);
+  await app.register(notificationRoutes);
+  await app.register(mailTemplateRoutes);
+  await app.register(socialRoutes);
   await app.register(guestPortalRoutes);
 
   if (existsSync(webDist)) {

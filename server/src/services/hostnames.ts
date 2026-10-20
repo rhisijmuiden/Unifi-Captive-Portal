@@ -5,6 +5,7 @@ import { config } from '../config.js';
 import { db, schema } from '../db/index.js';
 import type { Hostname } from '../db/schema.js';
 import { isValidHostname, normalizeHostname } from '../lib/hostname.js';
+import { notifyHostnameLive } from './notifications.js';
 import { getSettings } from './settings.js';
 
 /**
@@ -97,6 +98,8 @@ export async function checkHostname(h: Hostname) {
     })
     .where(eq(schema.hostnames.id, h.id))
     .returning();
+  // First time live: tell the customer that the A record is validated and SSL is in place
+  if (updated.status === 'active' && !h.activatedAt) void notifyHostnameLive(updated).catch((err) => console.error('hostname notification failed', err));
   return updated;
 }
 

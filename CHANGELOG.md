@@ -4,6 +4,22 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.3.0-beta.1] - 2026-10-20 (test channel)
+
+Step 3: editor, registration, payments and notifications.
+
+- **Portal editor**: drag-and-drop page builder with logo, icon, heading, text, image, link button, divider and spacing blocks, six templates, colours, background, fonts and card style, texts per language, phone and desktop preview. The editor and the guest page share one renderer.
+- **Access & sign-in** (replaces *Portal settings*): free, e-mail registration (name and phone off/optional/required, marketing opt-in, welcome e-mail), vouchers, payment and Facebook, shown as tabs on the guest page; the languages the portal offers.
+- **Vouchers**: batches with time, usage limit, expiry and own limits; readable codes; revoke, delete and a print sheet.
+- **Payments** through Mollie or Stripe with the customer's own account: packages, transactions with totals, webhooks plus a background check, receipt e-mail, and an adjustable **time to pay** (0–30 minutes) with an explanation on screen.
+- **Continue with Facebook**: guests sign in with Facebook through the customer's own Facebook app, with an adjustable time to log in.
+- **Notifications**: e-mail when a hostname is live (A record validated and SSL in place) and a monthly report, to admins and/or own addresses, with a log and automatic retries.
+- **Reports**: monthly figures with comparisons, guests per day, hour, method and site.
+- **E-mail template designer**: every e-mail visual or in HTML, per language; customers for their guest and notification e-mails, the platform admin for all e-mails.
+- **Guests**: name, e-mail, method, voucher or package, CSV export and removal.
+- Roadmap: new step 4, billing customers from the main admin panel; backups move to step 5 and the API to step 6.
+- New guides: portal editor; guest access (vouchers, payments, Facebook, pre-authorization); notifications, reports and e-mail templates.
+
 ## [0.2.1-beta.1] - 2026-10-20 (test channel)
 
 - The platform admin panel now only manages customers and the server: tenants, users, e-mail, SSO and Hosting & SSL. UniFi consoles, portal settings, hostnames and guests are only available in the customer's own environment, and the API refuses them for platform admins. The customer picker on those pages is gone.

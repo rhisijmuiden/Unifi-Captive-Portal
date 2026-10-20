@@ -23,6 +23,7 @@ server/            Fastify API (TypeScript)
   src/services/    mailer, Entra SSO, settings, updater, tokens
   src/i18n/        server translations (errors, e-mails)
   src/db/          Drizzle schema and migrations (server/drizzle/)
+  src/shared/      guest page and e-mail renderers, shared with the web editors (imported as @shared)
   test/            unit tests (node --test)
 web/               React admin interface (Vite, Tailwind, i18next)
   src/locales/     interface translations
@@ -42,13 +43,15 @@ All text lives in translation files; nothing is hard-coded.
 | --- | --- |
 | Web interface | `web/src/locales/nl.ts`, `web/src/locales/en.ts` |
 | Server (errors, e-mails) | `server/src/i18n/nl.ts`, `server/src/i18n/en.ts` |
+| Guest portal | `server/src/shared/guestStrings.ts` |
 
 To add a language, for example German:
 
 1. Copy `web/src/locales/en.ts` to `de.ts` and translate it. TypeScript checks that no key is missing.
 2. Register the language in `web/src/i18n.ts` (the `languages` list and `resources`).
 3. Do the same in `server/src/i18n/` (file plus `locales` in `index.ts`).
-4. Add the guides in `docs/de/`.
+4. Add the guest texts to `server/src/shared/guestStrings.ts`.
+5. Add the guides in `docs/de/`.
 
 The interface language follows the user's choice (saved on the account), otherwise the browser. E-mails are sent in the recipient's language.
 

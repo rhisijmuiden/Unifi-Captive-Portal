@@ -1,8 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
-import { CalendarCheck, UserCheck, Wifi } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { CalendarCheck, Download, Trash2, UserCheck, Wifi } from 'lucide-react';
+import { toast } from 'sonner';
+import { useConfirm } from '../components/controls';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Badge, Card, EmptyState, PageHeader, Spinner } from '../components/ui';
+import { Badge, Button, Card, EmptyState, PageHeader, Spinner } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDate } from '../lib/format';
 import { useTenantScope } from '../lib/tenant';
@@ -19,6 +21,13 @@ type Guest = {
   createdAt: string;
   authorizedAt: string | null;
   accessUntil: string | null;
+  method: 'free' | 'email' | 'voucher' | 'payment' | 'facebook' | null;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  marketingOptIn: boolean;
+  voucherCode: string | null;
+  packageName: string | null;
 };
 
 function Tile({ icon, label, value }: { icon: ReactNode; label: string; value: ReactNode }) {
@@ -40,6 +49,25 @@ export function GuestsPage() {
     enabled: Boolean(scope.tenantId),
     refetchInterval: 30_000,
   });
+  const qc = useQueryClient();
+  const [confirmDialog, ask] = useConfirm();
+  const remove = useMutation({
+    mutationFn: (id: string) => api.del(`/guests/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['guests'] });
+      toast.success(t('guests.removed'));
+    },
+  });
+  const exportCsv = () => {
+    const rows = [
+      ['arrived', 'status', 'method', 'name', 'email', 'phone', 'marketing_opt_in', 'voucher', 'package', 'device', 'site', 'access_until'],
+      ...(data?.guests ?? []).map((g) => [g.createdAt, g.status, g.method ?? '', g.name ?? '', g.email ?? '', g.phone ?? '', g.marketingOptIn ? 'yes' : 'no', g.voucherCode ?? '', g.packageName ?? '', g.clientMac, g.siteName ?? '', g.accessUntil ?? '']),
+    ];
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    Object.assign(document.createElement('a'), { href: url, download: 'guests.csv' }).click();
+    URL.revokeObjectURL(url);
+  };
   const now = Date.now();
   const status = (g: Guest) => {
     if (g.status === 'authorized' && g.accessUntil && new Date(g.accessUntil).getTime() > now) return <Badge tone="online">{t('guests.online')}</Badge>;
@@ -50,7 +78,16 @@ export function GuestsPage() {
 
   return (
     <>
-      <PageHeader eyebrow={t('nav.portals')} title={t('guests.title')} description={t('guests.description')} />
+      <PageHeader
+        eyebrow={t('nav.insights')}
+        title={t('guests.title')}
+        description={t('guests.description')}
+        actions={
+          <Button variant="secondary" icon={<Download className="size-4" />} disabled={!data?.guests.length} onClick={exportCsv}>
+            {t('guests.export')}
+          </Button>
+        }
+      />
       {isLoading ? (
         <Spinner />
       ) : (
@@ -68,27 +105,44 @@ export function GuestsPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left text-xs text-muted">
-                      <th className="px-6 py-3 font-medium">{t('guests.colDevice')}</th>
+                      <th className="px-6 py-3 font-medium">{t('guests.colGuest')}</th>
                       <th className="px-6 py-3 font-medium">{t('guests.colStatus')}</th>
+                      <th className="hidden px-6 py-3 font-medium sm:table-cell">{t('guests.colMethod')}</th>
                       <th className="hidden px-6 py-3 font-medium md:table-cell">{t('guests.colSite')}</th>
                       <th className="hidden px-6 py-3 font-medium lg:table-cell">{t('guests.colArrived')}</th>
                       <th className="hidden px-6 py-3 font-medium lg:table-cell">{t('guests.colUntil')}</th>
+                      <th className="px-6 py-3" />
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-line">
                     {data.guests.map((g) => (
                       <tr key={g.id} className="transition hover:bg-sunken/50">
                         <td className="px-6 py-3">
-                          <p className="font-mono text-xs">{g.clientMac}</p>
-                          {g.ssid && <p className="text-xs text-muted">{g.ssid}</p>}
+                          {(g.name || g.email) && <p className="font-medium">{g.name ?? g.email}</p>}
+                          {g.name && g.email && <p className="text-xs text-muted">{g.email}</p>}
+                          {g.phone && <p className="text-xs text-muted">{g.phone}</p>}
+                          <p className="font-mono text-xs text-muted">{g.clientMac}{g.ssid ? ` · ${g.ssid}` : ''}</p>
                         </td>
                         <td className="px-6 py-3">
                           {status(g)}
                           {g.status === 'failed' && g.error && <p className="mt-1 max-w-xs truncate text-xs text-muted" title={g.error}>{g.error}</p>}
                         </td>
+                        <td className="hidden px-6 py-3 sm:table-cell">
+                          {g.method ? <Badge tone="info">{t(`guests.methods.${g.method}`)}</Badge> : '—'}
+                          {g.voucherCode && <p className="mt-1 font-mono text-xs text-muted">{g.voucherCode}</p>}
+                          {g.packageName && <p className="mt-1 text-xs text-muted">{g.packageName}</p>}
+                          {g.marketingOptIn && <p className="mt-1 text-xs text-online">{t('guests.optIn')}</p>}
+                        </td>
                         <td className="hidden px-6 py-3 text-muted md:table-cell">{g.siteName ?? '—'}</td>
                         <td className="hidden px-6 py-3 text-muted lg:table-cell">{formatDate(g.createdAt)}</td>
                         <td className="hidden px-6 py-3 text-muted lg:table-cell">{formatDate(g.accessUntil)}</td>
+                        <td className="px-6 py-3 text-right">
+                          {scope.canManage && (
+                            <Button variant="ghost" size="sm" aria-label={t('guests.remove')} title={t('guests.remove')} onClick={async () => (await ask(t('guests.confirmRemove'))) && remove.mutate(g.id)}>
+                              <Trash2 className="size-4" />
+                            </Button>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -98,6 +152,7 @@ export function GuestsPage() {
           </Card>
         </>
       )}
+      {confirmDialog}
     </>
   );
 }

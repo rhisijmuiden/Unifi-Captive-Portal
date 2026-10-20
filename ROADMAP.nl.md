@@ -31,18 +31,30 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - ✅ Ook het hoofdbeheerpaneel op een eigen hostnaam met automatisch SSL
 - ✅ Stap-voor-stap handleiding per console voor de koppeling (hotspot-instellingen, pre-authorization)
 
-## Stap 3: Editor, registratie, betaling en notificaties 📋
+## Stap 3: Editor, registratie, betaling en notificaties (v0.3) ✅
 
-- 📋 Visuele drag-and-drop portal-editor met sjablonen en eigen huisstijl per klant
-- ✅ Gastportals in Nederlands en Engels, taal kiezen door de gast (v0.2); later meer talen
-- 📋 Registratie via e-mail, vouchers of akkoord op voorwaarden
-- 📋 Betaalde toegang via Mollie of Stripe
-- 📋 **Notificaties**
-  - 📋 Melding zodra het A-record gevalideerd is en het SSL-certificaat geregeld is
-  - 📋 Maandrapportage aan het einde van de maand: aantal gasten, nieuwe registraties, betalingen en piekmomenten
-- 📋 **Mail-template ontwerper**, zowel visueel als in HTML, voor uitnodigingen, meldingen en rapportages
+- ✅ Visuele drag-and-drop portal-editor met zes templates, afbeeldingen, kleuren en lettertypen, per taal, met voorbeeld op telefoon en desktop
+- ✅ Gastportals in Nederlands en Engels, taal kiezen door de gast; de klant kiest welke talen worden aangeboden
+- ✅ Manieren van verbinden: gratis met één tik, registreren met e-mail (naam, telefoon, toestemming voor marketing), vouchers en akkoord op voorwaarden
+- ✅ Vouchers in reeksen, met vervaldatum, gebruikslimiet, eigen limieten en een printvel
+- ✅ Betaalde toegang via Mollie of Stripe met pakketten, en een **tijd om te betalen** die de klant zelf instelt (met duidelijke uitleg)
+- ✅ **Doorgaan met Facebook** met de eigen Facebook-app van de klant
+- ✅ **Notificaties**
+  - ✅ Melding zodra het A-record gevalideerd is en het SSL-certificaat geregeld is
+  - ✅ Maandrapportage aan het begin van elke maand: gasten, apparaten, registraties, vouchers, betalingen, omzet en piekmomenten
+- ✅ **Mail-template ontwerper**, visueel en in HTML, voor elke e-mail, per klant en platformbreed
+- ✅ Gastenlijst met naam, e-mail, manier van inloggen, CSV-export en verwijderen
 
-## Stap 4: Backups en handleidingen 📋
+## Stap 4: Klanten factureren 📋
+
+- 📋 Abonnementen per klant (tenant) voor hun portal, ingesteld door de platformbeheerder: pakket, prijs, factuurperiode en startdatum
+- 📋 Facturen vanuit het hoofdbeheerpaneel, met factuurnummers, btw, je bedrijfsgegevens en logo, als pdf en per e-mail
+- 📋 Facturen online betalen via het eigen Mollie- of Stripe-account van het platform, met automatische betaalstatus
+- 📋 Overzicht van openstaande, betaalde en te late facturen, met herinneringen
+- 📋 Optioneel: het portal van een klant beperken of opschorten als facturen onbetaald blijven
+- 📋 Klanten zien en downloaden hun eigen facturen in hun omgeving
+
+## Stap 5: Backups en handleidingen 📋
 
 - 📋 Volledige en incrementele back-ups (database en bestanden)
 - 📋 Remote backuplocaties: FTP, FTPS en SCP
@@ -50,7 +62,7 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - 📋 Back-upschema en bewaartermijnen
 - 📋 Complete handleidingen voor klanten en beheerders
 
-## Stap 5: Volledige API 📋
+## Stap 6: Volledige API 📋
 
 - 📋 Complete REST API voor elke klant (tenant): consoles, hostnamen, portalen, gasten, betalingen en rapportages
 - 📋 Platform-API voor het hoofdbeheerportaal: klanten en hun gebruikers aanmaken, wijzigen, opschorten en verwijderen

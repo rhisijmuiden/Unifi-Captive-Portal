@@ -3,8 +3,8 @@ import { adminBaseUrl } from './settings.js';
 import { db, schema } from '../db/index.js';
 import type { User } from '../db/schema.js';
 import { randomToken, sha256 } from '../lib/crypto.js';
-import { DEFAULT_LOCALE, normalizeLocale, t } from '../i18n/index.js';
-import { renderEmail, sendMail } from './mailer.js';
+import { DEFAULT_LOCALE, normalizeLocale } from '../i18n/index.js';
+import { sendTemplate } from './mailTemplates.js';
 
 type Purpose = 'invite' | 'password_reset';
 const TTL: Record<Purpose, number> = { invite: 7 * 24 * 3600 * 1000, password_reset: 3600 * 1000 };
@@ -30,20 +30,12 @@ export async function sendInvite(user: User) {
   const token = await issueToken(user.id, 'invite');
   const url = `${await adminBaseUrl()}/reset-password?token=${token}&invite=1`;
   const locale = normalizeLocale(user.locale) ?? DEFAULT_LOCALE;
-  await sendMail(
-    user.email,
-    t(locale, 'mail.inviteSubject'),
-    renderEmail(locale, t(locale, 'mail.inviteTitle', { name: user.name }), [t(locale, 'mail.inviteBody')], { label: t(locale, 'mail.inviteButton'), url }),
-  );
+  await sendTemplate(user.email, 'invite', locale, null, { vars: { name: user.name, email: user.email, actionUrl: url } });
 }
 
 export async function sendPasswordReset(user: User) {
   const token = await issueToken(user.id, 'password_reset');
   const url = `${await adminBaseUrl()}/reset-password?token=${token}`;
   const locale = normalizeLocale(user.locale) ?? DEFAULT_LOCALE;
-  await sendMail(
-    user.email,
-    t(locale, 'mail.resetSubject'),
-    renderEmail(locale, t(locale, 'mail.resetTitle'), [t(locale, 'mail.resetBody')], { label: t(locale, 'mail.resetButton'), url }),
-  );
+  await sendTemplate(user.email, 'passwordReset', locale, null, { vars: { name: user.name, email: user.email, actionUrl: url } });
 }

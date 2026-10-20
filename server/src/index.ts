@@ -6,6 +6,8 @@ import { purgeExpiredSessions } from './lib/auth.js';
 import { buildApp } from './app.js';
 import { syncAllConsoles } from './services/consoles.js';
 import { checkHostnames } from './services/hostnames.js';
+import { runMonthlyReports } from './services/notifications.js';
+import { pollOpenPayments } from './services/payments.js';
 
 await mkdir(config.dataDir, { recursive: true });
 await runMigrations();
@@ -19,6 +21,10 @@ const jobs = [
   // Hostnames waiting for DNS or a certificate are retried; active ones are re-verified
   every(5 * 60_000, () => checkHostnames(['pending', 'dns_ok', 'error'])),
   every(6 * 3600_000, () => checkHostnames(['active'])),
+  // Payments without a webhook (or a missed one) are checked with the provider
+  every(60_000, pollOpenPayments),
+  // Last month's report goes out once per customer; checking hourly survives restarts
+  every(3600_000, () => runMonthlyReports()),
 ];
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {

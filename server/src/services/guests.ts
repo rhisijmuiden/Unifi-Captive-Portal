@@ -1,8 +1,10 @@
 import { and, eq } from 'drizzle-orm';
 import { db, schema } from '../db/index.js';
-import type { GuestSession, PortalSettings } from '../db/schema.js';
+import { defaultPortalAuth, type GuestSession, type PortalSettings } from '../db/schema.js';
+import type { PortalDesign } from '../shared/portalDesign.js';
+import { defaultDesign } from '../shared/portalTemplates.js';
 import { randomToken } from '../lib/crypto.js';
-import { authorizeGuest, findClient, normalizeMac, targetFromConsole, UnifiError } from './unifi.js';
+import { authorizeGuest, findClient, normalizeMac, targetFromConsole, UnifiError, type GuestLimits } from './unifi.js';
 
 /** A guest page that was not used within this time must be reopened through the Wi-Fi redirect. */
 export const SESSION_MAX_AGE_MS = 60 * 60 * 1000;
@@ -19,11 +21,27 @@ const defaults = (tenantId: string): PortalSettings => ({
   downKbps: null,
   upKbps: null,
   successUrl: null,
+  design: null,
+  auth: { ...defaultPortalAuth },
+  languages: ['en', 'nl'],
   updatedAt: new Date(0),
 });
 
 export async function getPortalSettings(tenantId: string): Promise<PortalSettings> {
-  return (await db.query.portalSettings.findFirst({ where: eq(schema.portalSettings.tenantId, tenantId) })) ?? defaults(tenantId);
+  const row = await db.query.portalSettings.findFirst({ where: eq(schema.portalSettings.tenantId, tenantId) });
+  return row ? { ...row, auth: { ...defaultPortalAuth, ...row.auth } } : defaults(tenantId);
+}
+
+/** The portal design; before the editor was used, the default template with the texts from "Portal & access". */
+export function designFor(p: PortalSettings): PortalDesign {
+  if (p.design) return p.design;
+  const d = defaultDesign();
+  d.theme.accent = p.accentColor;
+  for (const b of d.blocks) {
+    if (b.type === 'heading' && Object.values(p.title).some(Boolean)) b.text = { ...p.title };
+    if (b.type === 'text' && Object.values(p.welcome).some(Boolean)) b.text = { ...p.welcome };
+  }
+  return d;
 }
 
 /**
@@ -64,8 +82,19 @@ export const isExpired = (s: GuestSession) => s.status !== 'authorized' && Date.
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+type AuthorizeOptions = {
+  retries?: number;
+  retryDelayMs?: number;
+  /** Limits of a voucher or package instead of the portal's defaults. */
+  limits?: GuestLimits & { timeLimitMinutes: number };
+  /** Short access while paying: the console lets the guest through, the session stays pending. */
+  temporary?: boolean;
+  /** Extra fields stored on the session once access is granted (method, e-mail, …). */
+  record?: Partial<Pick<GuestSession, 'method' | 'name' | 'email' | 'phone' | 'marketingOptIn' | 'voucherId' | 'paymentId' | 'locale'>>;
+};
+
 /** Asks the console to let the guest through, with the customer's limits. */
-export async function authorizeSession(s: GuestSession, opts: { retries?: number; retryDelayMs?: number } = {}) {
+export async function authorizeSession(s: GuestSession, opts: AuthorizeOptions = {}) {
   const retries = opts.retries ?? 3;
   try {
     if (!s.consoleSiteId) throw new UnifiError('Site no longer linked');
@@ -81,16 +110,25 @@ export async function authorizeSession(s: GuestSession, opts: { retries?: number
     }
     if (!client) throw new UnifiError('Device not found on the network');
     const p = await getPortalSettings(s.tenantId);
-    await authorizeGuest(target, site.unifiSiteId, client.id, p);
+    const limits = opts.limits ?? p;
+    await authorizeGuest(target, site.unifiSiteId, client.id, limits);
+    if (opts.temporary) return { ok: true as const, session: s, settings: p };
     const [updated] = await db
       .update(schema.guestSessions)
-      .set({ status: 'authorized', error: null, authorizedAt: new Date(), accessUntil: new Date(Date.now() + p.timeLimitMinutes * 60_000) })
+      .set({
+        ...opts.record,
+        status: 'authorized',
+        error: null,
+        authorizedAt: new Date(),
+        accessUntil: new Date(Date.now() + (limits.timeLimitMinutes ?? p.timeLimitMinutes) * 60_000),
+      })
       .where(eq(schema.guestSessions.id, s.id))
       .returning();
     return { ok: true as const, session: updated, settings: p };
   } catch (err) {
     const message = err instanceof UnifiError ? err.message : String(err);
-    await db.update(schema.guestSessions).set({ status: 'failed', error: message }).where(eq(schema.guestSessions.id, s.id));
+    // A failed short access while paying does not fail the session: the payment can still complete
+    if (!opts.temporary) await db.update(schema.guestSessions).set({ status: 'failed', error: message }).where(eq(schema.guestSessions.id, s.id));
     return { ok: false as const, error: message };
   }
 }

@@ -102,3 +102,32 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .pulse-ring { animation: none; }
 }
+
+/* Range sliders in the editors: thin themed track, koraal thumb */
+input[type='range'].range {
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--koraal) var(--fill, 0%), var(--line) var(--fill, 0%));
+  cursor: pointer;
+}
+input[type='range'].range::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--koraal);
+  border: 3px solid var(--surface);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+}
+input[type='range'].range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--koraal);
+  border: 3px solid var(--surface);
+}
+input[type='range'].range:focus-visible {
+  outline: 2px solid var(--koraal);
+  outline-offset: 4px;
+}
