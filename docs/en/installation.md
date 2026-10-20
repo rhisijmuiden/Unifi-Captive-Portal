@@ -40,7 +40,8 @@ The installer:
 3. creates a database with a random password and secret key;
 4. builds the application and runs database migrations;
 5. installs the systemd services `captive-portal` and `captive-portal-updater.path`;
-6. checks that the web interface responds.
+6. installs **Caddy** on ports 80 and 443 for HTTPS with automatic Let's Encrypt certificates (see [hostnames-ssl.md](hostnames-ssl.md));
+7. checks that the web interface responds.
 
 You can safely run the installer again; existing settings and data are kept.
 
@@ -51,6 +52,8 @@ You can safely run the installer again; existing settings and data are kept.
 | `CP_REF` | Version (tag) or branch to install, e.g. `v0.1.0` | latest release, otherwise `main` |
 | `CP_PUBLIC_URL` | Address where the admin interface is reachable | `http://<server-ip>:8080` |
 | `CP_NODE_MAJOR` | Node.js major version | `24` |
+| `CP_ACME_EMAIL` | E-mail address for Let's Encrypt expiry notices | empty |
+| `CP_CADDY` | `0` = do not install Caddy (when you run your own reverse proxy) | `1` |
 
 Example: `CP_PUBLIC_URL=https://portal.example.com bash -c "$(curl -fsSL …/install/install.sh)"`
 
@@ -60,7 +63,10 @@ Example: `CP_PUBLIC_URL=https://portal.example.com bash -c "$(curl -fsSL …/ins
 2. Create the first **platform admin** account.
 3. Set up your mail server under **System → E-mail (SMTP)**, so invitations and password resets work. See [smtp.md](smtp.md).
 4. Optional: turn on Microsoft Entra under **System → Single sign-on**. See [entra-sso.md](entra-sso.md).
-5. Add your first customer under **Customers** and invite a customer admin.
+5. Under **System → Hosting & SSL**, set the public IP address and, optionally, an HTTPS hostname for the admin panel. See [hostnames-ssl.md](hostnames-ssl.md).
+6. Add your first customer under **Customers** and invite a customer admin. The customer connects their console as described in [unifi-setup.md](unifi-setup.md).
+
+Ports: **8080** (admin panel, also directly), **80** and **443** (Caddy: guest portals and HTTPS). Forward 80 and 443 from the internet to the server.
 
 The interface follows the browser language; each user can change it at the bottom of the menu or under **My account**.
 
@@ -72,6 +78,8 @@ The interface follows the browser language; each user can change it at the botto
 | `/etc/captive-portal/captive-portal.env` | Configuration: database, secret key, public URL |
 | `/var/lib/captive-portal` | Data: update status, backups |
 | `/var/log/captive-portal-update.log` | Update log |
+| `/etc/caddy/Caddyfile` | Caddy configuration (managed by the installer) |
+| `/etc/captive-portal/caddy.env` | E-mail address for Let's Encrypt |
 
 ```bash
 systemctl status captive-portal          # is the app running?

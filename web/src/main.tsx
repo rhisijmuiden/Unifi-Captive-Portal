@@ -10,7 +10,11 @@ import { useAuth } from './lib/auth';
 import { AccountPage } from './pages/Account';
 import { ForgotPasswordPage, LoginPage, ResetPasswordPage, SetupPage } from './pages/AuthPages';
 import { DashboardPage } from './pages/Dashboard';
-import { SmtpSettingsPage, SsoSettingsPage } from './pages/Settings';
+import { ConsolesPage } from './pages/Consoles';
+import { GuestsPage } from './pages/Guests';
+import { HostnamesPage } from './pages/Hostnames';
+import { PortalSettingsPage } from './pages/PortalSettings';
+import { HostingSettingsPage, SmtpSettingsPage, SsoSettingsPage } from './pages/Settings';
 import { TenantsPage } from './pages/Tenants';
 import { UsersPage } from './pages/Users';
 import './i18n';
@@ -54,6 +58,11 @@ const router = createBrowserRouter([
       { path: 'users', element: <RequireAuth roles={['superadmin', 'tenant_admin']}><UsersPage /></RequireAuth> },
       { path: 'settings/smtp', element: <RequireAuth roles={['superadmin']}><SmtpSettingsPage /></RequireAuth> },
       { path: 'settings/sso', element: <RequireAuth roles={['superadmin']}><SsoSettingsPage /></RequireAuth> },
+      { path: 'settings/hosting', element: <RequireAuth roles={['superadmin']}><HostingSettingsPage /></RequireAuth> },
+      { path: 'consoles', element: <ConsolesPage /> },
+      { path: 'portal-settings', element: <PortalSettingsPage /> },
+      { path: 'hostnames', element: <HostnamesPage /> },
+      { path: 'guests', element: <GuestsPage /> },
       { path: 'account', element: <AccountPage /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],

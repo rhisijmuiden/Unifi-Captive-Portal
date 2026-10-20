@@ -1,11 +1,16 @@
 {
   "name": "captive-portal",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Multi-tenant managed captive portal platform for UniFi OS consoles",
   "license": "UNLICENSED",
-  "workspaces": ["server", "web"],
-  "engines": { "node": ">=22" },
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "npm run dev -w server & npm run dev -w web",
     "build": "npm run build -w web && npm run build -w server",

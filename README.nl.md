@@ -19,8 +19,11 @@ Captive Portal is een multi-tenant webapplicatie. Jij (de platformbeheerder) hos
 
 Zie de [roadmap](ROADMAP.nl.md) voor wat er al werkt en wat eraan komt.
 
-## Wat zit er nu in (v0.1)
+## Wat zit er nu in (v0.2)
 
+- **UniFi-koppeling**: UniFi OS consoles koppelen (UDM, UCG, Dream Router, Cloud Key, zelf gehoste Network) via de UniFi Site Manager-cloud of rechtstreeks, met de officiële UniFi Network API. Gasten worden herkend aan het access point en doorgelaten met limieten voor tijd, data en snelheid.
+- **Gastportal** als external portal server: tweetalige gastpagina met je eigen teksten, voorwaarden en kleur, plus een live voorbeeld en een gastenoverzicht.
+- **Eigen hostnamen met automatisch SSL**: Caddy op poort 80/443 met Let's Encrypt-certificaten op aanvraag, pas nadat het DNS-record is gecontroleerd. Ook het beheerpaneel kan een eigen HTTPS-hostnaam krijgen.
 - **Klanten (tenants) en gebruikers** met drie rollen: platformbeheerder, klantbeheerder en medewerker. Uitnodigen per e-mail.
 - **Microsoft Entra ID single sign-on** (OpenID Connect met PKCE), naast of in plaats van inloggen met wachtwoord.
 - **Eigen mailserver (SMTP)**: STARTTLS of TLS, minimale TLS-versie, gebruikersnaam/wachtwoord of OAuth 2.0 (Microsoft 365), DKIM-ondertekening en een testknop.
@@ -36,11 +39,13 @@ Zie de [roadmap](ROADMAP.nl.md) voor wat er al werkt en wat eraan komt.
 | **Proxmox LXC** (op de Proxmox-host) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/ct/captive-portal.sh)"` |
 | **Debian 13 VM of server** (als root) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/install/install.sh)"` |
 
-Open daarna `http://<ip-van-de-server>:8080` en maak het eerste beheerdersaccount aan. Uitgebreide stappen staan in [docs/installatie.md](docs/nl/installatie.md).
+Open daarna `http://<ip-van-de-server>:8080` en maak het eerste beheerdersaccount aan. Poort 80 en 443 gebruikt Caddy voor de gastportalen en HTTPS. Uitgebreide stappen staan in [docs/installatie.md](docs/nl/installatie.md).
 
 ## Handleidingen
 
 - [Installatie](docs/nl/installatie.md): LXC, VM en fysieke server, eerste start, configuratiebestand
+- [Een UniFi-console koppelen](docs/nl/unifi-koppelen.md): Site Manager of rechtstreeks, hotspot-instellingen, pre-authorization, problemen oplossen
+- [Hostnamen en SSL](docs/nl/hostnamen-ssl.md): DNS-records, automatische certificaten, HTTPS voor het beheerpaneel
 - [Updaten en releasekanalen](docs/nl/updaten.md): stable en test, updaten vanuit de interface of de terminal, rollback
 - [Microsoft Entra SSO](docs/nl/entra-sso.md): app-registratie en koppeling
 - [E-mail (SMTP)](docs/nl/smtp.md): Microsoft 365, Google Workspace, eigen server, DKIM
@@ -55,7 +60,8 @@ Open daarna `http://<ip-van-de-server>:8080` en maak het eerste beheerdersaccoun
 | Frontend | React 19, Vite, Tailwind CSS 4, TanStack Query |
 | Inloggen | Argon2id-wachtwoorden, sessies in de database, Entra ID via OpenID Connect |
 | Beveiliging | Geheimen versleuteld opgeslagen (AES-256-GCM), CSRF-bescherming, rate limiting, systemd-hardening |
-| Reverse proxy en SSL (stap 2) | Caddy met automatische Let's Encrypt per klant-hostname |
+| Reverse proxy en SSL | Caddy met Let's Encrypt op aanvraag per hostnaam, goedgekeurd door de app |
+| UniFi | Officiële UniFi Network Integration API, via Site Manager (api.ui.com) of rechtstreeks |
 
 ## Licentie
 

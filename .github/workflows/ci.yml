@@ -21,4 +21,4 @@ jobs:
       - name: Shell scripts
         run: |
           for f in install/*.sh ct/*.sh; do bash -n "$f"; done
-          shellcheck -S error install/install.sh install/update.sh
+          shellcheck -S error install/install.sh install/update.sh install/caddy.sh

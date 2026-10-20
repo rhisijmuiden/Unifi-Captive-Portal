@@ -23,7 +23,7 @@ export function Button({ variant = 'primary', size = 'md', loading, icon, classN
       {...rest}
       disabled={disabled || loading}
       className={cx(
-        'inline-flex items-center justify-center gap-2 rounded-[10px] font-semibold transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-koraal',
+        'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[10px] font-semibold transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-koraal',
         size === 'sm' ? 'h-8 px-3 text-sm' : 'h-10 px-4 text-sm',
         styles,
         className,
@@ -59,7 +59,7 @@ export function PageHeader({ title, description, actions, eyebrow }: { title: st
         <h1 className="display text-2xl sm:text-3xl">{title}</h1>
         {description && <p className="mt-2 max-w-2xl text-muted">{description}</p>}
       </div>
-      {actions && <div className="flex gap-2">{actions}</div>}
+      {actions && <div className="flex w-full flex-wrap gap-2 sm:w-auto">{actions}</div>}
     </div>
   );
 }

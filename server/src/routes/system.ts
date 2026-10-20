@@ -1,4 +1,4 @@
-import { count, desc, eq } from 'drizzle-orm';
+import { and, count, desc, eq, gte } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db, schema } from '../db/index.js';
@@ -51,10 +51,24 @@ export async function systemRoutes(app: FastifyInstance) {
 
   app.get('/api/dashboard', async (req) => {
     const user = requireUser(req);
-    const scope = user.role === 'superadmin' ? undefined : eq(schema.auditLog.tenantId, user.tenantId!);
-    const [[tenantCount], [userCount], activity] = await Promise.all([
+    const own = user.role === 'superadmin' ? null : user.tenantId!;
+    const scope = own ? eq(schema.auditLog.tenantId, own) : undefined;
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const [[tenantCount], [userCount], [consoleCount], [hostnameCount], [guestCount], portal, hosting, activity] = await Promise.all([
       db.select({ value: count() }).from(schema.tenants),
-      db.select({ value: count() }).from(schema.users).where(user.role === 'superadmin' ? undefined : eq(schema.users.tenantId, user.tenantId!)),
+      db.select({ value: count() }).from(schema.users).where(own ? eq(schema.users.tenantId, own) : undefined),
+      db.select({ value: count() }).from(schema.consoles).where(own ? eq(schema.consoles.tenantId, own) : undefined),
+      db
+        .select({ value: count() })
+        .from(schema.hostnames)
+        .where(and(eq(schema.hostnames.status, 'active'), own ? eq(schema.hostnames.tenantId, own) : undefined)),
+      db
+        .select({ value: count() })
+        .from(schema.guestSessions)
+        .where(and(eq(schema.guestSessions.status, 'authorized'), gte(schema.guestSessions.authorizedAt, startOfDay), own ? eq(schema.guestSessions.tenantId, own) : undefined)),
+      own ? db.query.portalSettings.findFirst({ where: eq(schema.portalSettings.tenantId, own) }) : Promise.resolve(undefined),
+      getSettings('hosting'),
       db
         .select({ id: schema.auditLog.id, action: schema.auditLog.action, details: schema.auditLog.details, createdAt: schema.auditLog.createdAt, userName: schema.users.name })
         .from(schema.auditLog)
@@ -63,6 +77,15 @@ export async function systemRoutes(app: FastifyInstance) {
         .orderBy(desc(schema.auditLog.createdAt))
         .limit(12),
     ]);
-    return { tenants: user.role === 'superadmin' ? tenantCount.value : null, users: userCount.value, activity };
+    return {
+      tenants: own ? null : tenantCount.value,
+      users: userCount.value,
+      consoles: consoleCount.value,
+      activeHostnames: hostnameCount.value,
+      guestsToday: guestCount.value,
+      portalConfigured: own ? Boolean(portal) : null,
+      hostingReady: own ? null : Boolean(hosting.publicIpv4 || hosting.publicIpv6),
+      activity,
+    };
   });
 }

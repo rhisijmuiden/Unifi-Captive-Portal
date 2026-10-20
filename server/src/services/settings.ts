@@ -1,7 +1,9 @@
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
+import { config } from '../config.js';
 import { db, schema } from '../db/index.js';
 import { decrypt, encrypt } from '../lib/crypto.js';
+import { isValidHostname, normalizeHostname } from '../lib/hostname.js';
 
 export const smtpSchema = z.object({
   enabled: z.boolean().default(false),
@@ -44,10 +46,24 @@ export const systemSchema = z.object({
   updateChannel: z.enum(['stable', 'test']).default('stable'),
 });
 
+export const hostingSchema = z.object({
+  // The address customers point their A/AAAA records at
+  publicIpv4: z.union([z.ipv4(), z.literal('')]).default(''),
+  publicIpv6: z.union([z.ipv6(), z.literal('')]).default(''),
+  // Own hostname for the admin panel, served over HTTPS by Caddy like the guest portals
+  adminHostname: z
+    .string()
+    .transform(normalizeHostname)
+    .refine((v) => !v || isValidHostname(v), 'errors.hostnameFormat')
+    .default(''),
+  forceHttps: z.boolean().default(true),
+});
+
 const definitions = {
   smtp: { schema: smtpSchema, secrets: ['password', 'oauthClientSecret', 'dkimPrivateKey'] },
   sso: { schema: ssoSchema, secrets: ['entraClientSecret'] },
   system: { schema: systemSchema, secrets: [] },
+  hosting: { schema: hostingSchema, secrets: [] },
 } as const;
 
 type Definitions = typeof definitions;
@@ -96,4 +112,10 @@ export async function saveSettings(key: SettingsKey, input: Record<string, unkno
     .insert(schema.settings)
     .values({ key, value })
     .onConflictDoUpdate({ target: schema.settings.key, set: { value, updatedAt: new Date() } });
+}
+
+/** Base URL for links in e-mails and SSO: the admin hostname (HTTPS through Caddy) once it is set, else PUBLIC_URL. */
+export async function adminBaseUrl() {
+  const { adminHostname } = await getSettings('hosting');
+  return adminHostname ? `https://${adminHostname}` : config.publicUrl;
 }

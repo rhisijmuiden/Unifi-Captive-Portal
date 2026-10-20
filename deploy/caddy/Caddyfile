@@ -1,0 +1,32 @@
+# Managed by Captive Portal (install/caddy.sh). Local changes are overwritten on update;
+# remove the first line of this file to keep your own version.
+#
+# Caddy terminates HTTPS on 80/443 and forwards everything to the app on 127.0.0.1:8080.
+# Certificates are requested on demand, but only for hostnames the app approves
+# (customer hostnames whose DNS points here, and the admin hostname).
+{
+	email {$CP_ACME_EMAIL}
+	on_demand_tls {
+		ask http://127.0.0.1:8080/api/caddy/ask
+	}
+}
+
+(app) {
+	# The certificate check is for Caddy itself, never for visitors
+	@internal path /api/caddy/*
+	respond @internal 404
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8080
+}
+
+https:// {
+	tls {
+		on_demand
+	}
+	import app
+}
+
+# UniFi sends guests to the external portal over plain HTTP; the app redirects to HTTPS where possible
+http:// {
+	import app
+}

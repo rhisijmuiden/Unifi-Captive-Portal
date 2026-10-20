@@ -131,6 +131,11 @@ else
   $SYSTEM && systemctl restart captive-portal
 fi
 
+# Keep the HTTPS front end in step with the new version (also adds it to older installations)
+if [[ -f "$APP_DIR/install/caddy.sh" ]]; then
+  APP_DIR="$APP_DIR" bash "$APP_DIR/install/caddy.sh" || echo "Caddy setup failed; the app itself was updated"
+fi
+
 # Remove pre-update backups older than 30 days
 find "$DATA_DIR/backups" -name 'pre-update-*.sql.gz' -mtime +30 -delete
 

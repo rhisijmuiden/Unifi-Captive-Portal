@@ -4,7 +4,21 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
-## [0.1.0] - nog niet uitgebracht
+## [0.2.0] - nog niet uitgebracht
+
+Stap 2: UniFi-koppeling en hosting.
+
+- UniFi OS consoles koppelen via UniFi Site Manager (geen open poorten) of rechtstreeks, met een koppelwizard, sitekeuze en elk uur verversen van de access points
+- External portal endpoint: gasten worden aan het access point herkend bij de juiste klant en via de UniFi Network API doorgelaten met limieten voor tijd, data en snelheid
+- Tweetalige gastpagina (Nederlands/Engels, de gast kiest) met eigen titel, welkomsttekst, voorwaarden en accentkleur; instellingenpagina met live voorbeeld
+- Gastenoverzicht met tellers voor nu online en vandaag
+- Eigen hostnamen per klant met DNS-controle, Let's Encrypt-certificaten op aanvraag via Caddy en automatisch opnieuw proberen
+- Beheerpaneel op een eigen HTTPS-hostnaam (Hosting & SSL), met doorsturen van HTTP naar HTTPS; links in e-mails en SSO gebruiken die hostnaam
+- Installer en updater richten Caddy in op poort 80/443 (`CP_ACME_EMAIL`, `CP_CADDY=0`)
+- Handleidingen: een UniFi-console koppelen, hostnamen en SSL
+- Roadmap: stap 5, een volledige API voor klanten en het platform
+
+## [0.1.0] - 2026-10-20
 
 Eerste versie: het fundament van het platform.
 

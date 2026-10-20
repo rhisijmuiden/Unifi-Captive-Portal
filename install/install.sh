@@ -8,6 +8,8 @@
 #   CP_REF=v1.2.3        install a specific tag or branch (default: newest release tag, else main)
 #   CP_PUBLIC_URL=...    public URL of the admin panel (default: http://<server-ip>:8080)
 #   CP_NODE_MAJOR=24     Node.js major version from NodeSource
+#   CP_ACME_EMAIL=...    e-mail for Let's Encrypt expiry notices (optional)
+#   CP_CADDY=0           do not install Caddy (HTTPS on 80/443), e.g. behind your own proxy
 set -euo pipefail
 
 REPO_URL="${CP_REPO_URL:-https://github.com/rhisijmuiden/Unifi-Captive-Portal.git}"
@@ -123,9 +125,13 @@ for _ in $(seq 1 30); do
 done
 curl -fsS http://127.0.0.1:8080/api/health >/dev/null 2>&1 || die "The service did not start. Check: journalctl -u captive-portal -n 50"
 
+info "Setting up HTTPS (Caddy)"
+APP_DIR="$APP_DIR" bash "$APP_DIR/install/caddy.sh" || warn "Caddy could not be set up; the app still runs on port 8080. Retry: bash $APP_DIR/install/caddy.sh"
+
 URL="$(grep '^PUBLIC_URL=' "$ENV_FILE" | cut -d= -f2-)"
 echo
 ok "Captive Portal $(node -p "require('$APP_DIR/package.json').version") is running"
 echo "   Open ${c_info}${URL}${c_off} to create the first administrator account."
+echo "   Then set the public IP and an HTTPS hostname for this panel under System → Hosting & SSL."
 echo "   Configuration: $ENV_FILE"
 echo "   Update later:  captive-portal-update   (or via Info & updates in the web interface)"
