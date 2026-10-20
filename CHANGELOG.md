@@ -4,6 +4,10 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.2.0-beta.2] - 2026-10-20 (test channel)
+
+- Fix: updating from the interface failed with `vite: not found`. The update script exported the whole configuration file, including `NODE_ENV=production`, so `npm ci` skipped the build tools. It now reads only the database URL and always installs build tools.
+
 ## [0.2.0-beta.1] - 2026-10-20 (test channel)
 
 Step 2: UniFi integration and hosting.

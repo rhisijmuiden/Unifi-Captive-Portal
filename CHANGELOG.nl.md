@@ -4,6 +4,10 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.2.0-beta.2] - 2026-10-20 (test-kanaal)
+
+- Fix: updaten vanuit de interface mislukte met `vite: not found`. Het updatescript exporteerde het hele configuratiebestand, inclusief `NODE_ENV=production`, waardoor `npm ci` de bouwtools oversloeg. Het leest nu alleen de database-URL en installeert de bouwtools altijd.
+
 ## [0.2.0-beta.1] - 2026-10-20 (test-kanaal)
 
 Stap 2: UniFi-koppeling en hosting.

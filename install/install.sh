@@ -98,7 +98,7 @@ ok "PostgreSQL database ready"
 
 info "Building the application (this takes a minute)"
 cd "$APP_DIR"
-npm ci --no-audit --no-fund --loglevel=error
+npm ci --include=dev --no-audit --no-fund --loglevel=error
 npm run build --silent
 npm prune --omit=dev --no-audit --no-fund --loglevel=error
 ok "Build complete"
