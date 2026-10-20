@@ -71,6 +71,7 @@ De menunamen verschillen per Network-versie een beetje; de stappen zijn hetzelfd
 4. Voeg onder **Pre-Authorization Allowances** (ook *Authorized access* of *Allowed hosts*) toe:
    - het IP-adres van het platform, en
    - je portal-hostnaam uit **Hostnamen & SSL**, bijvoorbeeld `gast.bedrijf.nl`.
+   - Optioneel, voor betalingen of inloggen met Facebook: de hosts uit [Gasttoegang](gasttoegang.md#unifi-pre-autorisatie).
 5. Sla op en wacht een minuut tot de instellingen op de access points staan.
 
 ## Stap 4: Testen

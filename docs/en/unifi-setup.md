@@ -71,6 +71,7 @@ The menu names differ slightly between Network versions; the steps are the same.
 4. Under **Pre-Authorization Allowances** (also called *Authorized access* or *Allowed hosts*) add:
    - the IP address of the platform, and
    - your portal hostname from **Hostnames & SSL**, for example `guest.company.com`.
+   - Optional, for payments or Facebook login: the hosts listed in [Guest access](guest-access.md#unifi-pre-authorization).
 5. Save, and wait a minute for the settings to reach the access points.
 
 ## Step 4: Test

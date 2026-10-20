@@ -23,6 +23,7 @@ server/            Fastify API (TypeScript)
   src/services/    mailer, Entra SSO, instellingen, updater, tokens
   src/i18n/        vertalingen van de server (foutmeldingen, e-mails)
   src/db/          Drizzle-schema en migraties (server/drizzle/)
+  src/shared/      opmaak van gastpagina en e-mails, gedeeld met de editors in de web-app (import via @shared)
   test/            unit tests (node --test)
 web/               React-beheeromgeving (Vite, Tailwind, i18next)
   src/locales/     vertalingen van de interface
@@ -42,13 +43,15 @@ Alle teksten staan in vertaalbestanden; er staat geen tekst vast in de code.
 | --- | --- |
 | Webinterface | `web/src/locales/nl.ts`, `web/src/locales/en.ts` |
 | Server (foutmeldingen, e-mails) | `server/src/i18n/nl.ts`, `server/src/i18n/en.ts` |
+| Gastportaal | `server/src/shared/guestStrings.ts` |
 
 Een taal toevoegen, bijvoorbeeld Duits:
 
 1. Kopieer `web/src/locales/en.ts` naar `de.ts` en vertaal de teksten. TypeScript controleert dat er geen sleutel ontbreekt.
 2. Registreer de taal in `web/src/i18n.ts` (lijst `languages` en `resources`).
 3. Doe hetzelfde voor `server/src/i18n/` (bestand plus `locales` in `index.ts`).
-4. Voeg de handleidingen toe in `docs/de/`.
+4. Voeg de gastteksten toe aan `server/src/shared/guestStrings.ts`.
+5. Voeg de handleidingen toe in `docs/de/`.
 
 De taal van de interface volgt de keuze van de gebruiker (opgeslagen op het account), anders de browser. E-mails gaan in de taal van de ontvanger.
 

@@ -31,18 +31,30 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - ✅ Own hostname with automatic SSL for the main admin panel as well
 - ✅ Step-by-step guide per console for connecting it (hotspot settings, pre-authorization)
 
-## Step 3: Editor, registration, payments and notifications 📋
+## Step 3: Editor, registration, payments and notifications (v0.3) ✅
 
-- 📋 Visual drag-and-drop portal editor with templates and per-customer branding
-- ✅ Guest portals in English and Dutch, chosen by the guest (v0.2); more languages later
-- 📋 Registration by e-mail, vouchers or accepting the terms
-- 📋 Paid access through Mollie or Stripe
-- 📋 **Notifications**
-  - 📋 Alert as soon as the A record is validated and the SSL certificate is in place
-  - 📋 Monthly report at the end of each month: number of guests, new registrations, payments and peak times
-- 📋 **E-mail template designer**, both visual and in HTML, for invitations, notifications and reports
+- ✅ Visual drag-and-drop portal editor with six templates, images, colours and fonts, per language, with a phone and desktop preview
+- ✅ Guest portals in English and Dutch, chosen by the guest; the customer chooses which languages are offered
+- ✅ Ways to connect: free with one tap, registration by e-mail (name, phone, marketing opt-in), vouchers and accepting the terms
+- ✅ Vouchers in batches, with expiry, usage limits, own limits and a print sheet
+- ✅ Paid access through Mollie or Stripe with packages, and a **time to pay** the customer sets (with a clear explanation)
+- ✅ **Continue with Facebook** with the customer's own Facebook app
+- ✅ **Notifications**
+  - ✅ Alert as soon as the A record is validated and the SSL certificate is in place
+  - ✅ Monthly report at the start of each month: guests, devices, registrations, vouchers, payments, revenue and peak times
+- ✅ **E-mail template designer**, visual and in HTML, for every e-mail, per customer and platform-wide
+- ✅ Guest list with name, e-mail, method, CSV export and removal
 
-## Step 4: Backups and guides 📋
+## Step 4: Billing customers 📋
+
+- 📋 Subscriptions per customer (tenant) for their portal, set by the platform admin: plan, price, billing period and start date
+- 📋 Invoices from the main admin panel, with invoice numbers, VAT, your company details and logo, as PDF and by e-mail
+- 📋 Paying invoices online through the platform's own Mollie or Stripe account, with automatic payment status
+- 📋 Overview of open, paid and overdue invoices, with reminders
+- 📋 Optional: limit or suspend a customer's portal when invoices stay unpaid
+- 📋 Customers see and download their own invoices in their environment
+
+## Step 5: Backups and guides 📋
 
 - 📋 Full and incremental backups (database and files)
 - 📋 Remote backup locations: FTP, FTPS and SCP
@@ -50,7 +62,7 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - 📋 Backup schedule and retention
 - 📋 Complete guides for customers and admins
 
-## Step 5: Full API 📋
+## Step 6: Full API 📋
 
 - 📋 Complete REST API for every customer (tenant): consoles, hostnames, portals, guests, payments and reports
 - 📋 Platform API for the main admin portal: create, change, suspend and delete customers and their users
