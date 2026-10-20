@@ -4,6 +4,21 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.6.0-beta.1] - 2026-10-21 (test channel)
+
+Step 6: full API.
+
+- **REST API** at `/api/v1` with API keys (`Authorization: Bearer cpk_…`). It uses the same routes and checks as the web interface, so everything stays in line.
+  - **Customer API**: consoles, hostnames, portal settings and design, images, Facebook login, guests (including GDPR deletion), vouchers, payment settings and packages, payments, notifications and guest e-mail templates, overview and monthly report, team members and invoices (PDF too).
+  - **Platform API**: customers (create with a first admin, change, suspend, delete), users, server settings (SMTP, SSO, system, hosting, billing settings), platform e-mail templates, billing (plans, subscriptions, invoices), backups (locations, run now; restoring stays in the web interface) and updates.
+- **API keys** under the new **API** menu item (customer admins) and **System → API** (platform admin): read/write scopes per part, expiry date (30/90/365 days, a date or never), requests per minute, edit, revoke and delete. The key is shown once and stored as a SHA-256 hash; keys stop working when their customer is suspended.
+- **Rate limiting** per key per minute with `X-RateLimit-*` headers and `429`, plus a limit on failed key attempts per address.
+- **Audit trail per key**: every request (method, path, status, duration, IP) for 90 days, and changes made through the API are logged with the key.
+- **Webhooks**: signed (HMAC-SHA256 over timestamp and body) messages for `guest.authorized`, `payment.paid`, `hostname.active`, `console.offline`/`console.online` and `invoice.issued`/`invoice.paid` (customers) and `tenant.created`/`updated`/`deleted`, invoices and `backup.succeeded`/`failed` (platform). Retries after 1 min to 24 h, switched off after 50 failures in a row, delivery log with answers, **Test**, **Send again**, show and replace the signing secret. Customer webhooks only call public `https://` addresses (checked again when connecting, so DNS cannot point them at the internal network).
+- **Documentation**: OpenAPI 3.1 in English and Dutch with an explorer in the interface (search, parameters, example bodies, try it with a key, cURL), downloadable and public at `/api/v1/openapi.json`.
+- New guide: [API and webhooks](docs/en/api.md).
+- Roadmap: new step 7 with guest experience, marketing and growth ideas.
+
 ## [0.5.0-beta.1] - 2026-10-21 (test channel)
 
 Step 5: backups and restore.

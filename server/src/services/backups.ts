@@ -16,6 +16,7 @@ import { HostKeyMismatch, openStore, probeStore, storeRoot, type RemoteStore, ty
 import { sendTemplate } from './mailTemplates.js';
 import { adminBaseUrl, getSettings, saveSettings } from './settings.js';
 import { readUpdateStatus, requestRestore, selfUpdateEnabled } from './updater.js';
+import { emit } from './webhooks.js';
 
 /**
  * Backups of the whole platform (database and data folder) to FTP, FTPS, SCP or a local
@@ -350,11 +351,13 @@ async function runBackup(target: schema.BackupTarget, requested: BackupType, tri
       startedAt,
       finishedAt: new Date(),
     });
+    emit(null, 'backup.succeeded', { target: target.name, setId: result.info.id, type, trigger, sizeBytes: result.info.sizeBytes, storedBytes: result.info.storedBytes, startedAt });
   } catch (err) {
     const error = errorText(err);
     await db.update(schema.backupTargets).set({ lastError: error }).where(eq(schema.backupTargets.id, target.id));
     await db.insert(schema.backupRuns).values({ targetId: target.id, targetName: target.name, type, trigger, status: 'failed', error, startedAt, finishedAt: new Date() });
     await notifyFailure(target.name, error).catch(() => {});
+    emit(null, 'backup.failed', { target: target.name, type, trigger, error, startedAt });
   }
 }
 

@@ -9,7 +9,9 @@ import { pollInvoicePayments, runBilling } from './services/billing.js';
 import { syncAllConsoles } from './services/consoles.js';
 import { checkHostnames } from './services/hostnames.js';
 import { runMonthlyReports } from './services/notifications.js';
+import { purgeApiRequests } from './services/apiKeys.js';
 import { pollOpenPayments } from './services/payments.js';
+import { deliverDue, purgeDeliveries } from './services/webhooks.js';
 
 await mkdir(config.dataDir, { recursive: true });
 await runMigrations();
@@ -32,6 +34,9 @@ const jobs = [
   every(60_000, pollInvoicePayments),
   // Backup schedules are checked every minute; one backup runs at a time
   every(60_000, () => runScheduledBackups()),
+  // Webhook retries; the API audit trail and delivery history are trimmed daily
+  every(30_000, () => deliverDue()),
+  every(24 * 3600_000, () => Promise.all([purgeApiRequests(), purgeDeliveries()])),
 ];
 // Run the billing once shortly after start, so a restart on the 1st does not wait an hour
 setTimeout(() => runBilling().catch((err) => app.log.error(err)), 30_000).unref();

@@ -20,7 +20,8 @@ Open http://localhost:5173. The setup wizard starts the first time.
 ```
 server/            Fastify API (TypeScript)
   src/routes/      API endpoints: auth, tenants, users, settings, system, consoles, portals, payments, billing (/api/billing, pay pages under /billing)
-  src/services/    mailer, Entra SSO, settings, updater, tokens, UniFi, payments, billing and invoice PDFs
+  src/services/    mailer, Entra SSO, settings, updater, tokens, UniFi, payments, billing and invoice PDFs, API keys, webhooks
+  src/api/         public REST API: catalog of operations and scopes (catalog.ts), key check and rate limit (gate.ts), OpenAPI (openapi.ts)
   src/i18n/        server translations (errors, e-mails)
   src/db/          Drizzle schema and migrations (server/drizzle/)
   src/shared/      guest page and e-mail renderers, shared with the web editors (imported as @shared)
@@ -82,3 +83,7 @@ GitHub Actions runs the same checks on every push and pull request.
 3. Merge the pull request into `main`.
 
 The **Release** workflow sees the new version, creates the tag `v<version>` and the GitHub release. A version with a dash (`-beta.1`, `-rc.1`) is marked as a pre-release and only shows up in the **test** channel. Within a few minutes installations offer the update under **Info & updates** (the check is cached for 10 minutes; **Check for updates** refreshes it). Pushing a tag `v<version>` by hand still works.
+
+## Adding a route to the public API
+
+The REST API at `/api/v1` reuses the interface routes: `/api/v1/x` is rewritten to `/api/x` and runs with a user that stands in for the key. A route is only reachable with a key when it is listed in `server/src/api/catalog.ts` with a scope for customers (`tenant`), the platform (`platform`) or both, a summary in English and Dutch, and optionally its zod body schema for the OpenAPI description. The test `test/api.test.ts` checks that every listed operation exists.

@@ -5,6 +5,7 @@ import type { PortalDesign } from '../shared/portalDesign.js';
 import { defaultDesign } from '../shared/portalTemplates.js';
 import { randomToken } from '../lib/crypto.js';
 import { authorizeGuest, findClient, normalizeMac, targetFromConsole, UnifiError, type GuestLimits } from './unifi.js';
+import { emit } from './webhooks.js';
 
 /** A guest page that was not used within this time must be reopened through the Wi-Fi redirect. */
 export const SESSION_MAX_AGE_MS = 60 * 60 * 1000;
@@ -124,6 +125,20 @@ export async function authorizeSession(s: GuestSession, opts: AuthorizeOptions =
       })
       .where(eq(schema.guestSessions.id, s.id))
       .returning();
+    emit(s.tenantId, 'guest.authorized', {
+      id: updated.id,
+      clientMac: updated.clientMac,
+      apMac: updated.apMac,
+      ssid: updated.ssid,
+      method: updated.method,
+      name: updated.name,
+      email: updated.email,
+      phone: updated.phone,
+      marketingOptIn: updated.marketingOptIn,
+      locale: updated.locale,
+      authorizedAt: updated.authorizedAt,
+      accessUntil: updated.accessUntil,
+    });
     return { ok: true as const, session: updated, settings: p };
   } catch (err) {
     const message = err instanceof UnifiError ? err.message : String(err);

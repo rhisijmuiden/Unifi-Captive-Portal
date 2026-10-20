@@ -74,6 +74,8 @@ export const auditLog = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
     tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
+    // Set when the action came in through the API with this key (no foreign key: the trail outlives the key)
+    apiKeyId: uuid('api_key_id'),
     action: text('action').notNull(),
     details: jsonb('details'),
     ip: text('ip'),
@@ -556,3 +558,94 @@ export const backupRuns = pgTable(
 
 export type BackupTarget = typeof backupTargets.$inferSelect;
 export type BackupRun = typeof backupRuns.$inferSelect;
+
+// ── Step 6: API keys and webhooks ───────────────────────────────────────────
+
+/** A key for the REST API: of one customer (tenantId) or of the platform (tenantId null). */
+export const apiKeys = pgTable(
+  'api_keys',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    // First characters of the key, shown in lists so a key can be recognised; the key itself is only stored hashed
+    prefix: text('prefix').notNull(),
+    keyHash: text('key_hash').notNull().unique(),
+    // e.g. ['consoles:read', 'vouchers:write']; write includes read
+    scopes: jsonb('scopes').$type<string[]>().notNull().default([]),
+    rateLimit: integer('rate_limit').notNull().default(120),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    lastUsedIp: text('last_used_ip'),
+    requestCount: bigint('request_count', { mode: 'number' }).notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('api_keys_tenant_idx').on(t.tenantId)],
+);
+
+/** Every request made with an API key: the audit trail per key. Kept for 90 days. */
+export const apiRequests = pgTable(
+  'api_requests',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    apiKeyId: uuid('api_key_id')
+      .notNull()
+      .references(() => apiKeys.id, { onDelete: 'cascade' }),
+    method: text('method').notNull(),
+    path: text('path').notNull(),
+    status: integer('status').notNull(),
+    durationMs: integer('duration_ms').notNull(),
+    ip: text('ip'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('api_requests_key_idx').on(t.apiKeyId, t.createdAt), index('api_requests_created_idx').on(t.createdAt)],
+);
+
+/** An address that receives events, of one customer or of the platform. */
+export const webhooks = pgTable(
+  'webhooks',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
+    url: text('url').notNull(),
+    description: text('description').notNull().default(''),
+    events: jsonb('events').$type<string[]>().notNull().default([]),
+    // Signing secret, encrypted with APP_SECRET
+    secret: text('secret').notNull(),
+    active: boolean('active').notNull().default(true),
+    // Consecutive failed deliveries; the webhook is switched off after too many
+    failures: integer('failures').notNull().default(0),
+    disabledReason: text('disabled_reason'),
+    lastDeliveryAt: timestamp('last_delivery_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('webhooks_tenant_idx').on(t.tenantId)],
+);
+
+export const webhookDeliveries = pgTable(
+  'webhook_deliveries',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    webhookId: uuid('webhook_id')
+      .notNull()
+      .references(() => webhooks.id, { onDelete: 'cascade' }),
+    event: text('event').notNull(),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
+    status: text('status').$type<'pending' | 'success' | 'failed'>().notNull().default('pending'),
+    attempts: integer('attempts').notNull().default(0),
+    nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }),
+    responseStatus: integer('response_status'),
+    responseBody: text('response_body'),
+    error: text('error'),
+    durationMs: integer('duration_ms'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    deliveredAt: timestamp('delivered_at', { withTimezone: true }),
+  },
+  (t) => [index('webhook_deliveries_hook_idx').on(t.webhookId, t.createdAt), index('webhook_deliveries_due_idx').on(t.status, t.nextAttemptAt)],
+);
+
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type Webhook = typeof webhooks.$inferSelect;
+export type WebhookDelivery = typeof webhookDeliveries.$inferSelect;

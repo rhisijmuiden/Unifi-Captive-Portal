@@ -2,7 +2,7 @@ import { and, eq, gt, lt } from 'drizzle-orm';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { config } from '../config.js';
 import { db, schema } from '../db/index.js';
-import type { User } from '../db/schema.js';
+import type { ApiKey, User } from '../db/schema.js';
 import { randomToken, sha256 } from './crypto.js';
 import { forbidden, unauthorized } from './errors.js';
 
@@ -14,6 +14,8 @@ export const secureCookies = (req: FastifyRequest) => req.protocol === 'https' |
 declare module 'fastify' {
   interface FastifyRequest {
     user: User | null;
+    /** Set when the request came in through /api/v1 with an API key; req.user then acts for that key */
+    apiKey: ApiKey | null;
   }
 }
 
@@ -96,7 +98,8 @@ export function publicUser(u: User) {
 
 export async function audit(req: FastifyRequest, action: string, details?: Record<string, unknown>, tenantId?: string | null) {
   await db.insert(schema.auditLog).values({
-    userId: req.user?.id ?? null,
+    userId: req.apiKey ? null : (req.user?.id ?? null),
+    apiKeyId: req.apiKey?.id ?? null,
     tenantId: tenantId ?? req.user?.tenantId ?? null,
     action,
     details: details ?? null,

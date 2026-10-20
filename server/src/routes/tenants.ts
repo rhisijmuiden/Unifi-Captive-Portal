@@ -6,8 +6,9 @@ import { audit, requireSuperadmin, requireTenantAdmin } from '../lib/auth.js';
 import { badRequest, notFound, translateError } from '../lib/errors.js';
 import { requestLocale } from '../i18n/index.js';
 import { sendInvite } from '../services/tokens.js';
+import { emit } from '../services/webhooks.js';
 
-const tenantInput = z.object({
+export const tenantInput = z.object({
   name: z.string().trim().min(1).max(120),
   slug: z
     .string()
@@ -20,7 +21,7 @@ const tenantInput = z.object({
 });
 
 // Optional first administrator, invited by e-mail right away
-const adminInput = z
+export const adminInput = z
   .object({ name: z.string().trim().min(1).max(120), email: z.string().trim().toLowerCase().email() })
   .nullable()
   .optional();
@@ -59,6 +60,7 @@ export async function tenantRoutes(app: FastifyInstance) {
       return { tenant, user };
     });
     await audit(req, 'tenant.created', { name: tenant.name }, tenant.id);
+    emit(null, 'tenant.created', { tenant, admin: user?.email ?? null });
     let inviteError: string | null = null;
     if (user) {
       await audit(req, 'user.created', { email: user.email, role: user.role }, tenant.id);
@@ -73,6 +75,7 @@ export async function tenantRoutes(app: FastifyInstance) {
     const [tenant] = await db.update(schema.tenants).set(body).where(eq(schema.tenants.id, req.params.id)).returning();
     if (!tenant) throw notFound();
     await audit(req, 'tenant.updated', body, tenant.id);
+    emit(null, 'tenant.updated', { tenant, changes: Object.keys(body) });
     return { tenant };
   });
 
@@ -81,6 +84,7 @@ export async function tenantRoutes(app: FastifyInstance) {
     const [tenant] = await db.delete(schema.tenants).where(eq(schema.tenants.id, req.params.id)).returning();
     if (!tenant) throw notFound();
     await audit(req, 'tenant.deleted', { name: tenant.name }, null);
+    emit(null, 'tenant.deleted', { id: tenant.id, name: tenant.name, slug: tenant.slug });
     return { ok: true };
   });
 }

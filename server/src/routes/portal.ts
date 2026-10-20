@@ -13,7 +13,7 @@ const texts = z.record(z.string().regex(/^[a-z]{2}$/), z.string().max(5000));
 
 const fieldMode = z.enum(['off', 'optional', 'required']);
 
-const portalInput = z.object({
+export const portalInput = z.object({
   title: texts,
   welcome: texts,
   terms: texts,

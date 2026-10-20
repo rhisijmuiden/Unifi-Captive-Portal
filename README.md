@@ -19,13 +19,14 @@ Captive Portal is a multi-tenant web application. You (the platform admin) host 
 
 See the [roadmap](ROADMAP.md) for what works today and what is coming.
 
-## What's included (v0.5)
+## What's included (v0.6)
 
 - **UniFi integration**: connect UniFi OS consoles (UDM, UCG, Dream Router, Cloud Key, self-hosted Network) through the UniFi Site Manager cloud or directly, using the official UniFi Network API. Guests are recognised by access point and let through with time, data and speed limits.
 - **Guest portal** as external portal server, designed in a **drag-and-drop portal editor** with templates, images, colours and fonts, in English and Dutch (the customer picks the languages, the guest picks one).
 - **Ways to connect**: free with one tap, registration by e-mail (with marketing opt-in), **vouchers** with a print sheet, **paid access** through Mollie or Stripe with packages and an adjustable time to pay, and **Continue with Facebook**.
 - **Billing customers** from the main admin panel: plans and subscriptions per customer, invoices with gapless numbers, VAT and your logo as PDF and e-mail, online payment through your own Mollie or Stripe account, reminders, and optionally pausing a customer's guest portal while invoices stay unpaid. Customers see and pay their invoices in their own environment.
 - **Backups and restore**: encrypted (AES-256) full and incremental backups of the database and data folder to **SCP**, **FTPS**, FTP or a local folder, on a schedule per location with retention, and restoring from the remote location in the web interface with a safety copy and automatic rollback.
+- **Full REST API and webhooks**: a customer API for everything in a customer's environment and a platform API for customers, users, server settings, billing, backups and updates. API keys with read/write scopes, expiry and rate limit, an audit trail per key, signed webhooks with retries, and OpenAPI documentation in English and Dutch with an explorer to try it out.
 - **Notifications and reports**: an e-mail as soon as a hostname is live (A record validated and SSL in place) and a monthly report with guests, registrations, payments and peak times.
 - **E-mail template designer**: every e-mail, visual or in HTML, per language, per customer and platform-wide.
 - **Own hostnames with automatic SSL**: Caddy on ports 80/443 with on-demand Let's Encrypt certificates, only after the DNS record has been verified. The admin panel can get its own HTTPS hostname too.
@@ -56,6 +57,7 @@ Then open `http://<server-ip>:8080` and create the first administrator account. 
 - [Notifications, reports and e-mail templates](docs/en/notifications-mail.md)
 - [Billing customers](docs/en/billing.md): plans, subscriptions, invoices, online payment, reminders and pausing portals
 - [Backups and restore](docs/en/backups.md): SCP, FTPS and FTP locations, schedule, encryption, restore and disaster recovery
+- [API and webhooks](docs/en/api.md): API keys and scopes, customer and platform API, rate limits, webhooks and signatures, OpenAPI
 - [Updating and release channels](docs/en/updating.md): stable and test, updating from the interface or the terminal, rollback
 - [Microsoft Entra SSO](docs/en/entra-sso.md): app registration and setup
 - [E-mail (SMTP)](docs/en/smtp.md): Microsoft 365, Google Workspace, your own server, DKIM

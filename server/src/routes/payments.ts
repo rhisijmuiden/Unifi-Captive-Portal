@@ -12,7 +12,7 @@ import { getPublicTenantSettings, getTenantSettings, paymentSettingsSchema, save
 
 const optional = (max: number, min = 1) => z.coerce.number().int().min(min).max(max).nullable().default(null);
 
-const packageInput = z.object({
+export const packageInput = z.object({
   name: z.record(z.string().regex(/^[a-z]{2}$/), z.string().trim().max(80)),
   priceCents: z.coerce.number().int().min(50).max(1_000_000),
   durationMinutes: z.coerce.number().int().min(5).max(525_600),

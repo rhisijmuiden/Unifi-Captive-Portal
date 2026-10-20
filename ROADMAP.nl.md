@@ -64,17 +64,29 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - ✅ Handleiding voor back-ups, herstel en calamiteitenherstel
 - 📋 Complete handleidingen voor klanten en beheerders
 
-## Stap 6: Volledige API 📋
+## Stap 6: Volledige API (v0.6) ✅
 
-- 📋 Complete REST API voor elke klant (tenant): consoles, hostnamen, portalen, gasten, betalingen en rapportages
-- 📋 Platform-API voor het hoofdbeheerportaal: klanten en hun gebruikers aanmaken, wijzigen, opschorten en verwijderen
-- 📋 API-sleutels per klant en voor het platform, met rechten (lezen/schrijven) en vervaldatum, aan te maken en in te trekken in de interface
-- 📋 OpenAPI-documentatie met interactieve verkenner (NL/EN)
-- 📋 Webhooks voor gebeurtenissen zoals gast geautoriseerd, betaling ontvangen en certificaat uitgegeven
-- 📋 Rate limiting en een audit trail per API-sleutel
+- ✅ Complete REST API voor elke klant (tenant) op `/api/v1`: consoles, hostnamen, portalinstellingen en ontwerp, gasten, vouchers, betalingen en pakketten, meldingen en gastmails, rapportages, teamleden en facturen
+- ✅ Platform-API voor het hoofdbeheerportaal: klanten aanmaken (met een eerste beheerder), wijzigen, opschorten en verwijderen, gebruikers, serverinstellingen, e-mailtemplates van het platform, facturatie, back-ups en updates
+- ✅ API-sleutels per klant en voor het platform, met lees/schrijfrechten per onderdeel, vervaldatum en rate limit, aan te maken, te wijzigen, in te trekken en te verwijderen in de interface; de sleutel wordt één keer getoond en gehasht opgeslagen
+- ✅ OpenAPI 3.1-documentatie in het Nederlands en Engels met een interactieve verkenner in de interface, en `/api/v1/openapi.json` voor andere tools
+- ✅ Ondertekende webhooks (HMAC-SHA256) voor gast geautoriseerd, betaling ontvangen, hostname live, console offline/online, facturen, klanten en back-ups, met herhaalpogingen, afleverlogboek, testknop en nieuw geheim
+- ✅ Rate limiting en een audit trail per API-sleutel (elk verzoek 90 dagen, plus de wijzigingen die hij deed)
+
+## Stap 7: Gastbeleving, marketing en groei 📋
+
+- 📋 **SMS-verificatie** voor gasten (bv. via MessageBird of Twilio), naast e-mail en Facebook
+- 📋 **Google-, Apple- en Microsoft-login** voor gasten
+- 📋 **Marketing en AVG**: opt-in voor de nieuwsbrief, export naar Mailchimp en HubSpot, en verwijderverzoeken van gasten afhandelen
+- 📋 **Live dashboard** per klant: actieve gasten, dataverbruik per access point en piekuren
+- 📋 **Enquête na het inloggen** of een reviewverzoek (Google Reviews)
+- 📋 **Advertenties of een splash-video** vóór toegang, met vertoningsstatistieken
+- 📋 **White-label voor resellers**: partners die zelf klanten beheren onder hun eigen merk
+- 📋 **Monitoring**: een melding als een console offline gaat of een koppeling faalt
+- 📋 **Tweestapsverificatie (2FA)** voor beheerders en klanten
+- 📋 **Hotel/PMS-koppeling**: gasten loggen in met kamernummer en achternaam
 
 ## Later
 
 - 📋 Entra SSO per klant (klanten loggen in met hun eigen Microsoft-tenant)
-- 📋 Tweestapsverificatie (TOTP) voor wachtwoordaccounts
 - 📋 Extra talen voor beheeromgeving en gastportals (bijv. Duits en Frans)

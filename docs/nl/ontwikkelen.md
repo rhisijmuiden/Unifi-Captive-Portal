@@ -20,7 +20,8 @@ Open http://localhost:5173. Bij de eerste keer start de installatiewizard.
 ```
 server/            Fastify API (TypeScript)
   src/routes/      API-endpoints: auth, tenants, users, settings, system, consoles, portals, betalingen, facturatie (/api/billing, betaalpagina's onder /billing)
-  src/services/    mailer, Entra SSO, instellingen, updater, tokens, UniFi, betalingen, facturatie en factuur-pdf's
+  src/services/    mailer, Entra SSO, instellingen, updater, tokens, UniFi, betalingen, facturatie en factuur-pdf's, API-sleutels, webhooks
+  src/api/         publieke REST API: catalogus van bewerkingen en scopes (catalog.ts), sleutelcontrole en rate limit (gate.ts), OpenAPI (openapi.ts)
   src/i18n/        vertalingen van de server (foutmeldingen, e-mails)
   src/db/          Drizzle-schema en migraties (server/drizzle/)
   src/shared/      opmaak van gastpagina en e-mails, gedeeld met de editors in de web-app (import via @shared)
@@ -82,3 +83,7 @@ GitHub Actions draait dezelfde controles bij elke push en pull request.
 3. Merge de pull request naar `main`.
 
 De workflow **Release** ziet de nieuwe versie en maakt de tag `v<versie>` en de GitHub-release aan. Een versie met een streepje (`-beta.1`, `-rc.1`) wordt als pre-release gemarkeerd en verschijnt alleen in het **test**-kanaal. Binnen een paar minuten bieden installaties de update aan onder **Info & updates** (de controle wordt 10 minuten onthouden; **Controleren op updates** ververst hem). Zelf een tag `v<versie>` pushen werkt ook nog.
+
+## Een route toevoegen aan de publieke API
+
+De REST API op `/api/v1` hergebruikt de routes van de interface: `/api/v1/x` wordt herschreven naar `/api/x` en draait met een gebruiker die voor de sleutel staat. Een route is alleen met een sleutel bereikbaar als hij in `server/src/api/catalog.ts` staat, met een scope voor klanten (`tenant`), het platform (`platform`) of beide, een samenvatting in het Engels en Nederlands, en eventueel het zod-schema van de body voor de OpenAPI-beschrijving. De test `test/api.test.ts` controleert dat elke bewerking in de lijst bestaat.

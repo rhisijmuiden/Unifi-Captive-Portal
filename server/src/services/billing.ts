@@ -11,6 +11,7 @@ import { sendTemplate } from './mailTemplates.js';
 import { assertConfigured, isPublicUrl, mollie, mollieStatus, PaymentError, stripe } from './payments.js';
 import { TIME_ZONE } from './reports.js';
 import { adminBaseUrl, getSettings, type SettingsValue } from './settings.js';
+import { emit } from './webhooks.js';
 
 /**
  * Billing customers (tenants) for their portal. The platform admin keeps a billing profile
@@ -212,12 +213,33 @@ export async function issueInvoice(id: string, opts: { send: boolean }) {
       .returning();
     return row;
   });
+  invoiceEvent('invoice.issued', invoice);
   if (!opts.send) return { invoice, sent: false as const };
   try {
     return { invoice: await sendInvoiceMail(invoice, 'invoice'), sent: true as const };
   } catch (err) {
     return { invoice, sent: false as const, error: err };
   }
+}
+
+/** Invoice events go to the platform's webhooks and to the customer's own. */
+function invoiceEvent(event: 'invoice.issued' | 'invoice.paid', inv: Invoice) {
+  const data = {
+    id: inv.id,
+    number: inv.number,
+    tenantId: inv.tenantId,
+    status: inv.status,
+    issueDate: inv.issueDate,
+    dueDate: inv.dueDate,
+    currency: inv.currency,
+    subtotalCents: inv.subtotalCents,
+    vatCents: inv.vatCents,
+    totalCents: inv.totalCents,
+    paidAt: inv.paidAt,
+    paidVia: inv.paidVia,
+  };
+  emit(null, event, data);
+  if (inv.tenantId) emit(inv.tenantId, event, data);
 }
 
 export const payUrl = async (invoice: Pick<Invoice, 'payToken'>) => `${await adminBaseUrl()}/billing/pay/${invoice.payToken}`;
@@ -279,6 +301,7 @@ export async function markInvoicePaid(id: string, opts: { via: 'online' | 'manua
     .where(and(eq(schema.invoices.id, id), eq(schema.invoices.status, 'open')))
     .returning();
   if (!invoice) return null;
+  invoiceEvent('invoice.paid', invoice);
   if (opts.notify) await sendInvoiceMail(invoice, 'invoicePaid').catch((err) => console.error(`invoice ${invoice.number} paid mail failed:`, (err as Error).message));
   if (invoice.tenantId) await reviewSuspension(invoice.tenantId);
   return invoice;
