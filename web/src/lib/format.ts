@@ -22,3 +22,16 @@ export function formatDuration(seconds: number) {
   const m = Math.floor((seconds % 3600) / 60);
   return d ? i18n.t('time.days', { d, h }) : h ? i18n.t('time.hours', { h, m }) : i18n.t('time.minutes', { m });
 }
+
+export const formatMoney = (cents: number, currency = 'EUR') => new Intl.NumberFormat(locale(), { style: 'currency', currency }).format(cents / 100);
+
+/** A calendar date (YYYY-MM-DD) without time-zone shifts. */
+export function formatDay(iso: string | null | undefined) {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Intl.DateTimeFormat(locale(), { dateStyle: 'medium', timeZone: 'UTC' }).format(Date.UTC(y, m - 1, d));
+}
+
+/** "12,50" or "12.50" → 1250 */
+export const parseMoney = (v: string) => Math.round(Number(v.trim().replace(/\s/g, '').replace(',', '.')) * 100);
+export const centsInput = (cents: number) => (cents / 100).toFixed(2);

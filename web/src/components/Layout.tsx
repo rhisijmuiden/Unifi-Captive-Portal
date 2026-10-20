@@ -16,6 +16,7 @@ import {
   Menu,
   Moon,
   Palette,
+  Receipt,
   Router,
   Server,
   SlidersHorizontal,
@@ -69,6 +70,7 @@ function navFor(user: User, t: TFunction): Section[] {
         items: [
           { to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, end: true },
           { to: '/tenants', label: t('nav.tenants'), icon: Building2 },
+          { to: '/billing', label: t('nav.billing'), icon: Receipt },
           { to: '/users', label: t('nav.users'), icon: Users },
         ],
       },
@@ -86,7 +88,7 @@ function navFor(user: User, t: TFunction): Section[] {
     ];
   }
   const base: Item[] = [{ to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, end: true }];
-  if (user.role === 'tenant_admin') base.push({ to: '/users', label: t('nav.team'), icon: Users });
+  if (user.role === 'tenant_admin') base.push({ to: '/users', label: t('nav.team'), icon: Users }, { to: '/invoices', label: t('nav.invoices'), icon: Receipt });
   return [{ items: base }, portal, insights];
 }
 

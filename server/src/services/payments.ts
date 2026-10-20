@@ -19,6 +19,8 @@ const MOLLIE_API = process.env.MOLLIE_API_URL ?? 'https://api.mollie.com/v2';
 const STRIPE_API = process.env.STRIPE_API_URL ?? 'https://api.stripe.com/v1';
 
 type Settings = TenantSettingsValue<'payments'>;
+/** The provider part of the customer's payment settings and of the platform's billing settings. */
+export type ProviderKeys = Pick<Settings, 'provider' | 'mollieApiKey' | 'stripeSecretKey'>;
 type Status = Payment['status'];
 
 export class PaymentError extends Error {}
@@ -35,21 +37,21 @@ async function providerCall<T>(url: string, init: RequestInit): Promise<T> {
   return body;
 }
 
-const mollie = <T>(key: string, path: string, body?: unknown) =>
+export const mollie = <T>(key: string, path: string, body?: unknown) =>
   providerCall<T>(`${MOLLIE_API}${path}`, {
     method: body ? 'POST' : 'GET',
     headers: { authorization: `Bearer ${key}`, ...(body ? { 'content-type': 'application/json' } : {}) },
     body: body ? JSON.stringify(body) : undefined,
   });
 
-const stripe = <T>(key: string, path: string, form?: Record<string, string>) =>
+export const stripe = <T>(key: string, path: string, form?: Record<string, string>) =>
   providerCall<T>(`${STRIPE_API}${path}`, {
     method: form ? 'POST' : 'GET',
     headers: { authorization: `Bearer ${key}`, ...(form ? { 'content-type': 'application/x-www-form-urlencoded' } : {}) },
     body: form ? new URLSearchParams(form).toString() : undefined,
   });
 
-const mollieStatus = (s: string): Status =>
+export const mollieStatus = (s: string): Status =>
   s === 'paid' ? 'paid' : s === 'failed' ? 'failed' : s === 'canceled' ? 'canceled' : s === 'expired' ? 'expired' : 'open';
 
 /** Webhooks can only reach a public address; localhost and private networks are skipped. */
@@ -58,14 +60,14 @@ export const isPublicUrl = (url: string) => {
   return !/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|\[?::1\]?$)/.test(host) && host.includes('.');
 };
 
-export function assertConfigured(s: Settings) {
+export function assertConfigured(s: ProviderKeys) {
   if (s.provider === 'mollie' && s.mollieApiKey) return;
   if (s.provider === 'stripe' && s.stripeSecretKey) return;
   throw badRequest('errors.paymentProvider');
 }
 
 /** Checks the API key with a harmless read call. */
-export async function testProvider(s: Settings) {
+export async function testProvider(s: ProviderKeys) {
   assertConfigured(s);
   try {
     if (s.provider === 'mollie') {

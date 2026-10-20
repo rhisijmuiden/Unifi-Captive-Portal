@@ -40,7 +40,9 @@ export async function createTransport(s: Smtp) {
   return nodemailer.createTransport(options);
 }
 
-export async function sendMail(to: string, subject: string, content: { html: string; text: string }, override?: Smtp) {
+export type MailAttachment = { filename: string; content: Buffer; contentType: string };
+
+export async function sendMail(to: string, subject: string, content: { html: string; text: string; attachments?: MailAttachment[] }, override?: Smtp) {
   const s = override ?? (await getSettings('smtp'));
   if (!override && !s.enabled) throw badRequest('errors.mailDisabled');
   if (!s.host || !s.fromEmail) throw badRequest('errors.mailIncomplete');

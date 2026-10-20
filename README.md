@@ -19,11 +19,12 @@ Captive Portal is a multi-tenant web application. You (the platform admin) host 
 
 See the [roadmap](ROADMAP.md) for what works today and what is coming.
 
-## What's included (v0.3)
+## What's included (v0.4)
 
 - **UniFi integration**: connect UniFi OS consoles (UDM, UCG, Dream Router, Cloud Key, self-hosted Network) through the UniFi Site Manager cloud or directly, using the official UniFi Network API. Guests are recognised by access point and let through with time, data and speed limits.
 - **Guest portal** as external portal server, designed in a **drag-and-drop portal editor** with templates, images, colours and fonts, in English and Dutch (the customer picks the languages, the guest picks one).
 - **Ways to connect**: free with one tap, registration by e-mail (with marketing opt-in), **vouchers** with a print sheet, **paid access** through Mollie or Stripe with packages and an adjustable time to pay, and **Continue with Facebook**.
+- **Billing customers** from the main admin panel: plans and subscriptions per customer, invoices with gapless numbers, VAT and your logo as PDF and e-mail, online payment through your own Mollie or Stripe account, reminders, and optionally pausing a customer's guest portal while invoices stay unpaid. Customers see and pay their invoices in their own environment.
 - **Notifications and reports**: an e-mail as soon as a hostname is live (A record validated and SSL in place) and a monthly report with guests, registrations, payments and peak times.
 - **E-mail template designer**: every e-mail, visual or in HTML, per language, per customer and platform-wide.
 - **Own hostnames with automatic SSL**: Caddy on ports 80/443 with on-demand Let's Encrypt certificates, only after the DNS record has been verified. The admin panel can get its own HTTPS hostname too.
@@ -52,6 +53,7 @@ Then open `http://<server-ip>:8080` and create the first administrator account. 
 - [Portal editor](docs/en/portal-editor.md): blocks, templates, images and languages
 - [Guest access](docs/en/guest-access.md): sign-in methods, vouchers, Mollie and Stripe, time to pay, Facebook login, pre-authorization
 - [Notifications, reports and e-mail templates](docs/en/notifications-mail.md)
+- [Billing customers](docs/en/billing.md): plans, subscriptions, invoices, online payment, reminders and pausing portals
 - [Updating and release channels](docs/en/updating.md): stable and test, updating from the interface or the terminal, rollback
 - [Microsoft Entra SSO](docs/en/entra-sso.md): app registration and setup
 - [E-mail (SMTP)](docs/en/smtp.md): Microsoft 365, Google Workspace, your own server, DKIM
@@ -70,6 +72,7 @@ Then open `http://<server-ip>:8080` and create the first administrator account. 
 | UniFi | Official UniFi Network Integration API, through Site Manager (api.ui.com) or directly |
 | Editors | dnd-kit (drag and drop), CodeMirror 6 (HTML) |
 | Payments | Mollie and Stripe REST APIs with verified webhooks |
+| Invoices | PDFKit (PDF generated on the server, no browser needed) |
 
 ## License
 

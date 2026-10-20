@@ -8,6 +8,8 @@ import { Spinner } from './components/ui';
 import { ApiError } from './lib/api';
 import { useAuth } from './lib/auth';
 import { AccountPage } from './pages/Account';
+import { BillingPage } from './pages/Billing';
+import { InvoicesPage } from './pages/Invoices';
 import { ForgotPasswordPage, LoginPage, ResetPasswordPage, SetupPage } from './pages/AuthPages';
 import { DashboardPage } from './pages/Dashboard';
 import { ConsolesPage } from './pages/Consoles';
@@ -68,6 +70,8 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <DashboardPage /> },
       { path: 'tenants', element: <RequireAuth roles={['superadmin']}><TenantsPage /></RequireAuth> },
+      { path: 'billing', element: <RequireAuth roles={['superadmin']}><BillingPage /></RequireAuth> },
+      { path: 'invoices', element: <RequireAuth roles={['tenant_admin']}><InvoicesPage /></RequireAuth> },
       { path: 'users', element: <RequireAuth roles={['superadmin', 'tenant_admin']}><UsersPage /></RequireAuth> },
       { path: 'settings/smtp', element: <RequireAuth roles={['superadmin']}><SmtpSettingsPage /></RequireAuth> },
       { path: 'settings/sso', element: <RequireAuth roles={['superadmin']}><SsoSettingsPage /></RequireAuth> },

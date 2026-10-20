@@ -93,7 +93,8 @@ export async function guestPortalRoutes(app: FastifyInstance) {
       return html(reply, renderMessage(locale, t(locale, 'portal.unknownTitle'), t(locale, 'portal.unknownBody')), 404);
     }
     const tenant = await db.query.tenants.findFirst({ where: eq(schema.tenants.id, site.tenantId) });
-    if (!tenant || tenant.status === 'suspended') {
+    // Also while the portal is paused for unpaid invoices
+    if (!tenant || tenant.status === 'suspended' || tenant.billingSuspendedAt) {
       return html(reply, renderMessage(locale, t(locale, 'portal.suspendedTitle'), t(locale, 'portal.suspendedBody')), 403);
     }
     const session = await createGuestSession({

@@ -19,8 +19,8 @@ Open http://localhost:5173. Bij de eerste keer start de installatiewizard.
 
 ```
 server/            Fastify API (TypeScript)
-  src/routes/      API-endpoints: auth, tenants, users, settings, system
-  src/services/    mailer, Entra SSO, instellingen, updater, tokens
+  src/routes/      API-endpoints: auth, tenants, users, settings, system, consoles, portals, betalingen, facturatie (/api/billing, betaalpagina's onder /billing)
+  src/services/    mailer, Entra SSO, instellingen, updater, tokens, UniFi, betalingen, facturatie en factuur-pdf's
   src/i18n/        vertalingen van de server (foutmeldingen, e-mails)
   src/db/          Drizzle-schema en migraties (server/drizzle/)
   src/shared/      opmaak van gastpagina en e-mails, gedeeld met de editors in de web-app (import via @shared)

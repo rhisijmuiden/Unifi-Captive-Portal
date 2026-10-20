@@ -19,11 +19,12 @@ Captive Portal is een multi-tenant webapplicatie. Jij (de platformbeheerder) hos
 
 Zie de [roadmap](ROADMAP.nl.md) voor wat er al werkt en wat eraan komt.
 
-## Wat zit er nu in (v0.3)
+## Wat zit er nu in (v0.4)
 
 - **UniFi-koppeling**: UniFi OS consoles koppelen (UDM, UCG, Dream Router, Cloud Key, zelf gehoste Network) via de UniFi Site Manager-cloud of rechtstreeks, met de officiële UniFi Network API. Gasten worden herkend aan het access point en doorgelaten met limieten voor tijd, data en snelheid.
 - **Gastportal** als external portal server, ontworpen in een **drag-and-drop portal-editor** met templates, afbeeldingen, kleuren en lettertypen, in het Nederlands en Engels (de klant kiest de talen, de gast kiest er één).
 - **Manieren van verbinden**: gratis met één tik, registreren met e-mail (met toestemming voor marketing), **vouchers** met printvel, **betaalde toegang** via Mollie of Stripe met pakketten en een instelbare tijd om te betalen, en **Doorgaan met Facebook**.
+- **Klanten factureren** vanuit het hoofdbeheerpaneel: plannen en abonnementen per klant, facturen met nummers zonder gaten, btw en je logo als pdf en per e-mail, online betalen via je eigen Mollie- of Stripe-account, herinneringen, en optioneel het gastportaal van een klant pauzeren zolang facturen onbetaald blijven. Klanten zien en betalen hun facturen in hun eigen omgeving.
 - **Notificaties en rapportages**: een e-mail zodra een hostnaam live is (A-record gevalideerd en SSL geregeld) en een maandrapportage met gasten, registraties, betalingen en piekmomenten.
 - **Mail-template ontwerper**: elke e-mail, visueel of in HTML, per taal, per klant en platformbreed.
 - **Eigen hostnamen met automatisch SSL**: Caddy op poort 80/443 met Let's Encrypt-certificaten op aanvraag, pas nadat het DNS-record is gecontroleerd. Ook het beheerpaneel kan een eigen HTTPS-hostnaam krijgen.
@@ -52,6 +53,7 @@ Open daarna `http://<ip-van-de-server>:8080` en maak het eerste beheerdersaccoun
 - [Portal-editor](docs/nl/portaal-editor.md): blokken, templates, afbeeldingen en talen
 - [Gasttoegang](docs/nl/gasttoegang.md): manieren van inloggen, vouchers, Mollie en Stripe, tijd om te betalen, inloggen met Facebook, pre-autorisatie
 - [Notificaties, rapportages en e-mailtemplates](docs/nl/notificaties-mail.md)
+- [Klanten factureren](docs/nl/facturatie.md): plannen, abonnementen, facturen, online betalen, herinneringen en portalen pauzeren
 - [Updaten en releasekanalen](docs/nl/updaten.md): stable en test, updaten vanuit de interface of de terminal, rollback
 - [Microsoft Entra SSO](docs/nl/entra-sso.md): app-registratie en koppeling
 - [E-mail (SMTP)](docs/nl/smtp.md): Microsoft 365, Google Workspace, eigen server, DKIM
@@ -70,6 +72,7 @@ Open daarna `http://<ip-van-de-server>:8080` en maak het eerste beheerdersaccoun
 | UniFi | Officiële UniFi Network Integration API, via Site Manager (api.ui.com) of rechtstreeks |
 | Editors | dnd-kit (slepen en neerzetten), CodeMirror 6 (HTML) |
 | Betalingen | REST-API's van Mollie en Stripe met gecontroleerde webhooks |
+| Facturen | PDFKit (pdf op de server gemaakt, zonder browser) |
 
 ## Licentie
 
