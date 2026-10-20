@@ -1,0 +1,8 @@
+[Unit]
+Description=Captive Portal self-update
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/captive-portal/install/update.sh --from-request
+TimeoutStartSec=30min
