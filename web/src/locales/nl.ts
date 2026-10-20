@@ -200,6 +200,12 @@ const nl = {
     deleteTitle: 'Klant verwijderen?',
     deleteText: '{{name}} en alle gebruikers van deze klant worden definitief verwijderd.',
     deleteTip: 'Tip: kies liever voor "Opgeschort" als je de klant tijdelijk wilt blokkeren.',
+    adminTitle: 'Eerste beheerder',
+    adminHint: 'Optioneel. Deze persoon krijgt direct een uitnodiging per e-mail om een wachtwoord te kiezen en op ditzelfde adres in te loggen.',
+    adminName: 'Naam',
+    adminEmail: 'E-mailadres',
+    createdInvited: 'Klant aangemaakt en uitnodiging verstuurd naar {{email}}',
+    inviteFailed: 'Klant aangemaakt, maar de uitnodiging kon niet worden verstuurd: {{error}}. Controleer E-mail (SMTP) en stuur hem opnieuw bij Gebruikers.',
     deleteConfirm: 'Definitief verwijderen',
   },
   users: {

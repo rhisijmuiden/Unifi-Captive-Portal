@@ -18,6 +18,10 @@ Step 4: billing customers from the main admin panel.
 - Customers page: shortcut to a customer's billing and subscription.
 - New guide: [Billing customers](docs/en/billing.md).
 
+## [0.3.0-beta.2] - 2026-10-20 (test channel)
+
+- New customer: optionally fill in the first administrator (name and e-mail address). They get the invitation e-mail right away and sign in at the same address as the admin panel. If the e-mail cannot be sent, you see why.
+
 ## [0.3.0-beta.1] - 2026-10-20 (test channel)
 
 Step 3: editor, registration, payments and notifications.

@@ -18,6 +18,10 @@ Stap 4: klanten factureren vanuit het hoofdbeheerpaneel.
 - Klantenpagina: snelkoppeling naar de facturatie en het abonnement van een klant.
 - Nieuwe handleiding: [Klanten factureren](docs/nl/facturatie.md).
 
+## [0.3.0-beta.2] - 2026-10-20 (testkanaal)
+
+- Nieuwe klant: vul optioneel meteen de eerste beheerder in (naam en e-mailadres). Die krijgt direct de uitnodigingsmail en logt in op hetzelfde adres als het beheerpaneel. Kan de e-mail niet worden verstuurd, dan zie je waarom.
+
 ## [0.3.0-beta.1] - 2026-10-20 (testkanaal)
 
 Stap 3: editor, registratie, betaling en notificaties.
