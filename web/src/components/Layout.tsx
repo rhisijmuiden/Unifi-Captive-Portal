@@ -81,8 +81,8 @@ function navFor(user: User, t: TFunction): Section[] {
           { to: '/settings/sso', label: t('nav.sso'), icon: KeyRound },
           { to: '/settings/hosting', label: t('nav.hosting'), icon: Server },
           { to: '/mail-templates', label: t('nav.mailTemplates'), icon: MailOpen },
+          { to: '/backups', label: t('nav.backups'), icon: DatabaseBackup },
           { to: '/api', label: t('nav.api'), icon: Code, soon: true },
-          { to: '/backups', label: t('nav.backups'), icon: DatabaseBackup, soon: true },
         ],
       },
     ];

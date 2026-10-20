@@ -30,6 +30,8 @@ During the update you see the progress and the last lines of the log. The applic
 
 The web application itself never runs as root. It only writes an update request to `/var/lib/captive-portal/update/request.json`; the systemd unit `captive-portal-updater.path` notices it and starts the updater as root. The updater reads only a version number and a yes/no for system packages from that file.
 
+> The pre-update database backup stays on this server. For off-site, encrypted backups and restoring them, see [Backups and restore](backups.md).
+
 ## Updating from the terminal
 
 ```bash

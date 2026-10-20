@@ -6,6 +6,8 @@
 #   captive-portal-update 1.2.0           update to a specific version
 #   captive-portal-update --system        also upgrade Debian packages (apt)
 #   captive-portal-update --channel test  pick the newest version including pre-releases
+#
+# Restores requested from the web interface arrive the same way and are passed to restore.sh.
 set -uo pipefail
 
 # git checkout replaces this file while it runs, so continue from a private copy
@@ -52,6 +54,12 @@ status() { # state code message — the web interface translates the code, the m
 
 if $FROM_REQUEST; then
   [[ -f "$REQUEST" ]] || exit 0
+  # The web interface also hands restores to this unit; restore.sh does the work
+  if [[ "$(jq -r '.action // "update"' "$REQUEST")" == "restore" ]]; then
+    SET_ID="$(jq -r '.setId // empty' "$REQUEST")"
+    rm -f "$REQUEST" "$0"
+    exec bash "$APP_DIR/install/restore.sh" "$SET_ID"
+  fi
   # Only a version string and a boolean are taken from the app-writable request file
   VERSION="$(jq -r '.version // empty' "$REQUEST")"
   [[ "$(jq -r '.system // false' "$REQUEST")" == "true" ]] && SYSTEM=true

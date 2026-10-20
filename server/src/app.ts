@@ -11,6 +11,7 @@ import { loadUser } from './lib/auth.js';
 import { requestLocale, t } from './i18n/index.js';
 import { AppError } from './lib/errors.js';
 import { authRoutes } from './routes/auth.js';
+import { backupRoutes } from './routes/backups.js';
 import { billingRoutes } from './routes/billing.js';
 import { consoleRoutes } from './routes/consoles.js';
 import { editorRoutes } from './routes/editor.js';
@@ -104,6 +105,7 @@ export async function buildApp() {
   await app.register(notificationRoutes);
   await app.register(mailTemplateRoutes);
   await app.register(billingRoutes);
+  await app.register(backupRoutes);
   await app.register(socialRoutes);
   await app.register(guestPortalRoutes);
 

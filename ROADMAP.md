@@ -55,12 +55,13 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - ✅ Customers see, download and pay their own invoices in their environment
 - ✅ Customers keep switching paid guest access on or off themselves (step 3)
 
-## Step 5: Backups and guides 📋
+## Step 5: Backups and guides (v0.5) 🚧
 
-- 📋 Full and incremental backups (database and files)
-- 📋 Remote backup locations: FTP, FTPS and SCP
-- 📋 Restore from the remote location, from the web interface
-- 📋 Backup schedule and retention
+- ✅ Full and incremental backups (database per table and data folder per file), encrypted with AES-256-GCM
+- ✅ Remote backup locations: SCP (SSH key or password, host key check), FTPS (explicit/implicit, TLS 1.2+) and FTP, plus a local folder
+- ✅ Restore from the remote location, from the web interface, with a safety copy and automatic rollback
+- ✅ Backup schedule and retention per location, e-mail when a backup fails
+- ✅ Guide for backups, restore and disaster recovery
 - 📋 Complete guides for customers and admins
 
 ## Step 6: Full API 📋

@@ -4,6 +4,18 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.5.0-beta.1] - 2026-10-21 (test channel)
+
+Step 5: backups and restore.
+
+- **Backups** (new menu item under System for the platform admin): the complete database and the data folder, including `APP_SECRET`, so a backup can be restored on a new server.
+- **Full and incremental**: an incremental backup only sends the database tables and files that changed since the previous backup; restoring one gives the complete state of that moment.
+- **Locations**: SCP over SSH (with this server's own ed25519 key or a password, host key remembered and checked), FTPS (explicit or implicit TLS, at least TLS 1.2, certificate check), FTP and a local folder. Test connection button that writes and reads a test file.
+- **Encryption** with AES-256-GCM and a key derived (scrypt) from your passphrase; every part is checked with SHA-256 on restore.
+- **Schedule and retention per location**: full every day/week/month at a set hour, incrementals every 1/6/12/24 hours in between, keep the newest *n* full backups. Failed backups are retried after 30 minutes and e-mailed to the platform admins (new template *Backup failed*). History of the last 50 backups.
+- **Restore** from the remote location in the web interface: passphrase and version checked first, everything downloaded and verified, then the system service stops the app, saves the current state, replaces the database in one transaction, puts back the data folder and `APP_SECRET`, and starts again, rolling back automatically if the app does not come up.
+- New guide: [Backups and restore](docs/en/backups.md).
+
 ## [0.4.0-beta.1] - 2026-10-21 (test channel)
 
 Step 4: billing customers from the main admin panel.

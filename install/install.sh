@@ -52,7 +52,7 @@ ok "Node.js $(node -v)"
 if ! id "$APP_USER" >/dev/null 2>&1; then
   useradd --system --home-dir "$DATA_DIR" --shell /usr/sbin/nologin "$APP_USER"
 fi
-install -d -o "$APP_USER" -g "$APP_USER" -m 0750 "$DATA_DIR" "$DATA_DIR/update" "$DATA_DIR/backups"
+install -d -o "$APP_USER" -g "$APP_USER" -m 0750 "$DATA_DIR" "$DATA_DIR/update" "$DATA_DIR/backups" "$DATA_DIR/restore"
 install -d -o root -g "$APP_USER" -m 0750 "$CONF_DIR"
 
 info "Downloading the application"
@@ -110,7 +110,7 @@ info "Installing services"
 install -m 0644 deploy/systemd/captive-portal.service /etc/systemd/system/
 install -m 0644 deploy/systemd/captive-portal-updater.service /etc/systemd/system/
 install -m 0644 deploy/systemd/captive-portal-updater.path /etc/systemd/system/
-chmod 0755 install/update.sh
+chmod 0755 install/update.sh install/restore.sh
 ln -sf "$APP_DIR/install/update.sh" /usr/local/bin/captive-portal-update
 touch "$DATA_DIR/update/enabled"
 chown "$APP_USER:$APP_USER" "$DATA_DIR/update/enabled"
