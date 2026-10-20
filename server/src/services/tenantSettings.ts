@@ -23,9 +23,18 @@ export const notificationSettingsSchema = z.object({
   recipients: z.array(z.string().email()).max(20).default([]),
 });
 
+export const socialSettingsSchema = z.object({
+  // The customer's own Facebook app (developers.facebook.com), with Facebook Login
+  facebookAppId: z.string().trim().regex(/^\d*$/, 'errors.facebookAppId').default(''),
+  facebookAppSecret: z.string().default(''),
+  // Short internet access so the Facebook login page loads before the guest is connected
+  facebookGraceMinutes: z.coerce.number().int().min(0).max(15).default(5),
+});
+
 const definitions = {
   payments: { schema: paymentSettingsSchema, secrets: ['mollieApiKey', 'stripeSecretKey', 'stripeWebhookSecret'] },
   notifications: { schema: notificationSettingsSchema, secrets: [] },
+  social: { schema: socialSettingsSchema, secrets: ['facebookAppSecret'] },
 } as const;
 
 type Definitions = typeof definitions;

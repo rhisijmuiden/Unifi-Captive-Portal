@@ -1,5 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import {
+  BarChart3,
+  BellRing,
   Building2,
   Code,
   CreditCard,
@@ -10,12 +12,14 @@ import {
   LayoutDashboard,
   LogOut,
   Mail,
+  MailOpen,
   Menu,
   Moon,
   Palette,
   Router,
   Server,
   SlidersHorizontal,
+  Ticket,
   Sun,
   UserCheck,
   UserCircle,
@@ -42,11 +46,20 @@ function navFor(user: User, t: TFunction): Section[] {
     title: t('nav.portals'),
     items: [
       { to: '/consoles', label: t('nav.consoles'), icon: Router },
+      { to: '/portal-editor', label: t('nav.editor'), icon: Palette },
       { to: '/portal-settings', label: t('nav.portalSettings'), icon: SlidersHorizontal },
+      { to: '/vouchers', label: t('nav.vouchers'), icon: Ticket },
+      { to: '/payments', label: t('nav.payments'), icon: CreditCard },
       { to: '/hostnames', label: t('nav.hostnames'), icon: Globe },
+    ],
+  };
+  const insights: Section = {
+    title: t('nav.insights'),
+    items: [
       { to: '/guests', label: t('nav.guests'), icon: UserCheck },
-      { to: '/portals', label: t('nav.editor'), icon: Palette, soon: true },
-      { to: '/payments', label: t('nav.payments'), icon: CreditCard, soon: true },
+      { to: '/reports', label: t('nav.reports'), icon: BarChart3 },
+      { to: '/notifications', label: t('nav.notifications'), icon: BellRing },
+      ...(user.role === 'tenant_admin' ? [{ to: '/mail-templates', label: t('nav.guestMails'), icon: MailOpen }] : []),
     ],
   };
   // The platform admin manages customers and the server; portals live in each customer's own environment
@@ -65,6 +78,7 @@ function navFor(user: User, t: TFunction): Section[] {
           { to: '/settings/smtp', label: t('nav.smtp'), icon: Mail },
           { to: '/settings/sso', label: t('nav.sso'), icon: KeyRound },
           { to: '/settings/hosting', label: t('nav.hosting'), icon: Server },
+          { to: '/mail-templates', label: t('nav.mailTemplates'), icon: MailOpen },
           { to: '/api', label: t('nav.api'), icon: Code, soon: true },
           { to: '/backups', label: t('nav.backups'), icon: DatabaseBackup, soon: true },
         ],
@@ -73,7 +87,7 @@ function navFor(user: User, t: TFunction): Section[] {
   }
   const base: Item[] = [{ to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, end: true }];
   if (user.role === 'tenant_admin') base.push({ to: '/users', label: t('nav.team'), icon: Users });
-  return [{ items: base }, portal];
+  return [{ items: base }, portal, insights];
 }
 
 function useTheme() {

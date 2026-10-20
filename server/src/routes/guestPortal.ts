@@ -10,6 +10,7 @@ import { packageName, PaymentError, refreshPayment, startPayment, verifyStripeSi
 import { adminBaseUrl } from '../services/settings.js';
 import { getTenantSettings } from '../services/tenantSettings.js';
 import { claimVoucher, releaseVoucher } from '../services/vouchers.js';
+import { facebookConfigured, facebookLoginUrl, facebookProfile } from '../services/facebook.js';
 import { guestStrings, moneyLabel, type GuestStrings } from '../shared/guestStrings.js';
 import { pickText, type LoginContext, type LoginMethod } from '../shared/portalDesign.js';
 import { esc, renderGuestPage, renderMessage } from '../views/portal.js';
@@ -62,6 +63,7 @@ async function loginContext(p: PortalSettings, locale: Locale, action: string): 
     }
     if (!packages.length) methods = methods.filter((m) => m !== 'payment');
   }
+  if (methods.includes('facebook') && !facebookConfigured(await getTenantSettings(p.tenantId, 'social'))) methods = methods.filter((m) => m !== 'facebook');
   return {
     methods,
     requireTerms: p.requireTerms,
@@ -235,6 +237,21 @@ export async function guestPortalRoutes(app: FastifyInstance) {
         return reply.redirect(`${path}/done`, 303);
       }
 
+      if (method === 'facebook') {
+        // Short access first: the Facebook login page must load before the guest is connected
+        try {
+          const fb = await facebookLoginUrl(s.tenantId, s.token, locale);
+          if (fb.graceMinutes > 0) {
+            const grace = await authorizeSession(s, { temporary: true, retries: 1, limits: { timeLimitMinutes: fb.graceMinutes, downKbps: 2048, upKbps: 1024 } });
+            if (!grace.ok) req.log.warn({ session: s.id, error: grace.error }, 'short access for Facebook failed; relying on pre-authorization');
+          }
+          return reply.header('cache-control', 'no-store').redirect(fb.url, 303);
+        } catch (err) {
+          req.log.error({ err, session: s.id }, 'starting Facebook login failed');
+          return fail(g.facebookFailed);
+        }
+      }
+
       // Payment: create the checkout, give short access so the payment page loads, then send the guest there
       const pkg = await db.query.paymentPackages.findFirst({
         where: and(eq(schema.paymentPackages.id, /^[0-9a-f-]{36}$/.test(values.package) ? values.package : '00000000-0000-0000-0000-000000000000'), eq(schema.paymentPackages.tenantId, s.tenantId), eq(schema.paymentPackages.active, true)),
@@ -256,6 +273,31 @@ export async function guestPortalRoutes(app: FastifyInstance) {
       }
     },
   );
+
+  /** Facebook sends the guest back here with a code; state is the guest page token. */
+  app.get<{ Querystring: { code?: string; state?: string; error?: string } }>('/portal/oauth/facebook', async (req, reply) => {
+    const s = req.query.state ? await loadSession(req.query.state.slice(0, 100)) : null;
+    if (!s || isExpired(s)) return expired(reply, guestLocale(req, null, Object.keys(guestStrings)));
+    const p = await getPortalSettings(s.tenantId);
+    const locale = guestLocale(req, s.locale, p.languages);
+    const g = guestStrings[locale];
+    const path = `/portal/${s.token}`;
+    const again = () => render(req, reply, p, { locale, path, action: `${path}/connect`, error: g.facebookFailed, active: 'facebook', status: 400 });
+    if (!req.query.code || req.query.error) return again();
+    let profile: { id: string; name?: string; email?: string };
+    try {
+      profile = await facebookProfile(s.tenantId, req.query.code);
+    } catch (err) {
+      req.log.warn({ err, session: s.id }, 'facebook login failed');
+      return again();
+    }
+    const result = await authorizeSession(s, { record: { method: 'facebook', locale, name: profile.name?.slice(0, 120) ?? null, email: profile.email?.toLowerCase().slice(0, 254) ?? null } });
+    if (!result.ok) {
+      const retry = `<a class="cp-btn" href="${esc(path)}?lang=${locale}">${esc(g.retry)}</a>`;
+      return html(reply, renderMessage(locale, g.failedTitle, g.failedBody, { extra: retry, design: designFor(p), languages: p.languages, path }), 502);
+    }
+    return reply.redirect(`${path}/done`, 303);
+  });
 
   /** The guest comes back from the payment page; the status is checked with the provider. */
   app.get<{ Params: { token: string }; Querystring: { p?: string; cancel?: string; lang?: string } }>('/portal/:token/pay/return', async (req, reply) => {

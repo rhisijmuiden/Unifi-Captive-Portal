@@ -30,7 +30,7 @@ const portalInput = z.object({
     .nullable()
     .or(z.literal('').transform(() => null)),
   auth: z.object({
-    methods: z.array(z.enum(['free', 'email', 'voucher', 'payment'])).max(4),
+    methods: z.array(z.enum(['free', 'email', 'voucher', 'payment', 'facebook'])).max(5),
     emailName: fieldMode,
     emailPhone: fieldMode,
     marketingOptIn: z.boolean(),

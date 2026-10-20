@@ -43,8 +43,8 @@ export type BlockType = PortalBlock['type'];
 export type NoId<T> = T extends unknown ? Omit<T, 'id'> : never;
 export type PortalDesign = { version: 1; theme: PortalTheme; blocks: PortalBlock[] };
 
-export type LoginMethod = 'free' | 'email' | 'voucher' | 'payment';
-export const loginMethods: LoginMethod[] = ['free', 'email', 'voucher', 'payment'];
+export type LoginMethod = 'free' | 'email' | 'voucher' | 'payment' | 'facebook';
+export const loginMethods: LoginMethod[] = ['free', 'email', 'voucher', 'payment', 'facebook'];
 export type FieldMode = 'off' | 'optional' | 'required';
 
 export type LoginContext = {
@@ -167,14 +167,15 @@ export const portalCss = `
 .cp-page .cp-placeholder{display:grid;place-items:center;border:2px dashed var(--line);border-radius:var(--radius);color:var(--muted);font-size:.85rem;padding:18px}
 .cp-page .cp-btn{display:block;width:100%;margin-top:16px;padding:14px 18px;border:0;border-radius:var(--radius);background:var(--accent);color:var(--btn-text);font:inherit;font-weight:700;font-size:1.02rem;text-align:center;text-decoration:none;cursor:pointer;line-height:1.3}
 .cp-page .cp-btn:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:2px}
+.cp-page .cp-btn-fb{display:flex;align-items:center;justify-content:center;gap:10px;background:#1877F2;color:#fff}
 .cp-page .cp-btn-outline{background:transparent;color:var(--accent);border:2px solid var(--accent);margin-top:0}
 .cp-page .cp-tab-r{position:absolute;opacity:0;pointer-events:none}
 .cp-page .cp-tabs{display:flex;gap:4px;padding:4px;border-radius:calc(var(--radius) * .7 + 4px);background:color-mix(in srgb,var(--text) 6%,transparent);margin-bottom:16px}
 .cp-page .cp-tabs label{flex:1;text-align:center;padding:8px 6px;border-radius:calc(var(--radius) * .7);font-size:.9rem;font-weight:600;color:var(--muted);cursor:pointer}
 .cp-page .cp-panel{display:none;text-align:left}
 .cp-page .cp-solo{display:block}
-.cp-page #cp-m-free:checked~.cp-p-free,.cp-page #cp-m-email:checked~.cp-p-email,.cp-page #cp-m-voucher:checked~.cp-p-voucher,.cp-page #cp-m-payment:checked~.cp-p-payment{display:block}
-.cp-page #cp-m-free:checked~.cp-tabs [for=cp-m-free],.cp-page #cp-m-email:checked~.cp-tabs [for=cp-m-email],.cp-page #cp-m-voucher:checked~.cp-tabs [for=cp-m-voucher],.cp-page #cp-m-payment:checked~.cp-tabs [for=cp-m-payment]{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(20,33,61,.18)}
+.cp-page #cp-m-free:checked~.cp-p-free,.cp-page #cp-m-email:checked~.cp-p-email,.cp-page #cp-m-voucher:checked~.cp-p-voucher,.cp-page #cp-m-payment:checked~.cp-p-payment,.cp-page #cp-m-facebook:checked~.cp-p-facebook{display:block}
+.cp-page #cp-m-free:checked~.cp-tabs [for=cp-m-free],.cp-page #cp-m-email:checked~.cp-tabs [for=cp-m-email],.cp-page #cp-m-voucher:checked~.cp-tabs [for=cp-m-voucher],.cp-page #cp-m-payment:checked~.cp-tabs [for=cp-m-payment],.cp-page #cp-m-facebook:checked~.cp-tabs [for=cp-m-facebook]{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(20,33,61,.18)}
 .cp-page .cp-field{display:block;margin-bottom:12px}
 .cp-page .cp-field span{display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;color:var(--text)}
 .cp-page .cp-field small{font-weight:400;color:var(--muted)}
@@ -203,8 +204,10 @@ export const portalCss = `
 
 const WIFI = `<svg viewBox="0 0 64 64" width="44" height="44" aria-hidden="true"><path d="M14 27a26 26 0 0 1 36 0M21 34a16 16 0 0 1 22 0M28 41a6 6 0 0 1 8 0" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><circle cx="32" cy="49" r="4" fill="currentColor"/></svg>`;
 
+const FB = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M24 12a12 12 0 1 0-13.9 11.9v-8.4h-3V12h3V9.4c0-3 1.8-4.7 4.6-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12z"/></svg>`;
+
 const methodLabel = (s: GuestStrings, m: LoginMethod) =>
-  ({ free: s.methodFree, email: s.methodEmail, voucher: s.methodVoucher, payment: s.methodPayment })[m];
+  ({ free: s.methodFree, email: s.methodEmail, voucher: s.methodVoucher, payment: s.methodPayment, facebook: s.methodFacebook })[m];
 
 function termsCheck(s: GuestStrings, login: LoginContext) {
   return login.requireTerms
@@ -256,6 +259,8 @@ function methodForm(m: LoginMethod, ctx: RenderContext, cls: string) {
       `<p class="cp-field"><span>${esc(s.choosePackage)}</span></p><div class="cp-pkgs">${pkgs}</div>` +
       field(s.emailForReceipt, login.paymentEmail, input('email', 'email', login.paymentEmail, v.email, ' autocomplete="email" maxlength="254"'), s);
     button = s.pay;
+  } else if (m === 'facebook') {
+    return `<form class="cp-panel ${cls}" method="post" action="${esc(login.action)}">${error}<input type="hidden" name="method" value="facebook"><input type="hidden" name="lang" value="${ctx.locale}">${termsCheck(s, login)}<button class="cp-btn cp-btn-fb" type="submit">${FB}<span>${esc(s.continueFacebook)}</span></button></form>`;
   }
   return `<form class="cp-panel ${cls}" method="post" action="${esc(login.action)}">${error}<input type="hidden" name="method" value="${m}"><input type="hidden" name="lang" value="${ctx.locale}">${fields}${termsCheck(s, login)}<button class="cp-btn" type="submit">${esc(button)}</button></form>`;
 }

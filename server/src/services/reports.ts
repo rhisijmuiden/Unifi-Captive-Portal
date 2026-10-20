@@ -17,7 +17,7 @@ export type MonthlyStats = {
   revenue: { currency: string; cents: number }[];
   byDay: number[];
   byHour: number[];
-  byMethod: Record<'free' | 'email' | 'voucher' | 'payment' | 'other', number>;
+  byMethod: Record<'free' | 'email' | 'voucher' | 'payment' | 'facebook' | 'other', number>;
   bySite: { name: string; count: number }[];
   peakDay: { day: number; count: number } | null;
   peakHour: { hour: number; count: number } | null;
@@ -90,7 +90,7 @@ export async function monthlyStats(tenantId: string, month: string): Promise<Mon
   for (const r of days.rows) byDay[n(r.k) - 1] = n(r.c);
   const byHour = Array.from({ length: 24 }, () => 0);
   for (const r of hours.rows) byHour[n(r.k)] = n(r.c);
-  const byMethod = { free: 0, email: 0, voucher: 0, payment: 0, other: 0 };
+  const byMethod = { free: 0, email: 0, voucher: 0, payment: 0, facebook: 0, other: 0 };
   for (const r of methods.rows) {
     const k = String(r.k) as keyof typeof byMethod;
     byMethod[k in byMethod ? k : 'other'] += n(r.c);

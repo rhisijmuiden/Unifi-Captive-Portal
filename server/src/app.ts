@@ -20,6 +20,7 @@ import { notificationRoutes } from './routes/notifications.js';
 import { paymentRoutes } from './routes/payments.js';
 import { portalRoutes } from './routes/portal.js';
 import { settingsRoutes } from './routes/settings.js';
+import { socialRoutes } from './routes/social.js';
 import { systemRoutes } from './routes/system.js';
 import { tenantRoutes } from './routes/tenants.js';
 import { userRoutes } from './routes/users.js';
@@ -101,6 +102,7 @@ export async function buildApp() {
   await app.register(paymentRoutes);
   await app.register(notificationRoutes);
   await app.register(mailTemplateRoutes);
+  await app.register(socialRoutes);
   await app.register(guestPortalRoutes);
 
   if (existsSync(webDist)) {

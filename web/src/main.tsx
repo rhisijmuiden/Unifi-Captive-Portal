@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { StrictMode, type ReactNode } from 'react';
+import { lazy, StrictMode, Suspense, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router';
 import { Toaster } from 'sonner';
@@ -13,12 +13,21 @@ import { DashboardPage } from './pages/Dashboard';
 import { ConsolesPage } from './pages/Consoles';
 import { GuestsPage } from './pages/Guests';
 import { HostnamesPage } from './pages/Hostnames';
+import { NotificationsPage } from './pages/Notifications';
+import { PaymentsPage } from './pages/Payments';
 import { PortalSettingsPage } from './pages/PortalSettings';
+import { ReportsPage } from './pages/Reports';
+import { VoucherPrintPage, VouchersPage } from './pages/Vouchers';
 import { HostingSettingsPage, SmtpSettingsPage, SsoSettingsPage } from './pages/Settings';
 import { TenantsPage } from './pages/Tenants';
 import { UsersPage } from './pages/Users';
 import './i18n';
 import './styles.css';
+
+// The editors carry CodeMirror and dnd-kit; load them only when opened
+const PortalEditorPage = lazy(() => import('./pages/PortalEditor').then((m) => ({ default: m.PortalEditorPage })));
+const MailTemplatesPage = lazy(() => import('./pages/MailTemplates').then((m) => ({ default: m.MailTemplatesPage })));
+const MailTemplateEditorPage = lazy(() => import('./pages/MailTemplates').then((m) => ({ default: m.MailTemplateEditorPage })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,7 +46,7 @@ function RequireAuth({ children, roles }: { children: ReactNode; roles?: string[
   if (data?.needsSetup) return <Navigate to="/setup" replace />;
   if (!data?.user) return <Navigate to="/login" replace />;
   if (roles && !roles.includes(data.user.role)) return <Navigate to="/" replace />;
-  return children;
+  return <Suspense fallback={<Spinner />}>{children}</Suspense>;
 }
 
 // Portal pages belong to a customer's own environment
@@ -48,6 +57,7 @@ const router = createBrowserRouter([
   { path: '/setup', element: <SetupPage /> },
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
+  { path: '/vouchers/print', element: <RequireAuth roles={TENANT}><VoucherPrintPage /></RequireAuth> },
   {
     path: '/',
     element: (
@@ -66,6 +76,13 @@ const router = createBrowserRouter([
       { path: 'portal-settings', element: <RequireAuth roles={TENANT}><PortalSettingsPage /></RequireAuth> },
       { path: 'hostnames', element: <RequireAuth roles={TENANT}><HostnamesPage /></RequireAuth> },
       { path: 'guests', element: <RequireAuth roles={TENANT}><GuestsPage /></RequireAuth> },
+      { path: 'portal-editor', element: <RequireAuth roles={TENANT}><PortalEditorPage /></RequireAuth> },
+      { path: 'vouchers', element: <RequireAuth roles={TENANT}><VouchersPage /></RequireAuth> },
+      { path: 'payments', element: <RequireAuth roles={TENANT}><PaymentsPage /></RequireAuth> },
+      { path: 'reports', element: <RequireAuth roles={TENANT}><ReportsPage /></RequireAuth> },
+      { path: 'notifications', element: <RequireAuth roles={TENANT}><NotificationsPage /></RequireAuth> },
+      { path: 'mail-templates', element: <RequireAuth roles={['superadmin', 'tenant_admin']}><MailTemplatesPage /></RequireAuth> },
+      { path: 'mail-templates/:kind', element: <RequireAuth roles={['superadmin', 'tenant_admin']}><MailTemplateEditorPage /></RequireAuth> },
       { path: 'account', element: <AccountPage /> },
       { path: '*', element: <Navigate to="/" replace /> },
     ],
