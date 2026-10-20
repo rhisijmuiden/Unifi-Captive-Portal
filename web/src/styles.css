@@ -1,0 +1,104 @@
+@import '@fontsource-variable/archivo/standard.css';
+@import 'tailwindcss';
+
+/* RHIS huisstijl (bron: rhis-website/brand/tokens.css) */
+:root {
+  --nacht: #14213d;
+  --koraal: #ff6b57;
+  --lucht: #9cc3ff;
+  --wolk: #f6f7fb;
+  --surface: #f6f7fb;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eceff6;
+  --ink: #14213d;
+  --ink-muted: #4f5b73;
+  --line: #dce1eb;
+  --accent-text: #b8392a;
+  --status-online: #1c8a57;
+  --status-warning: #a86b00;
+  --status-offline: #c23434;
+  --shadow-card: 0 1px 2px rgb(20 33 61 / 0.04), 0 8px 24px -12px rgb(20 33 61 / 0.12);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --surface: #0e1626;
+    --surface-raised: #16213a;
+    --surface-sunken: #111b2f;
+    --ink: #eef1f7;
+    --ink-muted: #a3aec4;
+    --line: #26324d;
+    --accent-text: #ff8a78;
+    --status-online: #4acb8c;
+    --status-warning: #f2b640;
+    --status-offline: #ff7a7a;
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.2), 0 12px 32px -16px rgb(0 0 0 / 0.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --surface: #0e1626;
+  --surface-raised: #16213a;
+  --surface-sunken: #111b2f;
+  --ink: #eef1f7;
+  --ink-muted: #a3aec4;
+  --line: #26324d;
+  --accent-text: #ff8a78;
+  --status-online: #4acb8c;
+  --status-warning: #f2b640;
+  --status-offline: #ff7a7a;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.2), 0 12px 32px -16px rgb(0 0 0 / 0.5);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: 'Archivo Variable', system-ui, sans-serif;
+  --color-nacht: var(--nacht);
+  --color-koraal: var(--koraal);
+  --color-lucht: var(--lucht);
+  --color-wolk: var(--wolk);
+  --color-surface: var(--surface);
+  --color-raised: var(--surface-raised);
+  --color-sunken: var(--surface-sunken);
+  --color-ink: var(--ink);
+  --color-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent-text);
+  --color-online: var(--status-online);
+  --color-warning: var(--status-warning);
+  --color-offline: var(--status-offline);
+  --shadow-card: var(--shadow-card);
+}
+
+html,
+body {
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.display {
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* Radar-achtige achtergrond voor login, verwijzing naar de antenne in het logo */
+.signal-bg {
+  background:
+    radial-gradient(circle at 85% 110%, rgb(255 107 87 / 0.22), transparent 45%),
+    radial-gradient(circle at 10% -10%, rgb(156 195 255 / 0.18), transparent 45%),
+    repeating-radial-gradient(circle at 85% 110%, rgb(255 255 255 / 0.045) 0 1px, transparent 1px 64px),
+    var(--nacht);
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.6); opacity: 0.8; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+.pulse-ring { animation: pulse-ring 2.4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-ring { animation: none; }
+}
