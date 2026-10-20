@@ -79,7 +79,9 @@ fi
 
 status running backup "Backing up the database"
 BACKUP="$DATA_DIR/backups/pre-update-${CURRENT}-$(date +%Y%m%d-%H%M%S).sql.gz"
-set -a; . "$ENV_FILE"; set +a
+# Only the database URL: exporting the whole file would set NODE_ENV=production,
+# which makes npm ci skip the build tools (vite, typescript)
+DATABASE_URL="$(grep '^DATABASE_URL=' "$ENV_FILE" | cut -d= -f2-)"
 if ! pg_dump "$DATABASE_URL" | gzip >"$BACKUP"; then
   status failed backupFailed "Database backup failed, update aborted"
   exit 1
@@ -97,7 +99,7 @@ if $SYSTEM; then
 fi
 
 build_and_restart() {
-  npm ci --no-audit --no-fund --loglevel=error &&
+  npm ci --include=dev --no-audit --no-fund --loglevel=error &&
     npm run build --silent &&
     npm prune --omit=dev --no-audit --no-fund --loglevel=error &&
     sudo -u "$APP_USER" bash -c "set -a; . '$ENV_FILE'; set +a; cd '$APP_DIR/server' && node dist/db/migrate.js" &&
