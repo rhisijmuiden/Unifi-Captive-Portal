@@ -26,15 +26,14 @@ const portalInput = z.object({
 });
 
 export async function portalRoutes(app: FastifyInstance) {
-  app.get<{ Querystring: { tenantId?: string } }>('/api/portal-settings', async (req) => {
-    const tenantId = tenantScope(req, req.query.tenantId);
+  app.get('/api/portal-settings', async (req) => {
+    const tenantId = tenantScope(req);
     return { settings: await getPortalSettings(tenantId) };
   });
 
   app.put('/api/portal-settings', async (req) => {
-    const body = portalInput.extend({ tenantId: z.string().optional() }).parse(req.body);
-    const tenantId = tenantScope(req, body.tenantId, true);
-    const { tenantId: _t, ...values } = body;
+    const values = portalInput.parse(req.body);
+    const tenantId = tenantScope(req, true);
     const [settings] = await db
       .insert(schema.portalSettings)
       .values({ tenantId, ...values })
@@ -44,8 +43,8 @@ export async function portalRoutes(app: FastifyInstance) {
     return { settings };
   });
 
-  app.get<{ Querystring: { tenantId?: string; limit?: string } }>('/api/guests', async (req) => {
-    const tenantId = tenantScope(req, req.query.tenantId);
+  app.get<{ Querystring: { limit?: string } }>('/api/guests', async (req) => {
+    const tenantId = tenantScope(req);
     const limit = Math.min(Number(req.query.limit) || 100, 500);
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());

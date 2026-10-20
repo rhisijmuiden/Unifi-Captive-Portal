@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import i18n, { languages, type Locale } from '../i18n';
 import { Button, Card, CardHeader, Field, Input, PageHeader, Spinner, Switch, Textarea, cx } from '../components/ui';
 import { api } from '../lib/api';
-import { ChooseTenant, TenantPicker, useTenantScope } from '../lib/tenant';
+import { useTenantScope } from '../lib/tenant';
 
 type Texts = Record<string, string>;
 type PortalSettings = {
@@ -83,14 +83,14 @@ export function PortalSettingsPage() {
   const [form, setForm] = useState<PortalSettings | null>(null);
   const query = useQuery({
     queryKey: ['portal-settings', scope.tenantId],
-    queryFn: () => api.get<{ settings: PortalSettings }>(`/portal-settings${scope.qs}`),
+    queryFn: () => api.get<{ settings: PortalSettings }>('/portal-settings'),
     enabled: Boolean(scope.tenantId),
   });
   useEffect(() => {
     if (query.data) setForm(query.data.settings);
   }, [query.data]);
   const save = useMutation({
-    mutationFn: () => api.put<{ settings: PortalSettings }>('/portal-settings', { ...scope.body, ...form, successUrl: form?.successUrl || null }),
+    mutationFn: () => api.put<{ settings: PortalSettings }>('/portal-settings', { ...form, successUrl: form?.successUrl || null }),
     onSuccess: (d) => {
       qc.setQueryData(['portal-settings', scope.tenantId], d);
       qc.invalidateQueries({ queryKey: ['dashboard'] });
@@ -111,7 +111,6 @@ export function PortalSettingsPage() {
         description={t('portalSettings.description')}
         actions={
           <>
-            <TenantPicker scope={scope} />
             {form && scope.canManage && (
               <Button variant="accent" loading={save.isPending} onClick={() => save.mutate()}>
                 {t('common.save')}
@@ -120,9 +119,7 @@ export function PortalSettingsPage() {
           </>
         }
       />
-      {!scope.tenantId ? (
-        scope.loading ? <Spinner /> : <Card><ChooseTenant /></Card>
-      ) : !form ? (
+      {!form ? (
         <Spinner />
       ) : (
         <div className="grid gap-6 xl:grid-cols-[1fr_340px]">

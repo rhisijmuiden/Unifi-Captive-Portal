@@ -44,8 +44,8 @@ async function unifi<T>(fn: () => Promise<T>) {
 }
 
 export async function consoleRoutes(app: FastifyInstance) {
-  app.get<{ Querystring: { tenantId?: string } }>('/api/consoles', async (req) => {
-    const tenantId = tenantScope(req, req.query.tenantId);
+  app.get('/api/consoles', async (req) => {
+    const tenantId = tenantScope(req);
     const consoles = await db.query.consoles.findMany({ where: eq(schema.consoles.tenantId, tenantId), orderBy: asc(schema.consoles.name) });
     const sites = await db
       .select({ site: schema.consoleSites, devices: count(schema.consoleDevices.mac) })
@@ -66,15 +66,15 @@ export async function consoleRoutes(app: FastifyInstance) {
 
   // Lists the consoles on a Site Manager account, so the user can pick one instead of typing an id
   app.post('/api/consoles/discover', async (req) => {
-    tenantScope(req, (req.body as { tenantId?: string })?.tenantId, true);
+    tenantScope(req, true);
     const { apiKey } = z.object({ apiKey: z.string().min(10) }).parse(req.body);
     return { hosts: await unifi(() => listSiteManagerHosts(apiKey)) };
   });
 
   // Tests a connection and returns its sites; an existing console's stored key is used when none is typed
   app.post('/api/consoles/test', async (req) => {
-    const body = z.object({ tenantId: z.string().optional(), consoleId: z.string().uuid().optional(), apiKey: z.string().optional() }).passthrough().parse(req.body);
-    const tenantId = tenantScope(req, body.tenantId, true);
+    const body = z.object({ consoleId: z.string().uuid().optional(), apiKey: z.string().optional() }).passthrough().parse(req.body);
+    const tenantId = tenantScope(req, true);
     const conn = connectionInput.parse(req.body);
     let apiKey = body.apiKey ?? '';
     if (!apiKey && body.consoleId) {
@@ -90,10 +90,10 @@ export async function consoleRoutes(app: FastifyInstance) {
 
   app.post('/api/consoles', async (req) => {
     const body = z
-      .object({ tenantId: z.string().optional(), name: z.string().trim().min(1).max(120), apiKey: z.string().min(10), sites: sitesInput })
+      .object({ name: z.string().trim().min(1).max(120), apiKey: z.string().min(10), sites: sitesInput })
       .passthrough()
       .parse(req.body);
-    const tenantId = tenantScope(req, body.tenantId, true);
+    const tenantId = tenantScope(req, true);
     const conn = connectionInput.parse(req.body);
     const created = await db.transaction(async (tx) => {
       const [c] = await tx
@@ -121,14 +121,13 @@ export async function consoleRoutes(app: FastifyInstance) {
   app.put<{ Params: { id: string } }>('/api/consoles/:id', async (req) => {
     const body = z
       .object({
-        tenantId: z.string().optional(),
         name: z.string().trim().min(1).max(120).optional(),
         apiKey: z.string().optional(),
         verifyTls: z.boolean().optional(),
         sites: sitesInput.optional(),
       })
       .parse(req.body);
-    const tenantId = tenantScope(req, body.tenantId, true);
+    const tenantId = tenantScope(req, true);
     const existing = await db.query.consoles.findFirst({ where: and(eq(schema.consoles.id, req.params.id), eq(schema.consoles.tenantId, tenantId)) });
     if (!existing) throw notFound();
     const [updated] = await db
@@ -159,15 +158,15 @@ export async function consoleRoutes(app: FastifyInstance) {
     return { console: publicConsole(await reload(updated.id)), sync };
   });
 
-  app.post<{ Params: { id: string }; Querystring: { tenantId?: string } }>('/api/consoles/:id/sync', async (req) => {
-    const tenantId = tenantScope(req, req.query.tenantId, true);
+  app.post<{ Params: { id: string } }>('/api/consoles/:id/sync', async (req) => {
+    const tenantId = tenantScope(req, true);
     const existing = await db.query.consoles.findFirst({ where: and(eq(schema.consoles.id, req.params.id), eq(schema.consoles.tenantId, tenantId)) });
     if (!existing) throw notFound();
     return syncConsole(existing);
   });
 
-  app.delete<{ Params: { id: string }; Querystring: { tenantId?: string } }>('/api/consoles/:id', async (req) => {
-    const tenantId = tenantScope(req, req.query.tenantId, true);
+  app.delete<{ Params: { id: string } }>('/api/consoles/:id', async (req) => {
+    const tenantId = tenantScope(req, true);
     const [deleted] = await db
       .delete(schema.consoles)
       .where(and(eq(schema.consoles.id, req.params.id), eq(schema.consoles.tenantId, tenantId)))

@@ -4,7 +4,7 @@ import { config } from '../config.js';
 import { db, schema } from '../db/index.js';
 import type { User } from '../db/schema.js';
 import { randomToken, sha256 } from './crypto.js';
-import { badRequest, forbidden, unauthorized } from './errors.js';
+import { forbidden, unauthorized } from './errors.js';
 
 export const SESSION_COOKIE = 'cp_session';
 const SESSION_TTL_MS = 7 * 24 * 3600 * 1000;
@@ -105,15 +105,13 @@ export async function audit(req: FastifyRequest, action: string, details?: Recor
 }
 
 /**
- * The tenant a request acts on: platform admins pass ?tenantId=, everyone else is
- * bound to their own company. With `manage`, staff members (read-only) are refused.
+ * The tenant a request acts on. Consoles, portals, hostnames and guests belong to the
+ * customer's own environment, so only customer users get here; the platform admin
+ * manages customers, not their portals. With `manage`, staff members (read-only) are refused.
  */
-export function tenantScope(req: FastifyRequest, requested: string | undefined, manage = false): string {
+export function tenantScope(req: FastifyRequest, manage = false): string {
   const user = requireUser(req);
-  if (user.role === 'superadmin') {
-    if (!requested) throw badRequest('errors.chooseTenant');
-    return requested;
-  }
+  if (user.role === 'superadmin' || !user.tenantId) throw forbidden();
   if (manage && user.role !== 'tenant_admin') throw forbidden();
-  return user.tenantId!;
+  return user.tenantId;
 }
