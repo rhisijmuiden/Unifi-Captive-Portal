@@ -4,6 +4,10 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.4.0] - 2026-10-21
+
+Stable release of step 4 (billing customers): the same code as 0.4.0-beta.1, which is described below.
+
 ## [0.4.0-beta.1] - 2026-10-21 (test channel)
 
 Step 4: billing customers from the main admin panel.

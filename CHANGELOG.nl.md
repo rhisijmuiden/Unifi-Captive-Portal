@@ -4,6 +4,10 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.4.0] - 2026-10-21
+
+Stabiele release van stap 4 (klanten factureren): dezelfde code als 0.4.0-beta.1, hieronder beschreven.
+
 ## [0.4.0-beta.1] - 2026-10-21 (testkanaal)
 
 Stap 4: klanten factureren vanuit het hoofdbeheerpaneel.
