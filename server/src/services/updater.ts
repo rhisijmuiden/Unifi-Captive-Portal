@@ -127,6 +127,15 @@ export async function requestUpdate(version: string, includeSystem: boolean, req
   await writeFile(requestFile, JSON.stringify({ version, system: includeSystem, requestedBy, requestedAt: now }));
 }
 
+/**
+ * Hands a prepared restore (restore/staging) to the same root-owned updater unit;
+ * update.sh passes it on to install/restore.sh. Only the set id is taken from the request.
+ */
+export async function requestRestore(setId: string, requestedBy: string) {
+  await mkdir(updateDir, { recursive: true });
+  await writeFile(requestFile, JSON.stringify({ action: 'restore', setId, requestedBy, requestedAt: new Date().toISOString() }));
+}
+
 export function systemInfo() {
   return {
     version: config.version,

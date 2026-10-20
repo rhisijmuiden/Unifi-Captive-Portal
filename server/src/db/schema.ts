@@ -1,4 +1,5 @@
-import { boolean, customType, date, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { bigint, boolean, customType, date, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import type { Manifest, Schedule } from '../services/backup/format.js';
 import type { MailDesign } from '../shared/mailDesign.js';
 import type { FieldMode, LoginMethod, PortalDesign } from '../shared/portalDesign.js';
 
@@ -500,3 +501,58 @@ export type BillingPlan = typeof billingPlans.$inferSelect;
 export type TenantBilling = typeof tenantBilling.$inferSelect;
 export type Invoice = typeof invoices.$inferSelect;
 export type InvoicePayment = typeof invoicePayments.$inferSelect;
+
+// ── Step 5: backups ─────────────────────────────────────────────────────────
+
+export const backupTargetType = pgEnum('backup_target_type', ['local', 'ftp', 'ftps', 'scp']);
+
+/** A place backups are sent to, with its own schedule and retention. */
+export const backupTargets = pgTable('backup_targets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  type: backupTargetType('type').notNull(),
+  host: text('host').notNull().default(''),
+  port: integer('port').notNull().default(0),
+  username: text('username').notNull().default(''),
+  // Encrypted with APP_SECRET
+  password: text('password').notNull().default(''),
+  tlsMode: text('tls_mode').$type<'explicit' | 'implicit'>().notNull().default('explicit'),
+  verifyCertificate: boolean('verify_certificate').notNull().default(true),
+  authMethod: text('auth_method').$type<'key' | 'password'>().notNull().default('key'),
+  // SSH host key fingerprint, remembered on the first successful connection
+  hostKey: text('host_key').notNull().default(''),
+  path: text('path').notNull(),
+  schedule: jsonb('schedule').$type<Schedule>().notNull(),
+  keepFull: integer('keep_full').notNull().default(4),
+  // The last set on this location, the base for the next incremental backup (without the app secret)
+  lastManifest: jsonb('last_manifest').$type<Omit<Manifest, 'appSecret'>>(),
+  lastFullAt: timestamp('last_full_at', { withTimezone: true }),
+  lastSuccessAt: timestamp('last_success_at', { withTimezone: true }),
+  lastAttemptAt: timestamp('last_attempt_at', { withTimezone: true }),
+  lastError: text('last_error'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const backupRuns = pgTable(
+  'backup_runs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    targetId: uuid('target_id').references(() => backupTargets.id, { onDelete: 'set null' }),
+    targetName: text('target_name').notNull(),
+    setId: text('set_id'),
+    type: text('type').$type<'full' | 'incremental'>().notNull(),
+    trigger: text('trigger').$type<'schedule' | 'manual'>().notNull(),
+    status: text('status').$type<'success' | 'failed'>().notNull(),
+    entries: integer('entries'),
+    sizeBytes: bigint('size_bytes', { mode: 'number' }),
+    storedBytes: bigint('stored_bytes', { mode: 'number' }),
+    removedSets: integer('removed_sets'),
+    error: text('error'),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [index('backup_runs_started_idx').on(t.startedAt)],
+);
+
+export type BackupTarget = typeof backupTargets.$inferSelect;
+export type BackupRun = typeof backupRuns.$inferSelect;

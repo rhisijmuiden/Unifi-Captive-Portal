@@ -23,6 +23,18 @@ export function formatDuration(seconds: number) {
   return d ? i18n.t('time.days', { d, h }) : h ? i18n.t('time.hours', { h, m }) : i18n.t('time.minutes', { m });
 }
 
+/** 1536 → "1.5 KB" */
+export function formatBytes(bytes: number) {
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let v = bytes;
+  let i = 0;
+  while (v >= 1024 && i < units.length - 1) {
+    v /= 1024;
+    i++;
+  }
+  return `${new Intl.NumberFormat(locale(), { maximumFractionDigits: i ? 1 : 0 }).format(v)} ${units[i]}`;
+}
+
 export const formatMoney = (cents: number, currency = 'EUR') => new Intl.NumberFormat(locale(), { style: 'currency', currency }).format(cents / 100);
 
 /** A calendar date (YYYY-MM-DD) without time-zone shifts. */

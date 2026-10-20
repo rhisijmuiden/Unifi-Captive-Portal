@@ -30,6 +30,8 @@ Tijdens de update zie je de voortgang en de laatste regels van het logboek. De a
 
 De webapplicatie zelf draait nooit als root. Hij schrijft alleen een update-aanvraag naar `/var/lib/captive-portal/update/request.json`; de systemd-unit `captive-portal-updater.path` ziet die en start de updater als root. De updater leest uit dat bestand alleen een versienummer en een ja/nee voor systeempakketten.
 
+> De databaseback-up van voor een update blijft op deze server staan. Voor versleutelde back-ups op een andere locatie en het terugzetten daarvan, zie [Back-ups en herstel](backups.md).
+
 ## Updaten vanuit de terminal
 
 ```bash

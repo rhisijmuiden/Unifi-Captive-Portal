@@ -4,6 +4,18 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.5.0-beta.1] - 2026-10-21 (testkanaal)
+
+Stap 5: back-ups en herstel.
+
+- **Back-ups** (nieuw menu-item onder Systeem voor de platformbeheerder): de complete database en de datamap, inclusief `APP_SECRET`, zodat een back-up ook op een nieuwe server terug te zetten is.
+- **Volledig en incrementeel**: een incrementele back-up verstuurt alleen de databasetabellen en bestanden die sinds de vorige back-up veranderd zijn; terugzetten geeft de complete stand van dat moment.
+- **Locaties**: SCP via SSH (met de eigen ed25519-sleutel van deze server of een wachtwoord, hostsleutel onthouden en gecontroleerd), FTPS (expliciet of impliciet TLS, minimaal TLS 1.2, certificaatcontrole), FTP en een lokale map. Knop Verbinding testen die een testbestand schrijft en terugleest.
+- **Versleuteling** met AES-256-GCM en een sleutel afgeleid (scrypt) van je wachtwoord; bij herstel wordt elk deel gecontroleerd met SHA-256.
+- **Schema en bewaren per locatie**: volledig elke dag/week/maand op een vast uur, tussendoor incrementeel elke 1/6/12/24 uur, de nieuwste *n* volledige back-ups bewaren. Mislukte back-ups worden na 30 minuten opnieuw geprobeerd en gemaild naar de platformbeheerders (nieuw template *Back-up mislukt*). Geschiedenis van de laatste 50 back-ups.
+- **Herstellen** vanaf de remote locatie in de webinterface: eerst wachtwoord en versie gecontroleerd, alles gedownload en geverifieerd, daarna stopt de systeemservice de app, bewaart de huidige stand, vervangt de database in één transactie, zet de datamap en `APP_SECRET` terug en start weer, met automatische rollback als de app niet opkomt.
+- Nieuwe handleiding: [Back-ups en herstel](docs/nl/backups.md).
+
 ## [0.4.0-beta.1] - 2026-10-21 (testkanaal)
 
 Stap 4: klanten factureren vanuit het hoofdbeheerpaneel.

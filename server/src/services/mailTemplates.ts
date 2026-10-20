@@ -117,6 +117,15 @@ export function defaultMailTemplate(kind: MailKind, locale: Locale): MailContent
         { type: 'data' },
       ],
     },
+    backupFailed: {
+      subject: m('backupFailedSubject'),
+      blocks: [
+        { type: 'heading', text: m('backupFailedTitle') },
+        { type: 'text', text: m('backupFailedBody') },
+        { type: 'text', text: '{{error}}' },
+        { type: 'button', label: m('backupFailedButton'), url: '{{actionUrl}}' },
+      ],
+    },
     guestWelcome: { subject: m('welcomeSubject'), blocks: [{ type: 'heading', text: m('welcomeTitle') }, { type: 'text', text: m('welcomeBody') }] },
     paymentReceipt: {
       subject: m('receiptSubject'),

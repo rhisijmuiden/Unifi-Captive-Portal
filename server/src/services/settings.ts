@@ -95,12 +95,21 @@ export const billingSchema = z.object({
   suspendAfterDays: z.coerce.number().int().min(1).max(365).default(30),
 });
 
+/** Backups: the passphrase every backup is encrypted with, and the SSH key for SCP locations. */
+export const backupSchema = z.object({
+  passphrase: z.string().default(''),
+  notifyOnFailure: z.boolean().default(true),
+  sshPrivateKey: z.string().default(''),
+  sshPublicKey: z.string().default(''),
+});
+
 const definitions = {
   smtp: { schema: smtpSchema, secrets: ['password', 'oauthClientSecret', 'dkimPrivateKey'] },
   sso: { schema: ssoSchema, secrets: ['entraClientSecret'] },
   system: { schema: systemSchema, secrets: [] },
   hosting: { schema: hostingSchema, secrets: [] },
   billing: { schema: billingSchema, secrets: ['mollieApiKey', 'stripeSecretKey', 'stripeWebhookSecret'] },
+  backup: { schema: backupSchema, secrets: ['passphrase', 'sshPrivateKey'] },
 } as const;
 
 type Definitions = typeof definitions;

@@ -4,6 +4,7 @@ import { pool } from './db/index.js';
 import { runMigrations } from './db/migrate.js';
 import { purgeExpiredSessions } from './lib/auth.js';
 import { buildApp } from './app.js';
+import { runScheduledBackups } from './services/backups.js';
 import { pollInvoicePayments, runBilling } from './services/billing.js';
 import { syncAllConsoles } from './services/consoles.js';
 import { checkHostnames } from './services/hostnames.js';
@@ -29,6 +30,8 @@ const jobs = [
   // Subscription invoices, reminders and pausing portals for unpaid invoices; hourly is safe, each step runs once
   every(3600_000, () => runBilling()),
   every(60_000, pollInvoicePayments),
+  // Backup schedules are checked every minute; one backup runs at a time
+  every(60_000, () => runScheduledBackups()),
 ];
 // Run the billing once shortly after start, so a restart on the 1st does not wait an hour
 setTimeout(() => runBilling().catch((err) => app.log.error(err)), 30_000).unref();

@@ -55,12 +55,13 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - ✅ Klanten zien, downloaden en betalen hun eigen facturen in hun omgeving
 - ✅ Klanten zetten betaalde gasttoegang nog steeds zelf aan of uit (stap 3)
 
-## Stap 5: Backups en handleidingen 📋
+## Stap 5: Backups en handleidingen (v0.5) 🚧
 
-- 📋 Volledige en incrementele back-ups (database en bestanden)
-- 📋 Remote backuplocaties: FTP, FTPS en SCP
-- 📋 Herstellen vanaf de remote locatie, vanuit de webinterface
-- 📋 Back-upschema en bewaartermijnen
+- ✅ Volledige en incrementele back-ups (database per tabel en datamap per bestand), versleuteld met AES-256-GCM
+- ✅ Remote backuplocaties: SCP (SSH-sleutel of wachtwoord, controle van de hostsleutel), FTPS (expliciet/impliciet, TLS 1.2+) en FTP, plus een lokale map
+- ✅ Herstellen vanaf de remote locatie, vanuit de webinterface, met een veiligheidskopie en automatische rollback
+- ✅ Back-upschema en bewaartermijn per locatie, e-mail als een back-up mislukt
+- ✅ Handleiding voor back-ups, herstel en calamiteitenherstel
 - 📋 Complete handleidingen voor klanten en beheerders
 
 ## Stap 6: Volledige API 📋

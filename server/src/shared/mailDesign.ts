@@ -32,7 +32,7 @@ export type MailTheme = {
 export type MailDesign = { version: 1; theme: MailTheme; blocks: MailBlock[] };
 export type MailContent = { subject: string; mode: 'visual' | 'html'; design: MailDesign; html: string };
 
-export type MailKind = 'invite' | 'passwordReset' | 'smtpTest' | 'hostnameLive' | 'monthlyReport' | 'invoice' | 'invoiceReminder' | 'invoicePaid' | 'guestWelcome' | 'paymentReceipt';
+export type MailKind = 'invite' | 'passwordReset' | 'smtpTest' | 'hostnameLive' | 'monthlyReport' | 'invoice' | 'invoiceReminder' | 'invoicePaid' | 'backupFailed' | 'guestWelcome' | 'paymentReceipt';
 
 /** Which templates exist, who may change them and which placeholders they offer. */
 export const mailKinds: Record<MailKind, { tenant: boolean; vars: string[]; data: boolean }> = {
@@ -48,6 +48,7 @@ export const mailKinds: Record<MailKind, { tenant: boolean; vars: string[]; data
   invoice: { tenant: false, vars: ['tenantName', 'companyName', 'invoiceNumber', 'amount', 'issueDate', 'dueDate', 'payUrl'], data: true },
   invoiceReminder: { tenant: false, vars: ['tenantName', 'companyName', 'invoiceNumber', 'amount', 'issueDate', 'dueDate', 'payUrl'], data: true },
   invoicePaid: { tenant: false, vars: ['tenantName', 'companyName', 'invoiceNumber', 'amount', 'issueDate', 'dueDate', 'payUrl'], data: true },
+  backupFailed: { tenant: false, vars: ['name', 'targetName', 'error', 'date', 'actionUrl'], data: false },
   guestWelcome: { tenant: true, vars: ['name', 'email', 'networkName', 'validUntil'], data: false },
   paymentReceipt: { tenant: true, vars: ['name', 'email', 'networkName', 'package', 'amount', 'reference', 'date', 'validUntil'], data: true },
 };
@@ -79,6 +80,8 @@ export const sampleVars: Record<string, string> = {
   issueDate: '01-11-2026',
   dueDate: '15-11-2026',
   payUrl: 'https://portal.example.com/billing/pay/example',
+  targetName: 'NAS (SCP)',
+  error: 'Could not connect: connect ETIMEDOUT 192.0.2.10:22',
 };
 
 export const defaultMailTheme: MailTheme = {
