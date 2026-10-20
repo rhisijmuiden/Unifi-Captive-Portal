@@ -71,15 +71,11 @@ GitHub Actions draait dezelfde controles bij elke push en pull request.
 ## Een release publiceren
 
 1. Werk `CHANGELOG.md`, `CHANGELOG.nl.md`, `ROADMAP.md` en `ROADMAP.nl.md` bij.
-2. Zet het versienummer in alle `package.json`-bestanden:
+2. Zet in de pull request de nieuwe versie in elke `package.json`:
    ```bash
-   npm version 0.2.0 --workspaces --include-workspace-root --no-git-tag-version
-   git commit -am "Release 0.2.0"
+   npm version 0.3.0 --workspaces --include-workspace-root --no-git-tag-version          # stable-kanaal
+   npm version 0.3.0-beta.1 --workspaces --include-workspace-root --no-git-tag-version   # test-kanaal
    ```
-3. Tag en push:
-   ```bash
-   git tag v0.2.0 && git push origin main v0.2.0           # stable-kanaal
-   git tag v0.3.0-beta.1 && git push origin v0.3.0-beta.1  # testkanaal
-   ```
+3. Merge de pull request naar `main`.
 
-De workflow **Release** maakt de GitHub-release aan. Een tag met een streepje (`-beta.1`, `-rc.1`) wordt als pre-release gemarkeerd en verschijnt alleen in het **test**-kanaal.
+De workflow **Release** ziet de nieuwe versie en maakt de tag `v<versie>` en de GitHub-release aan. Een versie met een streepje (`-beta.1`, `-rc.1`) wordt als pre-release gemarkeerd en verschijnt alleen in het **test**-kanaal. Binnen een paar minuten bieden installaties de update aan onder **Info & updates** (de controle wordt 10 minuten onthouden; **Controleren op updates** ververst hem). Zelf een tag `v<versie>` pushen werkt ook nog.

@@ -4,7 +4,7 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
-## [0.2.0] - nog niet uitgebracht
+## [0.2.0-beta.1] - 2026-10-20 (test-kanaal)
 
 Stap 2: UniFi-koppeling en hosting.
 
@@ -17,6 +17,7 @@ Stap 2: UniFi-koppeling en hosting.
 - Installer en updater richten Caddy in op poort 80/443 (`CP_ACME_EMAIL`, `CP_CADDY=0`)
 - Handleidingen: een UniFi-console koppelen, hostnamen en SSL
 - Roadmap: stap 5, een volledige API voor klanten en het platform
+- Releases worden automatisch gepubliceerd zodra een nieuwe versie in `main` wordt gemerged
 
 ## [0.1.0] - 2026-10-20
 

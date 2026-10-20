@@ -4,7 +4,7 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
-## [0.2.0] - unreleased
+## [0.2.0-beta.1] - 2026-10-20 (test channel)
 
 Step 2: UniFi integration and hosting.
 
@@ -17,6 +17,7 @@ Step 2: UniFi integration and hosting.
 - Installer and updater set up Caddy on ports 80/443 (`CP_ACME_EMAIL`, `CP_CADDY=0`)
 - Guides: connecting a UniFi console, hostnames and SSL
 - Roadmap: step 5, a full API for customers and the platform
+- Releases are published automatically when a new version is merged into `main`
 
 ## [0.1.0] - 2026-10-20
 

@@ -71,15 +71,11 @@ GitHub Actions runs the same checks on every push and pull request.
 ## Publishing a release
 
 1. Update `CHANGELOG.md`, `CHANGELOG.nl.md`, `ROADMAP.md` and `ROADMAP.nl.md`.
-2. Set the version in every `package.json`:
+2. Set the new version in every `package.json` in the pull request:
    ```bash
-   npm version 0.2.0 --workspaces --include-workspace-root --no-git-tag-version
-   git commit -am "Release 0.2.0"
+   npm version 0.3.0 --workspaces --include-workspace-root --no-git-tag-version          # stable channel
+   npm version 0.3.0-beta.1 --workspaces --include-workspace-root --no-git-tag-version   # test channel
    ```
-3. Tag and push:
-   ```bash
-   git tag v0.2.0 && git push origin main v0.2.0           # stable channel
-   git tag v0.3.0-beta.1 && git push origin v0.3.0-beta.1  # test channel
-   ```
+3. Merge the pull request into `main`.
 
-The **Release** workflow creates the GitHub release. A tag with a dash (`-beta.1`, `-rc.1`) is marked as a pre-release and only shows up in the **test** channel.
+The **Release** workflow sees the new version, creates the tag `v<version>` and the GitHub release. A version with a dash (`-beta.1`, `-rc.1`) is marked as a pre-release and only shows up in the **test** channel. Within a few minutes installations offer the update under **Info & updates** (the check is cached for 10 minutes; **Check for updates** refreshes it). Pushing a tag `v<version>` by hand still works.
