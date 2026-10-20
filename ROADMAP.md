@@ -19,21 +19,22 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - ✅ Installer for Debian 13 (VM/physical) and a Proxmox LXC script based on community-scripts
 - ✅ CI (typecheck, tests, build) and a release workflow on GitHub
 
-## Step 2: UniFi integration and hosting 📋
+## Step 2: UniFi integration and hosting (v0.2) ✅
 
-- 📋 Connect UniFi OS consoles (UDM, UDM Pro, UDM SE, UCG Ultra/Max, Cloud Gateway, UniFi Network Application)
+- ✅ Connect UniFi OS consoles (UDM, UDM Pro, UDM SE, UCG Ultra/Max, Cloud Gateway, UniFi Network Application)
   - through the UniFi Site Manager API with the customer's API key, so no ports need to be opened
   - a direct connection to the console as a fallback
-- 📋 External portal endpoint: receive guests and recognise the customer by site and access point
-- 📋 Give guests access with time, data and speed limits
-- 📋 Caddy as reverse proxy with automatic Let's Encrypt per customer hostname (e.g. `guest.company.com`)
-- 📋 Check that the A record points to the server before requesting a certificate
-- 📋 Step-by-step guide per console for connecting it (hotspot settings, pre-authorization)
+- ✅ External portal endpoint: receive guests and recognise the customer by site and access point
+- ✅ Give guests access with time, data and speed limits
+- ✅ Caddy as reverse proxy with automatic Let's Encrypt per customer hostname (e.g. `guest.company.com`)
+- ✅ Check that the A record points to the server before requesting a certificate
+- ✅ Own hostname with automatic SSL for the main admin panel as well
+- ✅ Step-by-step guide per console for connecting it (hotspot settings, pre-authorization)
 
 ## Step 3: Editor, registration, payments and notifications 📋
 
 - 📋 Visual drag-and-drop portal editor with templates and per-customer branding
-- 📋 Guest portals in multiple languages (at least English and Dutch), chosen by the guest
+- ✅ Guest portals in English and Dutch, chosen by the guest (v0.2); more languages later
 - 📋 Registration by e-mail, vouchers or accepting the terms
 - 📋 Paid access through Mollie or Stripe
 - 📋 **Notifications**
@@ -48,6 +49,15 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - 📋 Restore from the remote location, from the web interface
 - 📋 Backup schedule and retention
 - 📋 Complete guides for customers and admins
+
+## Step 5: Full API 📋
+
+- 📋 Complete REST API for every customer (tenant): consoles, hostnames, portals, guests, payments and reports
+- 📋 Platform API for the main admin portal: create, change, suspend and delete customers and their users
+- 📋 API keys per customer and for the platform, with scopes (read/write) and expiry, created and revoked in the interface
+- 📋 OpenAPI documentation with an interactive explorer (EN/NL)
+- 📋 Webhooks for events such as guest authorized, payment received and certificate issued
+- 📋 Rate limiting and an audit trail per API key
 
 ## Later
 

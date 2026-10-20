@@ -13,6 +13,8 @@ import {
   Moon,
   Palette,
   Router,
+  Server,
+  SlidersHorizontal,
   Sun,
   UserCheck,
   UserCircle,
@@ -38,10 +40,11 @@ function navFor(user: User, t: TFunction): Section[] {
   const portal: Section = {
     title: t('nav.portals'),
     items: [
+      { to: '/consoles', label: t('nav.consoles'), icon: Router },
+      { to: '/portal-settings', label: t('nav.portalSettings'), icon: SlidersHorizontal },
+      { to: '/hostnames', label: t('nav.hostnames'), icon: Globe },
+      { to: '/guests', label: t('nav.guests'), icon: UserCheck },
       { to: '/portals', label: t('nav.editor'), icon: Palette, soon: true },
-      { to: '/hostnames', label: t('nav.hostnames'), icon: Globe, soon: true },
-      { to: '/consoles', label: t('nav.consoles'), icon: Router, soon: true },
-      { to: '/guests', label: t('nav.guests'), icon: UserCheck, soon: true },
       { to: '/payments', label: t('nav.payments'), icon: CreditCard, soon: true },
     ],
   };
@@ -60,6 +63,7 @@ function navFor(user: User, t: TFunction): Section[] {
         items: [
           { to: '/settings/smtp', label: t('nav.smtp'), icon: Mail },
           { to: '/settings/sso', label: t('nav.sso'), icon: KeyRound },
+          { to: '/settings/hosting', label: t('nav.hosting'), icon: Server },
           { to: '/backups', label: t('nav.backups'), icon: DatabaseBackup, soon: true },
         ],
       },

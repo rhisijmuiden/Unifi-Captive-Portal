@@ -19,21 +19,22 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - ✅ Installer voor Debian 13 (VM/fysiek) en Proxmox LXC-script op basis van community-scripts
 - ✅ CI (typecheck, tests, build) en release-workflow voor GitHub
 
-## Stap 2: UniFi-koppeling en hosting 📋
+## Stap 2: UniFi-koppeling en hosting (v0.2) ✅
 
-- 📋 UniFi OS consoles koppelen (UDM, UDM Pro, UDM SE, UCG Ultra/Max, Cloud Gateway, UniFi Network Application)
+- ✅ UniFi OS consoles koppelen (UDM, UDM Pro, UDM SE, UCG Ultra/Max, Cloud Gateway, UniFi Network Application)
   - via de UniFi Site Manager API met een API-sleutel van de klant, zodat er geen poorten open hoeven
   - directe verbinding met de console als terugvaloptie
-- 📋 External portal endpoint: gasten opvangen, klant herkennen aan site en access point
-- 📋 Gasten toegang geven met tijdslimiet, datalimiet en snelheidslimiet
-- 📋 Caddy als reverse proxy met automatische Let's Encrypt per klant-hostname (bijv. `gast.bedrijf.nl`)
-- 📋 Controle of het A-record naar de server wijst voordat een certificaat wordt aangevraagd
-- 📋 Stap-voor-stap handleiding per console voor de koppeling (hotspot-instellingen, pre-authorization)
+- ✅ External portal endpoint: gasten opvangen, klant herkennen aan site en access point
+- ✅ Gasten toegang geven met tijdslimiet, datalimiet en snelheidslimiet
+- ✅ Caddy als reverse proxy met automatische Let's Encrypt per klant-hostname (bijv. `gast.bedrijf.nl`)
+- ✅ Controle of het A-record naar de server wijst voordat een certificaat wordt aangevraagd
+- ✅ Ook het hoofdbeheerpaneel op een eigen hostnaam met automatisch SSL
+- ✅ Stap-voor-stap handleiding per console voor de koppeling (hotspot-instellingen, pre-authorization)
 
 ## Stap 3: Editor, registratie, betaling en notificaties 📋
 
 - 📋 Visuele drag-and-drop portal-editor met sjablonen en eigen huisstijl per klant
-- 📋 Gastportals in meerdere talen (minimaal Nederlands en Engels), taal kiezen door de gast
+- ✅ Gastportals in Nederlands en Engels, taal kiezen door de gast (v0.2); later meer talen
 - 📋 Registratie via e-mail, vouchers of akkoord op voorwaarden
 - 📋 Betaalde toegang via Mollie of Stripe
 - 📋 **Notificaties**
@@ -48,6 +49,15 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - 📋 Herstellen vanaf de remote locatie, vanuit de webinterface
 - 📋 Back-upschema en bewaartermijnen
 - 📋 Complete handleidingen voor klanten en beheerders
+
+## Stap 5: Volledige API 📋
+
+- 📋 Complete REST API voor elke klant (tenant): consoles, hostnamen, portalen, gasten, betalingen en rapportages
+- 📋 Platform-API voor het hoofdbeheerportaal: klanten en hun gebruikers aanmaken, wijzigen, opschorten en verwijderen
+- 📋 API-sleutels per klant en voor het platform, met rechten (lezen/schrijven) en vervaldatum, aan te maken en in te trekken in de interface
+- 📋 OpenAPI-documentatie met interactieve verkenner (NL/EN)
+- 📋 Webhooks voor gebeurtenissen zoals gast geautoriseerd, betaling ontvangen en certificaat uitgegeven
+- 📋 Rate limiting en een audit trail per API-sleutel
 
 ## Later
 

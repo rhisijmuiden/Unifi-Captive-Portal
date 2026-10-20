@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import i18n from '../i18n';
 import { Badge, Button, Card, CardHeader, Field, Input, PageHeader, Select, Spinner, Switch, Textarea } from '../components/ui';
 import { api } from '../lib/api';
+import { DnsRecords, StatusBadge, useCheckMessage, type HostnameStatus } from './Hostnames';
 
 type Smtp = {
   enabled: boolean;
@@ -342,6 +343,91 @@ export function SsoSettingsPage() {
               <KeyRound className="size-3" /> OpenID Connect + PKCE
             </Badge>
           </div>
+        </Card>
+      </div>
+    </>
+  );
+}
+
+type Hosting = { publicIpv4: string; publicIpv6: string; adminHostname: string; forceHttps: boolean };
+type HostingCheck = { status: HostnameStatus; error: string | null };
+
+export function HostingSettingsPage() {
+  const { t } = useTranslation();
+  const { form, set, save, loading } = useSettingsForm<Hosting>('hosting');
+  const checkMessage = useCheckMessage();
+  const detect = useMutation({
+    mutationFn: () => api.post<{ ipv4: string; ipv6: string }>('/settings/hosting/detect-ip'),
+    onSuccess: (d) => {
+      if (d.ipv4) set('publicIpv4', d.ipv4);
+      if (d.ipv6) set('publicIpv6', d.ipv6);
+      toast.success(t('hosting.detected'));
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const check = useMutation({ mutationFn: () => api.post<HostingCheck>('/settings/hosting/check') });
+
+  if (loading || !form) return <Spinner />;
+
+  return (
+    <>
+      <PageHeader
+        eyebrow={t('common.system')}
+        title={t('hosting.title')}
+        description={t('hosting.description')}
+        actions={
+          <Button variant="accent" loading={save.isPending} onClick={() => save.mutate(form)}>
+            {t('common.save')}
+          </Button>
+        }
+      />
+      <div className="grid gap-6 xl:grid-cols-3">
+        <div className="space-y-6 xl:col-span-2">
+          <Section title={t('hosting.address')} description={t('hosting.addressHint')}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label={t('hosting.ipv4')} htmlFor="ip4">
+                <Input id="ip4" placeholder="203.0.113.10" value={form.publicIpv4} onChange={(e) => set('publicIpv4', e.target.value.trim())} />
+              </Field>
+              <Field label={t('hosting.ipv6')} htmlFor="ip6" hint={t('hosting.ipv6Hint')}>
+                <Input id="ip6" placeholder="2001:db8::10" value={form.publicIpv6} onChange={(e) => set('publicIpv6', e.target.value.trim())} />
+              </Field>
+            </div>
+            <Button variant="secondary" loading={detect.isPending} onClick={() => detect.mutate()}>
+              {t('hosting.detect')}
+            </Button>
+          </Section>
+
+          <Section title={t('hosting.admin')} description={t('hosting.adminHint')}>
+            <Field label={t('hosting.adminHostname')} htmlFor="adm" hint={t('hosting.adminHostnameHint')}>
+              <Input id="adm" placeholder="portal.jouwbedrijf.nl" value={form.adminHostname} onChange={(e) => set('adminHostname', e.target.value.trim().toLowerCase())} />
+            </Field>
+            {form.adminHostname && <DnsRecords ipv4={form.publicIpv4 || null} ipv6={form.publicIpv6 || null} host={form.adminHostname} />}
+            <Switch checked={form.forceHttps} onChange={(v) => set('forceHttps', v)} label={t('hosting.forceHttps')} description={t('hosting.forceHttpsHint')} />
+            <div className="flex flex-wrap items-center gap-3">
+              <Button variant="secondary" loading={check.isPending} disabled={!form.adminHostname} onClick={() => save.mutateAsync(form).then(() => check.mutate())}>
+                {t('hosting.saveAndCheck')}
+              </Button>
+              {check.data && <StatusBadge status={check.data.status} />}
+              {check.data?.status === 'active' && (
+                <a className="text-sm text-accent hover:underline" href={`https://${form.adminHostname}`}>
+                  {t('hosting.openHttps')}
+                </a>
+              )}
+            </div>
+            {check.data?.error && <p className="rounded-lg bg-warning/10 px-3 py-2 text-xs text-warning">{checkMessage(check.data.error)}</p>}
+            {check.error && <p className="text-sm text-offline">{check.error.message}</p>}
+          </Section>
+        </div>
+        <Card className="h-fit p-6">
+          <div className="mb-3 flex items-center gap-2">
+            <ShieldCheck className="size-5 text-online" />
+            <h2 className="font-semibold">{t('hosting.howTitle')}</h2>
+          </div>
+          <ul className="space-y-3 text-sm text-muted">
+            <li>{t('hosting.how1')}</li>
+            <li>{t('hosting.how2')}</li>
+            <li>{t('hosting.how3')}</li>
+          </ul>
         </Card>
       </div>
     </>

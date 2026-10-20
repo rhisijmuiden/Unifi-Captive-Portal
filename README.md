@@ -19,8 +19,11 @@ Captive Portal is a multi-tenant web application. You (the platform admin) host 
 
 See the [roadmap](ROADMAP.md) for what works today and what is coming.
 
-## What's included (v0.1)
+## What's included (v0.2)
 
+- **UniFi integration**: connect UniFi OS consoles (UDM, UCG, Dream Router, Cloud Key, self-hosted Network) through the UniFi Site Manager cloud or directly, using the official UniFi Network API. Guests are recognised by access point and let through with time, data and speed limits.
+- **Guest portal** as external portal server: bilingual guest page with your texts, terms and colour, plus a live preview and a guest overview.
+- **Own hostnames with automatic SSL**: Caddy on ports 80/443 with on-demand Let's Encrypt certificates, only after the DNS record has been verified. The admin panel can get its own HTTPS hostname too.
 - **Customers (tenants) and users** with three roles: platform admin, customer admin and staff member. Invitations by e-mail.
 - **Microsoft Entra ID single sign-on** (OpenID Connect with PKCE), next to or instead of password sign-in.
 - **Your own mail server (SMTP)**: STARTTLS or TLS, minimum TLS version, username/password or OAuth 2.0 (Microsoft 365), DKIM signing and a test button.
@@ -36,11 +39,13 @@ See the [roadmap](ROADMAP.md) for what works today and what is coming.
 | **Proxmox LXC** (on the Proxmox host) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/ct/captive-portal.sh)"` |
 | **Debian 13 VM or server** (as root) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/install/install.sh)"` |
 
-Then open `http://<server-ip>:8080` and create the first administrator account. Detailed steps are in [docs/en/installation.md](docs/en/installation.md).
+Then open `http://<server-ip>:8080` and create the first administrator account. Ports 80 and 443 are used by Caddy for the guest portals and HTTPS. Detailed steps are in [docs/en/installation.md](docs/en/installation.md).
 
 ## Guides
 
 - [Installation](docs/en/installation.md): LXC, VM and physical server, first start, configuration file
+- [Connecting a UniFi console](docs/en/unifi-setup.md): Site Manager or direct, hotspot settings, pre-authorization, troubleshooting
+- [Hostnames and SSL](docs/en/hostnames-ssl.md): DNS records, automatic certificates, HTTPS for the admin panel
 - [Updating and release channels](docs/en/updating.md): stable and test, updating from the interface or the terminal, rollback
 - [Microsoft Entra SSO](docs/en/entra-sso.md): app registration and setup
 - [E-mail (SMTP)](docs/en/smtp.md): Microsoft 365, Google Workspace, your own server, DKIM
@@ -55,7 +60,8 @@ Then open `http://<server-ip>:8080` and create the first administrator account. 
 | Frontend | React 19, Vite, Tailwind CSS 4, TanStack Query, i18next |
 | Sign-in | Argon2id passwords, database sessions, Entra ID through OpenID Connect |
 | Security | Secrets stored encrypted (AES-256-GCM), CSRF protection, rate limiting, systemd hardening |
-| Reverse proxy and SSL (step 2) | Caddy with automatic Let's Encrypt per customer hostname |
+| Reverse proxy and SSL | Caddy with on-demand Let's Encrypt per hostname, approved by the app |
+| UniFi | Official UniFi Network Integration API, through Site Manager (api.ui.com) or directly |
 
 ## License
 

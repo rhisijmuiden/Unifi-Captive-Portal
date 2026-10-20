@@ -4,11 +4,12 @@ import { config } from '../config.js';
 import { db, schema } from '../db/index.js';
 import type { User } from '../db/schema.js';
 import { randomToken, sha256 } from './crypto.js';
-import { forbidden, unauthorized } from './errors.js';
+import { badRequest, forbidden, unauthorized } from './errors.js';
 
 export const SESSION_COOKIE = 'cp_session';
 const SESSION_TTL_MS = 7 * 24 * 3600 * 1000;
-export const secureCookies = config.publicUrl.startsWith('https://');
+/** Cookies are marked Secure whenever the browser reached us over HTTPS (directly or through Caddy). */
+export const secureCookies = (req: FastifyRequest) => req.protocol === 'https' || config.publicUrl.startsWith('https://');
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -30,7 +31,7 @@ export async function createSession(req: FastifyRequest, reply: FastifyReply, us
     path: '/',
     httpOnly: true,
     sameSite: 'lax',
-    secure: secureCookies,
+    secure: secureCookies(req),
     maxAge: SESSION_TTL_MS / 1000,
   });
 }
@@ -101,4 +102,18 @@ export async function audit(req: FastifyRequest, action: string, details?: Recor
     details: details ?? null,
     ip: req.ip,
   });
+}
+
+/**
+ * The tenant a request acts on: platform admins pass ?tenantId=, everyone else is
+ * bound to their own company. With `manage`, staff members (read-only) are refused.
+ */
+export function tenantScope(req: FastifyRequest, requested: string | undefined, manage = false): string {
+  const user = requireUser(req);
+  if (user.role === 'superadmin') {
+    if (!requested) throw badRequest('errors.chooseTenant');
+    return requested;
+  }
+  if (manage && user.role !== 'tenant_admin') throw forbidden();
+  return user.tenantId!;
 }

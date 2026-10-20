@@ -40,7 +40,8 @@ De installer:
 3. maakt een database en een willekeurig wachtwoord en geheime sleutel aan;
 4. bouwt de applicatie en voert databasemigraties uit;
 5. installeert de systemd-services `captive-portal` en `captive-portal-updater.path`;
-6. controleert of de webinterface reageert.
+6. installeert **Caddy** op poort 80 en 443 voor HTTPS met automatische Let's Encrypt-certificaten (zie [hostnamen-ssl.md](hostnamen-ssl.md));
+7. controleert of de webinterface reageert.
 
 De installer kun je veilig opnieuw draaien; bestaande instellingen en gegevens blijven staan.
 
@@ -51,6 +52,8 @@ De installer kun je veilig opnieuw draaien; bestaande instellingen en gegevens b
 | `CP_REF` | Versie (tag) of branch om te installeren, bijv. `v0.1.0` | nieuwste release, anders `main` |
 | `CP_PUBLIC_URL` | Adres waarop de beheeromgeving bereikbaar is | `http://<server-ip>:8080` |
 | `CP_NODE_MAJOR` | Node.js-hoofdversie | `24` |
+| `CP_ACME_EMAIL` | E-mailadres voor meldingen van Let's Encrypt over verlopende certificaten | leeg |
+| `CP_CADDY` | `0` = Caddy niet installeren (als je een eigen reverse proxy gebruikt) | `1` |
 
 Voorbeeld: `CP_PUBLIC_URL=https://portal.rhis.nl bash -c "$(curl -fsSL …/install/install.sh)"`
 
@@ -60,7 +63,10 @@ Voorbeeld: `CP_PUBLIC_URL=https://portal.rhis.nl bash -c "$(curl -fsSL …/insta
 2. Maak het eerste **platformbeheerder**-account aan.
 3. Stel onder **Systeem → E-mail (SMTP)** je mailserver in, zodat uitnodigingen en wachtwoordherstel werken. Zie [smtp.md](smtp.md).
 4. Optioneel: zet onder **Systeem → Single sign-on** Microsoft Entra aan. Zie [entra-sso.md](entra-sso.md).
-5. Voeg onder **Klanten** je eerste klant toe en nodig een klantbeheerder uit.
+5. Stel onder **Systeem → Hosting & SSL** het publieke IP-adres in en eventueel een HTTPS-hostnaam voor het beheerpaneel. Zie [hostnamen-ssl.md](hostnamen-ssl.md).
+6. Voeg onder **Klanten** je eerste klant toe en nodig een klantbeheerder uit. De klant koppelt zijn console zoals beschreven in [unifi-koppelen.md](unifi-koppelen.md).
+
+Poorten: **8080** (beheerpaneel, ook rechtstreeks), **80** en **443** (Caddy: gastportalen en HTTPS). Stuur 80 en 443 vanaf internet door naar de server.
 
 ## Bestanden en services
 
@@ -70,6 +76,8 @@ Voorbeeld: `CP_PUBLIC_URL=https://portal.rhis.nl bash -c "$(curl -fsSL …/insta
 | `/etc/captive-portal/captive-portal.env` | Configuratie: database, geheime sleutel, publieke URL |
 | `/var/lib/captive-portal` | Gegevens: update-status, back-ups |
 | `/var/log/captive-portal-update.log` | Logboek van updates |
+| `/etc/caddy/Caddyfile` | Configuratie van Caddy (beheerd door de installer) |
+| `/etc/captive-portal/caddy.env` | E-mailadres voor Let's Encrypt |
 
 ```bash
 systemctl status captive-portal          # draait de app?

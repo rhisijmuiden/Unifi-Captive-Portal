@@ -1,5 +1,5 @@
 import { and, eq, gt, isNull } from 'drizzle-orm';
-import { config } from '../config.js';
+import { adminBaseUrl } from './settings.js';
 import { db, schema } from '../db/index.js';
 import type { User } from '../db/schema.js';
 import { randomToken, sha256 } from '../lib/crypto.js';
@@ -28,7 +28,7 @@ export async function consumeToken(token: string) {
 
 export async function sendInvite(user: User) {
   const token = await issueToken(user.id, 'invite');
-  const url = `${config.publicUrl}/reset-password?token=${token}&invite=1`;
+  const url = `${await adminBaseUrl()}/reset-password?token=${token}&invite=1`;
   const locale = normalizeLocale(user.locale) ?? DEFAULT_LOCALE;
   await sendMail(
     user.email,
@@ -39,7 +39,7 @@ export async function sendInvite(user: User) {
 
 export async function sendPasswordReset(user: User) {
   const token = await issueToken(user.id, 'password_reset');
-  const url = `${config.publicUrl}/reset-password?token=${token}`;
+  const url = `${await adminBaseUrl()}/reset-password?token=${token}`;
   const locale = normalizeLocale(user.locale) ?? DEFAULT_LOCALE;
   await sendMail(
     user.email,

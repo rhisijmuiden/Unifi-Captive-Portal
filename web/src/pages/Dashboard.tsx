@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Activity, ArrowRight, Building2, CheckCircle2, Circle, Globe, KeyRound, Mail, Palette, Router, Users } from 'lucide-react';
+import { Activity, ArrowRight, Building2, CheckCircle2, Circle, Globe, KeyRound, Mail, Router, Server, SlidersHorizontal, UserCheck, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -11,6 +11,11 @@ import { timeAgo } from '../lib/format';
 type Dashboard = {
   tenants: number | null;
   users: number;
+  consoles: number;
+  activeHostnames: number;
+  guestsToday: number;
+  portalConfigured: boolean | null;
+  hostingReady: boolean | null;
   activity: { id: string; action: string; details: Record<string, unknown> | null; createdAt: string; userName: string | null }[];
 };
 
@@ -46,13 +51,14 @@ export function DashboardPage() {
     ? [
         { done: Boolean(smtp.data?.enabled), label: t('dashboard.stepSmtp'), hint: t('dashboard.stepSmtpHint'), to: '/settings/smtp', icon: Mail },
         { done: Boolean(sso.data?.entraEnabled), label: t('dashboard.stepSso'), hint: t('dashboard.stepSsoHint'), to: '/settings/sso', icon: KeyRound },
+        { done: Boolean(data?.hostingReady), label: t('dashboard.stepHosting'), hint: t('dashboard.stepHostingHint'), to: '/settings/hosting', icon: Server },
         { done: (data?.tenants ?? 0) > 0, label: t('dashboard.stepTenant'), hint: t('dashboard.stepTenantHint'), to: '/tenants', icon: Building2 },
-        { done: false, label: t('dashboard.stepConsole'), hint: t('dashboard.nextVersion'), icon: Router },
+        { done: (data?.consoles ?? 0) > 0, label: t('dashboard.stepConsole'), hint: t('dashboard.stepConsoleHint'), to: '/consoles', icon: Router },
       ]
     : [
-        { done: false, label: t('dashboard.stepConsoleOwn'), hint: t('dashboard.nextVersion'), icon: Router },
-        { done: false, label: t('dashboard.stepPortal'), hint: t('dashboard.nextVersion'), icon: Palette },
-        { done: false, label: t('dashboard.stepDomain'), hint: t('dashboard.stepDomainHint'), icon: Globe },
+        { done: (data?.consoles ?? 0) > 0, label: t('dashboard.stepConsoleOwn'), hint: t('dashboard.stepConsoleHint'), to: '/consoles', icon: Router },
+        { done: Boolean(data?.portalConfigured), label: t('dashboard.stepPortal'), hint: t('dashboard.stepPortalHint'), to: '/portal-settings', icon: SlidersHorizontal },
+        { done: (data?.activeHostnames ?? 0) > 0, label: t('dashboard.stepDomain'), hint: t('dashboard.stepDomainHint'), to: '/hostnames', icon: Globe },
       ];
   const doneCount = steps.filter((s) => s.done).length;
 
@@ -63,8 +69,8 @@ export function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {isAdmin && <Stat icon={<Building2 className="size-5" />} label={t('dashboard.tenants')} value={isLoading ? <Spinner /> : data?.tenants} to="/tenants" />}
         <Stat icon={<Users className="size-5" />} label={isAdmin ? t('dashboard.users') : t('dashboard.teamMembers')} value={isLoading ? <Spinner /> : data?.users} to={user.role !== 'tenant_user' ? '/users' : undefined} />
-        <Stat icon={<Palette className="size-5" />} label={t('dashboard.activePortals')} value="0" />
-        <Stat icon={<Router className="size-5" />} label={t('dashboard.consoles')} value="0" />
+        <Stat icon={<UserCheck className="size-5" />} label={t('dashboard.guestsToday')} value={isLoading ? <Spinner /> : data?.guestsToday} to={isAdmin ? undefined : '/guests'} />
+        <Stat icon={<Router className="size-5" />} label={t('dashboard.consoles')} value={isLoading ? <Spinner /> : data?.consoles} to={isAdmin ? undefined : '/consoles'} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">

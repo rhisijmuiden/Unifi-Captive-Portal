@@ -1,8 +1,8 @@
 import * as oidc from 'openid-client';
 import { config } from '../config.js';
-import { getSettings } from './settings.js';
+import { adminBaseUrl, getSettings } from './settings.js';
 
-export const entraRedirectUri = () => `${config.publicUrl}/api/auth/entra/callback`;
+export const entraRedirectUri = async () => `${await adminBaseUrl()}/api/auth/entra/callback`;
 
 let cached: { key: string; cfg: oidc.Configuration } | null = null;
 
@@ -22,7 +22,7 @@ export async function buildEntraLogin(cfg: oidc.Configuration) {
   const state = oidc.randomState();
   const nonce = oidc.randomNonce();
   const url = oidc.buildAuthorizationUrl(cfg, {
-    redirect_uri: entraRedirectUri(),
+    redirect_uri: await entraRedirectUri(),
     scope: 'openid profile email',
     code_challenge: await oidc.calculatePKCECodeChallenge(verifier),
     code_challenge_method: 'S256',

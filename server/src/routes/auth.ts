@@ -6,7 +6,7 @@ import { audit, createSession, destroySession, publicUser, requireUser, secureCo
 import { hashPassword, verifyPassword } from '../lib/crypto.js';
 import { badRequest, unauthorized } from '../lib/errors.js';
 import { buildEntraLogin, completeEntraLogin, entraConfig } from '../services/entra.js';
-import { getSettings } from '../services/settings.js';
+import { adminBaseUrl, getSettings } from '../services/settings.js';
 import { consumeToken, sendPasswordReset } from '../services/tokens.js';
 import { config } from '../config.js';
 import { isLocale, requestLocale } from '../i18n/index.js';
@@ -119,7 +119,7 @@ export async function authRoutes(app: FastifyInstance) {
       path: '/api/auth/entra',
       httpOnly: true,
       sameSite: 'lax',
-      secure: secureCookies,
+      secure: secureCookies(_req),
       signed: true,
       maxAge: 600,
     });
@@ -133,7 +133,7 @@ export async function authRoutes(app: FastifyInstance) {
     reply.clearCookie(FLOW_COOKIE, { path: '/api/auth/entra' });
     if (!cfg || !unsigned?.valid || !unsigned.value) return reply.redirect('/login?error=sso_failed');
     try {
-      const callbackUrl = new URL(req.url, config.publicUrl);
+      const callbackUrl = new URL(req.url, await adminBaseUrl());
       const identity = await completeEntraLogin(cfg, callbackUrl, JSON.parse(unsigned.value));
       const user = await db.query.users.findFirst({
         where: or(eq(schema.users.entraOid, identity.oid), eq(schema.users.email, identity.email)),

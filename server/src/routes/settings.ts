@@ -3,11 +3,12 @@ import { z } from 'zod';
 import { audit, requireSuperadmin } from '../lib/auth.js';
 import { badRequest, translateError } from '../lib/errors.js';
 import { entraRedirectUri } from '../services/entra.js';
+import { clearHostnameCache } from '../services/hostnames.js';
 import { requestLocale, t } from '../i18n/index.js';
 import { renderEmail, sendMail } from '../services/mailer.js';
 import { getPublicSettings, getSettings, saveSettings, smtpSchema, type SettingsKey } from '../services/settings.js';
 
-const keys: SettingsKey[] = ['smtp', 'sso', 'system'];
+const keys: SettingsKey[] = ['smtp', 'sso', 'system', 'hosting'];
 
 export async function settingsRoutes(app: FastifyInstance) {
   app.get<{ Params: { key: string } }>('/api/settings/:key', async (req) => {
@@ -15,7 +16,7 @@ export async function settingsRoutes(app: FastifyInstance) {
     const key = req.params.key as SettingsKey;
     if (!keys.includes(key)) throw badRequest('errors.unknownSetting');
     const value = await getPublicSettings(key);
-    return key === 'sso' ? { ...value, redirectUri: entraRedirectUri() } : value;
+    return key === 'sso' ? { ...value, redirectUri: await entraRedirectUri() } : value;
   });
 
   app.put<{ Params: { key: string } }>('/api/settings/:key', async (req) => {
@@ -23,6 +24,7 @@ export async function settingsRoutes(app: FastifyInstance) {
     const key = req.params.key as SettingsKey;
     if (!keys.includes(key)) throw badRequest('errors.unknownSetting');
     await saveSettings(key, req.body as Record<string, unknown>);
+    if (key === 'hosting') clearHostnameCache();
     await audit(req, 'settings.updated', { key }, null);
     return getPublicSettings(key);
   });
