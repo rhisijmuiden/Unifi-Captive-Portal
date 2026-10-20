@@ -2,7 +2,7 @@
 
 **English** · [Nederlands](ROADMAP.nl.md)
 
-Last updated: 20 October 2026. This roadmap is updated after every major build.
+Last updated: 21 October 2026. This roadmap is updated after every major build.
 
 Legend: ✅ done · 🚧 in progress · 📋 planned
 
@@ -45,14 +45,15 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - ✅ **E-mail template designer**, visual and in HTML, for every e-mail, per customer and platform-wide
 - ✅ Guest list with name, e-mail, method, CSV export and removal
 
-## Step 4: Billing customers 📋
+## Step 4: Billing customers (v0.4) ✅
 
-- 📋 Subscriptions per customer (tenant) for their portal, set by the platform admin: plan, price, billing period and start date
-- 📋 Invoices from the main admin panel, with invoice numbers, VAT, your company details and logo, as PDF and by e-mail
-- 📋 Paying invoices online through the platform's own Mollie or Stripe account, with automatic payment status
-- 📋 Overview of open, paid and overdue invoices, with reminders
-- 📋 Optional: limit or suspend a customer's portal when invoices stay unpaid
-- 📋 Customers see and download their own invoices in their environment
+- ✅ Plans and a subscription per customer (tenant) for their portal, set by the platform admin: plan, price, monthly/quarterly/yearly and start date; invoiced automatically in advance
+- ✅ Invoices from the main admin panel, with gapless invoice numbers, VAT (or reverse charge), your company details and logo, as PDF and by e-mail; one-off invoices too
+- ✅ Paying invoices online through the platform's own Mollie or Stripe account, with automatic payment status (webhooks plus a background check)
+- ✅ Overview of outstanding, paid and overdue invoices, monthly recurring revenue, automatic reminders and marking bank transfers as paid
+- ✅ Optional: pause a customer's guest portal automatically when an invoice stays unpaid, and resume it once paid
+- ✅ Customers see, download and pay their own invoices in their environment
+- ✅ Customers keep switching paid guest access on or off themselves (step 3)
 
 ## Step 5: Backups and guides 📋
 

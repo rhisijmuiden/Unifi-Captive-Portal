@@ -4,6 +4,7 @@ import { pool } from './db/index.js';
 import { runMigrations } from './db/migrate.js';
 import { purgeExpiredSessions } from './lib/auth.js';
 import { buildApp } from './app.js';
+import { pollInvoicePayments, runBilling } from './services/billing.js';
 import { syncAllConsoles } from './services/consoles.js';
 import { checkHostnames } from './services/hostnames.js';
 import { runMonthlyReports } from './services/notifications.js';
@@ -25,7 +26,12 @@ const jobs = [
   every(60_000, pollOpenPayments),
   // Last month's report goes out once per customer; checking hourly survives restarts
   every(3600_000, () => runMonthlyReports()),
+  // Subscription invoices, reminders and pausing portals for unpaid invoices; hourly is safe, each step runs once
+  every(3600_000, () => runBilling()),
+  every(60_000, pollInvoicePayments),
 ];
+// Run the billing once shortly after start, so a restart on the 1st does not wait an hour
+setTimeout(() => runBilling().catch((err) => app.log.error(err)), 30_000).unref();
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.once(signal, async () => {

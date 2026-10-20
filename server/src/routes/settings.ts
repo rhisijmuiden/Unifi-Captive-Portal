@@ -9,7 +9,7 @@ import { sendMail } from '../services/mailer.js';
 import { renderTemplate } from '../services/mailTemplates.js';
 import { getPublicSettings, getSettings, saveSettings, smtpSchema, type SettingsKey } from '../services/settings.js';
 
-const keys: SettingsKey[] = ['smtp', 'sso', 'system', 'hosting'];
+const keys: SettingsKey[] = ['smtp', 'sso', 'system', 'hosting', 'billing'];
 
 export async function settingsRoutes(app: FastifyInstance) {
   app.get<{ Params: { key: string } }>('/api/settings/:key', async (req) => {

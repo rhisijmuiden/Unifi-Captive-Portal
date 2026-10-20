@@ -19,8 +19,8 @@ Open http://localhost:5173. The setup wizard starts the first time.
 
 ```
 server/            Fastify API (TypeScript)
-  src/routes/      API endpoints: auth, tenants, users, settings, system
-  src/services/    mailer, Entra SSO, settings, updater, tokens
+  src/routes/      API endpoints: auth, tenants, users, settings, system, consoles, portals, payments, billing (/api/billing, pay pages under /billing)
+  src/services/    mailer, Entra SSO, settings, updater, tokens, UniFi, payments, billing and invoice PDFs
   src/i18n/        server translations (errors, e-mails)
   src/db/          Drizzle schema and migrations (server/drizzle/)
   src/shared/      guest page and e-mail renderers, shared with the web editors (imported as @shared)

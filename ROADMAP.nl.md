@@ -2,7 +2,7 @@
 
 [English](ROADMAP.md) · **Nederlands**
 
-Laatst bijgewerkt: 20 oktober 2026. Deze roadmap wordt na elke grote build bijgewerkt.
+Laatst bijgewerkt: 21 oktober 2026. Deze roadmap wordt na elke grote build bijgewerkt.
 
 Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 
@@ -45,14 +45,15 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - ✅ **Mail-template ontwerper**, visueel en in HTML, voor elke e-mail, per klant en platformbreed
 - ✅ Gastenlijst met naam, e-mail, manier van inloggen, CSV-export en verwijderen
 
-## Stap 4: Klanten factureren 📋
+## Stap 4: Klanten factureren (v0.4) ✅
 
-- 📋 Abonnementen per klant (tenant) voor hun portal, ingesteld door de platformbeheerder: pakket, prijs, factuurperiode en startdatum
-- 📋 Facturen vanuit het hoofdbeheerpaneel, met factuurnummers, btw, je bedrijfsgegevens en logo, als pdf en per e-mail
-- 📋 Facturen online betalen via het eigen Mollie- of Stripe-account van het platform, met automatische betaalstatus
-- 📋 Overzicht van openstaande, betaalde en te late facturen, met herinneringen
-- 📋 Optioneel: het portal van een klant beperken of opschorten als facturen onbetaald blijven
-- 📋 Klanten zien en downloaden hun eigen facturen in hun omgeving
+- ✅ Plannen en een abonnement per klant (tenant) voor hun portaal, ingesteld door de platformbeheerder: plan, prijs, maandelijks/per kwartaal/jaarlijks en startdatum; automatisch vooraf gefactureerd
+- ✅ Facturen vanuit het hoofdbeheerpaneel, met factuurnummers zonder gaten, btw (of btw verlegd), je bedrijfsgegevens en logo, als pdf en per e-mail; ook eenmalige facturen
+- ✅ Facturen online betalen via het eigen Mollie- of Stripe-account van het platform, met automatische betaalstatus (webhooks plus een controle op de achtergrond)
+- ✅ Overzicht van openstaande, betaalde en te late facturen, terugkerende omzet per maand, automatische herinneringen en overboekingen als betaald markeren
+- ✅ Optioneel: het gastportaal van een klant automatisch pauzeren als een factuur onbetaald blijft, en weer hervatten na betaling
+- ✅ Klanten zien, downloaden en betalen hun eigen facturen in hun omgeving
+- ✅ Klanten zetten betaalde gasttoegang nog steeds zelf aan of uit (stap 3)
 
 ## Stap 5: Backups en handleidingen 📋
 

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Activity, ArrowRight, Building2, CheckCircle2, Circle, Globe, KeyRound, Mail, Router, Server, SlidersHorizontal, UserCheck, Users } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowRight, Building2, CheckCircle2, Circle, Globe, KeyRound, Mail, Router, Server, SlidersHorizontal, UserCheck, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -16,6 +16,7 @@ type Dashboard = {
   guestsToday: number;
   portalConfigured: boolean | null;
   hostingReady: boolean | null;
+  billingSuspended: boolean | null;
   activity: { id: string; action: string; details: Record<string, unknown> | null; createdAt: string; userName: string | null }[];
 };
 
@@ -65,6 +66,16 @@ export function DashboardPage() {
   return (
     <>
       <PageHeader eyebrow={t('dashboard.eyebrow')} title={t(greetingKey, { name: user.name.split(' ')[0] })} description={isAdmin ? t('dashboard.adminIntro') : t('dashboard.tenantIntro')} />
+
+      {data?.billingSuspended && (
+        <Link to={user.role === 'tenant_admin' ? '/invoices' : '#'} className="mb-6 flex gap-3 rounded-2xl border border-offline/30 bg-offline/10 p-4 text-sm">
+          <AlertTriangle className="mt-0.5 size-5 shrink-0 text-offline" />
+          <span>
+            <span className="block font-semibold">{t('invoices.suspendedTitle')}</span>
+            <span className="text-muted">{user.role === 'tenant_admin' ? t('invoices.suspendedText') : t('invoices.suspendedStaff')}</span>
+          </span>
+        </Link>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {isAdmin && <Stat icon={<Building2 className="size-5" />} label={t('dashboard.tenants')} value={isLoading ? <Spinner /> : data?.tenants} to="/tenants" />}

@@ -4,6 +4,20 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.4.0-beta.1] - 2026-10-21 (test channel)
+
+Step 4: billing customers from the main admin panel.
+
+- **Billing** (new menu item for the platform admin) with four tabs: invoices, subscriptions, plans and settings.
+- **Plans and subscriptions**: reusable plans (price excl. VAT, monthly/quarterly/yearly) and a billing profile per customer with invoice address, invoice e-mail, VAT number, reference, language, VAT rate or reverse charge, and the subscription (plan, own price, period, start date, next invoice date).
+- **Invoices**: subscription invoices are created automatically in advance for every period (hourly job, catches up after downtime); one-off invoices by hand. Drafts can be edited; issuing assigns a gapless number (prefix with `{year}`, adjustable digits), invoice and due date, and freezes your company and customer details. Cancel instead of delete; invoices are kept when a customer is deleted.
+- **PDF and e-mail**: A4 invoice PDF in English or Dutch with your logo (PNG, JPG or SVG), company details, lines, VAT, payment instructions and footer; e-mailed with the PDF attached. New e-mail templates *Invoice*, *Payment reminder* and *Payment received*.
+- **Online payment** through the platform's own Mollie or Stripe account: a public pay page per invoice (link in the e-mail and in the customer environment), webhooks plus a background check every minute, automatic confirmation.
+- **Overdue invoices**: automatic reminders (for example 7 and 14 days after the due date), marking bank transfers as paid, and optionally pausing the customer's guest portal after a number of days overdue. The customer can still sign in and pay; the portal resumes automatically, or by hand with **Resume portal**.
+- **Customer environment**: new **Invoices** page for customer admins with what is due, the subscription, all invoices with PDF and a Pay button, and a notice on the dashboard while the portal is paused.
+- Customers page: shortcut to a customer's billing and subscription.
+- New guide: [Billing customers](docs/en/billing.md).
+
 ## [0.3.0-beta.1] - 2026-10-20 (test channel)
 
 Step 3: editor, registration, payments and notifications.

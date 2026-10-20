@@ -4,7 +4,7 @@ import { db, schema } from '../db/index.js';
 import { t, type Locale, type MessageKey } from '../i18n/index.js';
 import type { NoId } from '../shared/portalDesign.js';
 import { createMailBlock, defaultMailTheme, mailKinds, renderMail, type MailBlock, type MailContent, type MailKind } from '../shared/mailDesign.js';
-import { sendMail } from './mailer.js';
+import { sendMail, type MailAttachment } from './mailer.js';
 import { adminBaseUrl } from './settings.js';
 
 /**
@@ -87,6 +87,34 @@ export function defaultMailTemplate(kind: MailKind, locale: Locale): MailContent
         { type: 'text', text: m('reportBody') },
         { type: 'data' },
         { type: 'button', label: m('reportButton'), url: '{{actionUrl}}' },
+      ],
+    },
+    invoice: {
+      subject: m('invoiceSubject'),
+      blocks: [
+        { type: 'heading', text: m('invoiceTitle') },
+        { type: 'text', text: m('invoiceBody') },
+        { type: 'data' },
+        { type: 'button', label: m('invoiceButton'), url: '{{payUrl}}' },
+        { type: 'text', text: m('invoiceAttached') },
+      ],
+    },
+    invoiceReminder: {
+      subject: m('reminderSubject'),
+      blocks: [
+        { type: 'heading', text: m('reminderTitle') },
+        { type: 'text', text: m('reminderBody') },
+        { type: 'data' },
+        { type: 'button', label: m('invoiceButton'), url: '{{payUrl}}' },
+        { type: 'text', text: m('reminderIgnore') },
+      ],
+    },
+    invoicePaid: {
+      subject: m('invoicePaidSubject'),
+      blocks: [
+        { type: 'heading', text: m('invoicePaidTitle') },
+        { type: 'text', text: m('invoicePaidBody') },
+        { type: 'data' },
       ],
     },
     guestWelcome: { subject: m('welcomeSubject'), blocks: [{ type: 'heading', text: m('welcomeTitle') }, { type: 'text', text: m('welcomeBody') }] },
@@ -175,9 +203,9 @@ export async function renderTemplate(kind: MailKind, locale: Locale, tenantId: s
   return renderMail(content, { ...data, baseUrl: data.baseUrl ?? (await adminBaseUrl()), locale });
 }
 
-export async function sendTemplate(to: string, kind: MailKind, locale: Locale, tenantId: string | null, data: MailData) {
+export async function sendTemplate(to: string, kind: MailKind, locale: Locale, tenantId: string | null, data: MailData, attachments?: MailAttachment[]) {
   const { subject, html, text } = await renderTemplate(kind, locale, tenantId, data);
-  return sendMail(to, subject, { html, text });
+  return sendMail(to, subject, { html, text, attachments });
 }
 
 export { createMailBlock };

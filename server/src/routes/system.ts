@@ -84,6 +84,7 @@ export async function systemRoutes(app: FastifyInstance) {
       activeHostnames: hostnameCount.value,
       guestsToday: guestCount.value,
       portalConfigured: own ? Boolean(portal) : null,
+      billingSuspended: own ? Boolean((await db.query.tenants.findFirst({ where: eq(schema.tenants.id, own) }))?.billingSuspendedAt) : null,
       hostingReady: own ? null : Boolean(hosting.publicIpv4 || hosting.publicIpv6),
       activity,
     };

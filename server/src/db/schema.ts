@@ -1,4 +1,4 @@
-import { boolean, customType, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { boolean, customType, date, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import type { MailDesign } from '../shared/mailDesign.js';
 import type { FieldMode, LoginMethod, PortalDesign } from '../shared/portalDesign.js';
 
@@ -15,6 +15,8 @@ export const tenants = pgTable('tenants', {
   contactEmail: text('contact_email'),
   status: tenantStatus('status').notNull().default('active'),
   notes: text('notes'),
+  // Set while the guest portal is paused for unpaid invoices; the customer can still sign in and pay
+  billingSuspendedAt: timestamp('billing_suspended_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -369,3 +371,132 @@ export type Voucher = typeof vouchers.$inferSelect;
 export type PaymentPackage = typeof paymentPackages.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type MailTemplate = typeof mailTemplates.$inferSelect;
+
+// ── Step 4: billing customers for their portal ──────────────────────────────
+
+export const billingInterval = pgEnum('billing_interval', ['month', 'quarter', 'year']);
+export const invoiceStatus = pgEnum('invoice_status', ['draft', 'open', 'paid', 'void']);
+
+/** Who an invoice is from or to, copied onto the invoice when it is issued. */
+export type BillingParty = {
+  name: string;
+  address: string;
+  email: string;
+  vatNumber: string;
+  cocNumber?: string;
+  phone?: string;
+  website?: string;
+  iban?: string;
+  bic?: string;
+  reference?: string;
+};
+export type InvoiceLine = { description: string; quantity: number; unitCents: number };
+
+/** Reusable price plans the platform admin offers, e.g. "Basic" for 19.95 a month. */
+export const billingPlans = pgTable('billing_plans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  description: text('description').notNull().default(''),
+  // Excluding VAT
+  priceCents: integer('price_cents').notNull(),
+  interval: billingInterval('interval').notNull().default('month'),
+  active: boolean('active').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Per customer: invoice details and the subscription for their portal. */
+export const tenantBilling = pgTable('tenant_billing', {
+  tenantId: uuid('tenant_id')
+    .primaryKey()
+    .references(() => tenants.id, { onDelete: 'cascade' }),
+  companyName: text('company_name').notNull().default(''),
+  address: text('address').notNull().default(''),
+  // Invoices go here; empty = the customer's contact address, then its admins
+  email: text('email').notNull().default(''),
+  vatNumber: text('vat_number').notNull().default(''),
+  reference: text('reference').notNull().default(''),
+  locale: text('locale').notNull().default('en'),
+  // VAT in basis points (2100 = 21%); reverse charge = 0% with the legal note, for EU business customers
+  vatRateBp: integer('vat_rate_bp').notNull().default(2100),
+  reverseCharge: boolean('reverse_charge').notNull().default(false),
+  // Subscription; name and price are copied from the plan but can differ per customer
+  subscriptionActive: boolean('subscription_active').notNull().default(false),
+  planId: uuid('plan_id').references(() => billingPlans.id, { onDelete: 'set null' }),
+  planName: text('plan_name').notNull().default(''),
+  priceCents: integer('price_cents').notNull().default(0),
+  interval: billingInterval('interval').notNull().default('month'),
+  startDate: date('start_date', { mode: 'string' }),
+  // The next period to invoice starts on this date (invoices are sent in advance)
+  nextInvoiceDate: date('next_invoice_date', { mode: 'string' }),
+  // Pause the guest portal automatically when invoices stay unpaid (platform setting decides when)
+  autoSuspend: boolean('auto_suspend').notNull().default(true),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const invoices = pgTable(
+  'invoices',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    // Kept when a customer is deleted: invoices must be kept for the tax authorities
+    tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'set null' }),
+    // Assigned when the invoice is issued, without gaps
+    number: text('number').unique(),
+    status: invoiceStatus('status').notNull().default('draft'),
+    source: text('source').$type<'subscription' | 'manual'>().notNull().default('manual'),
+    locale: text('locale').notNull().default('en'),
+    currency: text('currency').notNull().default('EUR'),
+    issueDate: date('issue_date', { mode: 'string' }),
+    dueDate: date('due_date', { mode: 'string' }),
+    periodStart: date('period_start', { mode: 'string' }),
+    periodEnd: date('period_end', { mode: 'string' }),
+    seller: jsonb('seller').$type<BillingParty>(),
+    customer: jsonb('customer').$type<BillingParty>().notNull(),
+    lines: jsonb('lines').$type<InvoiceLine[]>().notNull().default([]),
+    vatRateBp: integer('vat_rate_bp').notNull().default(2100),
+    reverseCharge: boolean('reverse_charge').notNull().default(false),
+    subtotalCents: integer('subtotal_cents').notNull().default(0),
+    vatCents: integer('vat_cents').notNull().default(0),
+    totalCents: integer('total_cents').notNull().default(0),
+    notes: text('notes').notNull().default(''),
+    // Secret part of the public pay link in the e-mail
+    payToken: text('pay_token').notNull().unique(),
+    sentAt: timestamp('sent_at', { withTimezone: true }),
+    remindersSent: integer('reminders_sent').notNull().default(0),
+    lastReminderAt: timestamp('last_reminder_at', { withTimezone: true }),
+    paidAt: timestamp('paid_at', { withTimezone: true }),
+    paidVia: text('paid_via').$type<'online' | 'manual'>(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('invoices_tenant_idx').on(t.tenantId, t.createdAt), index('invoices_status_idx').on(t.status, t.dueDate)],
+);
+
+/** Every online payment attempt for an invoice, with the platform's own Mollie or Stripe account. */
+export const invoicePayments = pgTable(
+  'invoice_payments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    invoiceId: uuid('invoice_id')
+      .notNull()
+      .references(() => invoices.id, { onDelete: 'cascade' }),
+    provider: paymentProvider('provider').notNull(),
+    providerRef: text('provider_ref'),
+    checkoutUrl: text('checkout_url'),
+    amountCents: integer('amount_cents').notNull(),
+    currency: text('currency').notNull(),
+    status: paymentStatus('status').notNull().default('open'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    paidAt: timestamp('paid_at', { withTimezone: true }),
+  },
+  (t) => [index('invoice_payments_ref_idx').on(t.provider, t.providerRef), index('invoice_payments_invoice_idx').on(t.invoiceId)],
+);
+
+/** Last used invoice number per prefix (e.g. "2026-"), so numbers run on without gaps. */
+export const invoiceSequences = pgTable('invoice_sequences', {
+  prefix: text('prefix').primaryKey(),
+  last: integer('last').notNull().default(0),
+});
+
+export type BillingPlan = typeof billingPlans.$inferSelect;
+export type TenantBilling = typeof tenantBilling.$inferSelect;
+export type Invoice = typeof invoices.$inferSelect;
+export type InvoicePayment = typeof invoicePayments.$inferSelect;

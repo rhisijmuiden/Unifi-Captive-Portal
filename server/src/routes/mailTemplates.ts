@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { db, schema } from '../db/index.js';
 import { eq } from 'drizzle-orm';
-import { isLocale, locales, normalizeLocale, requestLocale, type Locale } from '../i18n/index.js';
+import { isLocale, locales, normalizeLocale, requestLocale, t, type Locale } from '../i18n/index.js';
 import { audit, requireUser } from '../lib/auth.js';
 import { badRequest, forbidden, translateError } from '../lib/errors.js';
 import { sendMail } from '../services/mailer.js';
@@ -46,6 +46,13 @@ function sample(kind: MailKind, locale: Locale): { vars: Record<string, string>;
     const nl = locale === 'nl';
     const data = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:15px;margin:8px 0 16px">${row(nl ? 'Pakket' : 'Package', sampleVars.package)}${row(nl ? 'Bedrag' : 'Amount', sampleVars.amount)}${row(nl ? 'Referentie' : 'Reference', sampleVars.reference)}</table>`;
     return { vars: sampleVars, raw: { data }, dataText: '' };
+  }
+  if (kind === 'invoice' || kind === 'invoiceReminder' || kind === 'invoicePaid') {
+    const row = (l: string, v: string) => `<tr><td style="padding:8px 0;border-bottom:1px solid #DCE1EB;color:#4F5B73">${l}</td><td style="padding:8px 0;border-bottom:1px solid #DCE1EB;text-align:right;font-weight:700">${v}</td></tr>`;
+    const m = (k: string) => t(locale, `mail.${k}` as Parameters<typeof t>[1]);
+    const vars: Record<string, string> = { ...sampleVars, amount: '€ 24,14' };
+    const data = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:15px;margin:8px 0 16px">${row(m('invoiceNumber'), vars.invoiceNumber)}${row(m('invoiceDate'), vars.issueDate)}${row(m('invoiceDue'), vars.dueDate)}${row(m('invoiceAmount'), vars.amount)}</table>`;
+    return { vars, raw: { data }, dataText: '' };
   }
   return { vars: sampleVars, raw: {}, dataText: '' };
 }

@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Building2, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Building2, Pencil, Plus, Receipt, Search, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { Badge, Button, Card, EmptyState, Field, Input, Modal, PageHeader, Select, Spinner, Textarea } from '../components/ui';
 import { api, type Tenant } from '../lib/api';
@@ -96,6 +96,7 @@ function TenantForm({ tenant, onClose }: { tenant: Tenant | null; onClose: () =>
 export function TenantsPage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState<Tenant | null | 'new'>(null);
   const [deleting, setDeleting] = useState<Tenant | null>(null);
@@ -175,6 +176,9 @@ export function TenantsPage() {
                     <td className="hidden px-6 py-3 text-muted md:table-cell">{formatDate(tenant.createdAt)}</td>
                     <td className="px-6 py-3">
                       <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/billing?tab=customers&edit=${tenant.id}`)} aria-label={t('tenants.billing')} title={t('tenants.billing')}>
+                          <Receipt className="size-4" />
+                        </Button>
                         <Button variant="ghost" size="sm" onClick={() => setEditing(tenant)} aria-label={t('common.edit')}>
                           <Pencil className="size-4" />
                         </Button>

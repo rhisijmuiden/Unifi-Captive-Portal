@@ -59,11 +59,48 @@ export const hostingSchema = z.object({
   forceHttps: z.boolean().default(true),
 });
 
+const mediaUrl = z.string().regex(/^\/portal\/media\/[0-9a-f-]{36}$/).nullable();
+
+/** Billing customers for their portal: the platform's company details, invoices and online payment. */
+export const billingSchema = z.object({
+  companyName: z.string().trim().max(200).default(''),
+  address: z.string().max(1000).default(''),
+  email: z.union([z.email(), z.literal('')]).default(''),
+  phone: z.string().trim().max(60).default(''),
+  website: z.string().trim().max(200).default(''),
+  vatNumber: z.string().trim().max(40).default(''),
+  // Chamber of Commerce (KvK) number
+  cocNumber: z.string().trim().max(40).default(''),
+  iban: z.string().trim().max(40).default(''),
+  bic: z.string().trim().max(20).default(''),
+  logo: mediaUrl.default(null),
+  currency: z.enum(['EUR', 'USD', 'GBP', 'CHF']).default('EUR'),
+  defaultVatRateBp: z.coerce.number().int().min(0).max(10_000).default(2100),
+  paymentTermDays: z.coerce.number().int().min(0).max(120).default(14),
+  // {year} is replaced by the year of the invoice date, so numbering restarts every year
+  numberPrefix: z.string().trim().max(20).regex(/^[\w{}\-/.]*$/, 'errors.numberPrefix').default('{year}-'),
+  numberDigits: z.coerce.number().int().min(1).max(8).default(4),
+  footer: z.string().max(1000).default(''),
+  // New subscription invoices are issued and e-mailed straight away; otherwise they wait as drafts
+  autoSend: z.boolean().default(true),
+  provider: z.enum(['none', 'mollie', 'stripe']).default('none'),
+  mollieApiKey: z.string().default(''),
+  stripeSecretKey: z.string().default(''),
+  stripeWebhookSecret: z.string().default(''),
+  // Reminders this many days after the due date
+  reminders: z.boolean().default(true),
+  reminderDays: z.array(z.coerce.number().int().min(1).max(365)).max(5).default([7, 14]),
+  // Pause the customer's guest portal when an invoice is this many days overdue
+  autoSuspend: z.boolean().default(false),
+  suspendAfterDays: z.coerce.number().int().min(1).max(365).default(30),
+});
+
 const definitions = {
   smtp: { schema: smtpSchema, secrets: ['password', 'oauthClientSecret', 'dkimPrivateKey'] },
   sso: { schema: ssoSchema, secrets: ['entraClientSecret'] },
   system: { schema: systemSchema, secrets: [] },
   hosting: { schema: hostingSchema, secrets: [] },
+  billing: { schema: billingSchema, secrets: ['mollieApiKey', 'stripeSecretKey', 'stripeWebhookSecret'] },
 } as const;
 
 type Definitions = typeof definitions;

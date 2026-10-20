@@ -4,6 +4,20 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.4.0-beta.1] - 2026-10-21 (testkanaal)
+
+Stap 4: klanten factureren vanuit het hoofdbeheerpaneel.
+
+- **Facturatie** (nieuw menu-item voor de platformbeheerder) met vier tabbladen: facturen, abonnementen, plannen en instellingen.
+- **Plannen en abonnementen**: herbruikbare plannen (prijs excl. btw, maandelijks/per kwartaal/jaarlijks) en per klant een factuurprofiel met factuuradres, factuur-e-mail, btw-nummer, referentie, taal, btw-tarief of btw verlegd, en het abonnement (plan, eigen prijs, periode, startdatum, volgende factuurdatum).
+- **Facturen**: abonnementsfacturen worden automatisch vooraf gemaakt voor elke periode (elk uur, haalt in na een storing); eenmalige facturen maak je zelf. Concepten zijn te bewerken; bij uitgeven krijgt de factuur een nummer zonder gaten (voorvoegsel met `{year}`, instelbaar aantal cijfers), factuur- en vervaldatum, en worden je bedrijfs- en klantgegevens vastgelegd. Annuleren in plaats van verwijderen; facturen blijven bewaard als een klant wordt verwijderd.
+- **PDF en e-mail**: A4-factuur in het Nederlands of Engels met je logo (PNG, JPG of SVG), bedrijfsgegevens, regels, btw, betaalinstructies en voettekst; gemaild met de pdf als bijlage. Nieuwe e-mailtemplates *Factuur*, *Betalingsherinnering* en *Betaling ontvangen*.
+- **Online betalen** via het eigen Mollie- of Stripe-account van het platform: een openbare betaalpagina per factuur (link in de e-mail en in de klantomgeving), webhooks plus een controle elke minuut, automatische bevestiging.
+- **Te late facturen**: automatische herinneringen (bijvoorbeeld 7 en 14 dagen na de vervaldatum), overboekingen als betaald markeren, en optioneel het gastportaal van de klant pauzeren na een aantal dagen te laat. De klant kan nog wel inloggen en betalen; het portaal gaat vanzelf weer aan, of met de hand met **Portaal hervatten**.
+- **Klantomgeving**: nieuwe pagina **Facturen** voor klantbeheerders met wat er openstaat, het abonnement, alle facturen met pdf en een knop Betalen, en een melding op het dashboard zolang het portaal gepauzeerd is.
+- Klantenpagina: snelkoppeling naar de facturatie en het abonnement van een klant.
+- Nieuwe handleiding: [Klanten factureren](docs/nl/facturatie.md).
+
 ## [0.3.0-beta.1] - 2026-10-20 (testkanaal)
 
 Stap 3: editor, registratie, betaling en notificaties.
