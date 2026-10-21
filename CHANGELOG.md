@@ -4,6 +4,10 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.7.0] - 2026-10-21
+
+Stable release of step 7 (SMS and social login, hotel login, two-factor authentication, monitoring, live dashboard, marketing and GDPR, feedback, ads and white-label resellers), identical to 0.7.0-beta.4.
+
 ## [0.7.0-beta.4] - 2026-10-21 (test channel)
 
 Step 7, part 4: white-label resellers. This completes step 7.
