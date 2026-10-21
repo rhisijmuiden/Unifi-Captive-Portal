@@ -4,6 +4,10 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.7.0] - 2026-10-21
+
+Stabiele release van stap 7 (sms en sociale login, hotellogin, tweestapsverificatie, monitoring, live dashboard, marketing en AVG, feedback, advertenties en white-label resellers), gelijk aan 0.7.0-beta.4.
+
 ## [0.7.0-beta.4] - 2026-10-21 (testkanaal)
 
 Stap 7, deel 4: white-label resellers. Hiermee is stap 7 af.

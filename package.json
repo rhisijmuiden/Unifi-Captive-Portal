@@ -1,6 +1,6 @@
 {
   "name": "captive-portal",
-  "version": "0.7.0-beta.4",
+  "version": "0.7.0",
   "private": true,
   "description": "Multi-tenant managed captive portal platform for UniFi OS consoles",
   "license": "UNLICENSED",
