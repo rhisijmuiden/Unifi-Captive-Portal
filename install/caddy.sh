@@ -38,7 +38,12 @@ cat >/etc/systemd/system/caddy.service.d/captive-portal.conf <<CONF
 EnvironmentFile=$CONF_DIR/caddy.env
 CONF
 
-if [[ ! -f "$CADDYFILE" ]] || head -n1 "$CADDYFILE" | grep -qF "$MARKER" || ! grep -q '[^[:space:]]' <(grep -v '^#' "$CADDYFILE"); then
+# The Caddy package ships a sample site on :80 (serving /usr/share/caddy); that one is ours to replace
+is_package_default() {
+  [[ "$(grep -v '^[[:space:]]*#' "$CADDYFILE" | tr -d '[:space:]')" == ':80{root*/usr/share/caddyfile_server}' ]]
+}
+
+if [[ ! -f "$CADDYFILE" ]] || head -n1 "$CADDYFILE" | grep -qF "$MARKER" || ! grep -q '[^[:space:]]' <(grep -v '^#' "$CADDYFILE") || is_package_default; then
   install -m 0644 "$APP_DIR/deploy/caddy/Caddyfile" "$CADDYFILE"
 elif ! grep -q 'api/caddy/ask' "$CADDYFILE"; then
   echo " ! $CADDYFILE was changed by hand; leaving it alone. See $APP_DIR/deploy/caddy/Caddyfile"
