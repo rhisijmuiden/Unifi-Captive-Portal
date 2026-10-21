@@ -120,6 +120,11 @@ const en: Messages = {
     twoFactorActive: 'Two-factor authentication is already on',
     twoFactorRequiredPolicy: 'Two-factor authentication is required for your account and cannot be turned off',
     ownTwoFactor: 'Turn off your own two-factor authentication under My account',
+    resellerHasTenants: 'This reseller still has {{count}} customer(s). Move or delete them first.',
+    resellerLimit: 'You have reached your limit of {{max}} customers. Contact the platform admin to raise it.',
+    resellerUnknown: 'This reseller does not exist',
+    chooseReseller: 'Choose a reseller',
+    resellerSuspended: 'This account is suspended. Please contact your provider.',
   },
   portal: guestStrings.en,
   mail: {

@@ -4,6 +4,19 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.7.0-beta.4] - 2026-10-21 (test channel)
+
+Step 7, part 4: white-label resellers. This completes step 7.
+
+- **Resellers** (new page **Resellers** in the main admin panel): partners who sell the platform to their own customers under their own brand. Per reseller: company details, an optional **customer limit**, an optional **own admin address** (with an automatic Let's Encrypt certificate), the brand (name, logo for light and dark backgrounds, accent colour, website, support e-mail) and a first admin who is invited by e-mail.
+- **RHIS mentions per reseller**: choose whether **Powered by RHIS** (menu and Info, default on) and **Designed by RHIS** (admin panel, the customers' guest portals and e-mails, default off) stay visible.
+- **Reseller admin panel** with a new role *Reseller admin*: an overview of its own customers, **Customers** (create, change, suspend, delete, within the limit), **Team** (own colleagues and the customers' teams) and **Branding** with a preview. Like the platform admin, a reseller does not see its customers' consoles, portals or guests.
+- The reseller's customers see its brand in their admin panel (logo, accent colour, tab title, support e-mail under Info and on the sign-in page); on its own admin address the brand shows before signing in too. Invitation and password e-mails link to that address.
+- **Suspending** a reseller closes the admin panel and the API for its team and all its customers right away; guest portals keep working. A reseller can only be deleted once it has no customers. Sign-in, two-factor, password reset and Microsoft sign-in all refuse suspended customers and resellers.
+- The platform admin assigns existing customers to a reseller (or back) when editing the customer.
+- API: new platform scope `resellers` and `resellerId` on customers.
+- New guide: [White-label resellers](docs/en/resellers.md).
+
 ## [0.7.0-beta.3] - 2026-10-21 (test channel)
 
 Step 7, part 3: marketing, GDPR, feedback and ads. Three new pages under **Marketing** in the customer's environment.

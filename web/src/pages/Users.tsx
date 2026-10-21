@@ -10,7 +10,7 @@ import { api, type Role, type Tenant, type User } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { timeAgo } from '../lib/format';
 
-function UserForm({ user, tenants, defaultTenant, onClose }: { user: User | null; tenants: Tenant[]; defaultTenant?: string; onClose: () => void }) {
+function UserForm({ user, tenants, resellers, defaultTenant, onClose }: { user: User | null; tenants: Tenant[]; resellers: { id: string; name: string }[]; defaultTenant?: string; onClose: () => void }) {
   const { t } = useTranslation();
   const { data: auth } = useAuth();
   const me = auth!.user!;
@@ -18,14 +18,23 @@ function UserForm({ user, tenants, defaultTenant, onClose }: { user: User | null
   const [form, setForm] = useState({
     name: user?.name ?? '',
     email: user?.email ?? '',
-    role: (user?.role ?? 'tenant_admin') as Role,
+    // A reseller opening its own team (no customer chosen) invites colleagues by default
+    role: (user?.role ?? (me.role === 'reseller_admin' && !defaultTenant ? 'reseller_admin' : 'tenant_admin')) as Role,
     tenantId: user?.tenantId ?? defaultTenant ?? tenants[0]?.id ?? '',
+    resellerId: user?.resellerId ?? resellers[0]?.id ?? '',
     isActive: user?.isActive ?? true,
     sendInvite: true,
   });
   const save = useMutation({
     mutationFn: () => {
-      const body = { ...form, tenantId: form.role === 'superadmin' ? null : form.tenantId || null };
+      const { resellerId, ...rest } = form;
+      const customer = form.role === 'tenant_admin' || form.role === 'tenant_user';
+      const body = {
+        ...rest,
+        tenantId: customer ? form.tenantId || null : null,
+        // Only the platform admin chooses the reseller; a reseller's colleagues join its own team
+        ...(me.role === 'superadmin' ? { resellerId: form.role === 'reseller_admin' ? resellerId || null : null } : {}),
+      };
       return user ? api.put(`/users/${user.id}`, body) : api.post<{ inviteError: string | null }>('/users', body);
     },
     onSuccess: (res) => {
@@ -36,7 +45,19 @@ function UserForm({ user, tenants, defaultTenant, onClose }: { user: User | null
       onClose();
     },
   });
-  const roles: Role[] = me.role === 'superadmin' ? ['superadmin', 'tenant_admin', 'tenant_user'] : ['tenant_admin', 'tenant_user'];
+  const customerRoles: Role[] = ['tenant_admin', 'tenant_user'];
+  const roles: Role[] =
+    me.role === 'superadmin'
+      ? ['superadmin', 'reseller_admin', ...customerRoles]
+      : me.role === 'reseller_admin'
+        ? // A role change stays on the same side: the reseller's team or a customer's team
+          user
+          ? user.role === 'reseller_admin'
+            ? ['reseller_admin']
+            : customerRoles
+          : ['reseller_admin', ...customerRoles]
+        : customerRoles;
+  const picksTenant = (me.role === 'superadmin' || (me.role === 'reseller_admin' && !user)) && customerRoles.includes(form.role);
 
   return (
     <Modal
@@ -73,7 +94,19 @@ function UserForm({ user, tenants, defaultTenant, onClose }: { user: User | null
               ))}
             </Select>
           </Field>
-          {me.role === 'superadmin' && form.role !== 'superadmin' && (
+          {me.role === 'superadmin' && form.role === 'reseller_admin' && (
+            <Field label={t('resellers.reseller')} htmlFor="u-reseller">
+              <Select id="u-reseller" value={form.resellerId} onChange={(e) => setForm({ ...form, resellerId: e.target.value })}>
+                {!resellers.length && <option value="">{t('resellers.none')}</option>}
+                {resellers.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
+          {picksTenant && (
             <Field label={t('users.tenant')} htmlFor="u-tenant">
               <Select id="u-tenant" value={form.tenantId} onChange={(e) => setForm({ ...form, tenantId: e.target.value })}>
                 {!tenants.length && <option value="">{t('users.noTenants')}</option>}
@@ -144,12 +177,20 @@ export function UsersPage() {
   const [deleting, setDeleting] = useState<User | null>(null);
   const [resetting, setResetting] = useState<User | null>(null);
 
-  const tenants = useQuery({ queryKey: ['tenants'], queryFn: () => api.get<{ tenants: Tenant[] }>('/tenants'), enabled: me.role === 'superadmin' });
+  const manager = me.role === 'superadmin' || me.role === 'reseller_admin';
+  const tenants = useQuery({ queryKey: ['tenants'], queryFn: () => api.get<{ tenants: Tenant[] }>('/tenants'), enabled: manager });
+  const resellers = useQuery({ queryKey: ['resellers'], queryFn: () => api.get<{ resellers: { id: string; name: string }[] }>('/resellers'), enabled: me.role === 'superadmin' });
   const users = useQuery({
     queryKey: ['users', tenantFilter],
     queryFn: () => api.get<{ users: User[] }>(`/users${tenantFilter ? `?tenantId=${tenantFilter}` : ''}`),
   });
   const tenantName = (id: string | null) => tenants.data?.tenants.find((tn) => tn.id === id)?.name;
+  const companyOf = (u: User) =>
+    u.role === 'superadmin'
+      ? t('users.platform')
+      : u.resellerId
+        ? (resellers.data?.resellers.find((r) => r.id === u.resellerId)?.name ?? (me.role === 'reseller_admin' ? t('users.ownTeam') : ''))
+        : (tenantName(u.tenantId) ?? '');
 
   const invite = useMutation({
     mutationFn: (id: string) => api.post(`/users/${id}/invite`),
@@ -183,7 +224,7 @@ export function UsersPage() {
       <PageHeader
         eyebrow={t('users.eyebrow')}
         title={me.role === 'superadmin' ? t('users.titleAdmin') : t('users.titleTeam')}
-        description={me.role === 'superadmin' ? t('users.descriptionAdmin') : t('users.descriptionTeam')}
+        description={me.role === 'superadmin' ? t('users.descriptionAdmin') : me.role === 'reseller_admin' ? t('users.descriptionReseller') : t('users.descriptionTeam')}
         actions={
           <Button variant="accent" icon={<Plus className="size-4" />} onClick={() => setEditing('new')}>
             {t('users.invite')}
@@ -197,9 +238,9 @@ export function UsersPage() {
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted" />
             <Input placeholder={t('users.search')} className="pl-9" value={query} onChange={(e) => setQuery(e.target.value)} />
           </div>
-          {me.role === 'superadmin' && (
+          {manager && (
             <Select className="w-auto min-w-[200px]" value={tenantFilter} onChange={(e) => setParams(e.target.value ? { tenant: e.target.value } : {})}>
-              <option value="">{t('users.allTenants')}</option>
+              <option value="">{me.role === 'superadmin' ? t('users.allTenants') : t('users.ownTeam')}</option>
               {tenants.data?.tenants.map((tn) => (
                 <option key={tn.id} value={tn.id}>
                   {tn.name}
@@ -241,7 +282,7 @@ export function UsersPage() {
                 </div>
                 <div className="hidden min-w-[160px] text-sm md:block">
                   <p>{t(`roles.${u.role}`)}</p>
-                  <p className="text-xs text-muted">{u.role === 'superadmin' ? t('users.platform') : (tenantName(u.tenantId) ?? '')}</p>
+                  <p className="text-xs text-muted">{companyOf(u)}</p>
                 </div>
                 <div className="hidden w-32 text-xs text-muted lg:block">{u.lastLoginAt ? t('users.activeAgo', { when: timeAgo(u.lastLoginAt) }) : u.hasPassword || u.ssoLinked ? t('users.neverLoggedIn') : <Badge tone="warning">{t('users.invited')}</Badge>}</div>
                 <div className="ml-auto flex gap-1">
@@ -270,7 +311,7 @@ export function UsersPage() {
         )}
       </Card>
 
-      {editing && <UserForm user={editing === 'new' ? null : editing} tenants={tenants.data?.tenants ?? []} defaultTenant={tenantFilter || undefined} onClose={() => setEditing(null)} />}
+      {editing && <UserForm user={editing === 'new' ? null : editing} tenants={tenants.data?.tenants ?? []} resellers={resellers.data?.resellers ?? []} defaultTenant={tenantFilter || undefined} onClose={() => setEditing(null)} />}
       <Modal
         open={Boolean(resetting)}
         onClose={() => setResetting(null)}

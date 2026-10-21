@@ -3,6 +3,7 @@ import { db, schema } from '../db/index.js';
 import type { ApiKey, User } from '../db/schema.js';
 import { randomToken, sha256 } from '../lib/crypto.js';
 import { scopeList, type Audience } from '../api/catalog.js';
+import { resellerOfTenant } from './resellers.js';
 
 /** Keys look like cpk_<43 random characters>; the first 12 characters are kept to recognise a key. */
 const KEY_PREFIX = 'cpk_';
@@ -48,6 +49,7 @@ export async function authenticateKey(header: string | undefined): Promise<KeyAu
   if (key.revokedAt) return { ok: false, reason: 'revoked' };
   if (key.expiresAt && +key.expiresAt <= Date.now()) return { ok: false, reason: 'expired' };
   if (row.tenantStatus === 'suspended') return { ok: false, reason: 'suspended' };
+  if (key.tenantId && (await resellerOfTenant(key.tenantId))?.status === 'suspended') return { ok: false, reason: 'suspended' };
   // The key acts as an admin of its customer, or as a platform admin; its scopes decide what it may do
   const user: User = {
     id: key.id,
@@ -56,6 +58,7 @@ export async function authenticateKey(header: string | undefined): Promise<KeyAu
     passwordHash: null,
     role: key.tenantId ? 'tenant_admin' : 'superadmin',
     tenantId: key.tenantId,
+    resellerId: null,
     isActive: true,
     entraOid: null,
     // No saved language: API errors follow Accept-Language or X-Locale

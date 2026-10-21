@@ -73,7 +73,7 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - ✅ Ondertekende webhooks (HMAC-SHA256) voor gast geautoriseerd, betaling ontvangen, hostname live, console offline/online, facturen, klanten en back-ups, met herhaalpogingen, afleverlogboek, testknop en nieuw geheim
 - ✅ Rate limiting en een audit trail per API-sleutel (elk verzoek 90 dagen, plus de wijzigingen die hij deed)
 
-## Stap 7: Gastbeleving, marketing en groei (v0.7) 🚧
+## Stap 7: Gastbeleving, marketing en groei (v0.7) ✅
 
 - ✅ **SMS-verificatie** voor gasten met het eigen Twilio- of MessageBird-account van de klant, met limieten per gast, nummer en dag
 - ✅ **Google-, Apple- en Microsoft-login** voor gasten, elk met een eigen app van de klant, samen met Facebook in één tabblad
@@ -81,7 +81,7 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - ✅ **Live dashboard** per klant: gasten online per locatie en access point, vandaag per uur tegenover vorige week, manieren van inloggen en de laatste aanmeldingen (dataverbruik per access point volgt zodra de UniFi-API dat biedt)
 - ✅ **Enquête na het inloggen** met sterren en een opmerking, gevolgd door een knop voor een Google-review
 - ✅ **Advertenties of een splash-video** vóór of na toegang, met weergaven, klikken en planning
-- 📋 **White-label voor resellers**: partners die zelf klanten beheren onder hun eigen merk
+- ✅ **White-label voor resellers**: partners die zelf klanten beheren onder hun eigen merk, logo, kleur en beheeradres, met een klantlimiet en de RHIS-vermeldingen per reseller instelbaar
 - ✅ **Monitoring**: een e-mail en webhook als een console of access point langer offline is dan de klant instelt, en als hij weer werkt
 - ✅ **Tweestapsverificatie (2FA)** voor beheerders en klanten, met herstelcodes en beleid per platform en per klant
 - ✅ **Hotel/PMS-koppeling**: gasten loggen in met kamernummer en achternaam tot vertrek; verblijven handmatig, via CSV, API of gesynchroniseerd uit Apaleo en Mews

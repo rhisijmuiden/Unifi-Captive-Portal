@@ -5,21 +5,52 @@ import type { FieldMode, LoginMethod, PortalDesign } from '../shared/portalDesig
 
 const bytea = customType<{ data: Buffer }>({ dataType: () => 'bytea' });
 
-export const userRole = pgEnum('user_role', ['superadmin', 'tenant_admin', 'tenant_user']);
+export const userRole = pgEnum('user_role', ['superadmin', 'tenant_admin', 'tenant_user', 'reseller_admin']);
 export const tenantStatus = pgEnum('tenant_status', ['active', 'suspended']);
 export const tokenPurpose = pgEnum('token_purpose', ['invite', 'password_reset']);
 
-export const tenants = pgTable('tenants', {
+// White-label partners who manage their own customers under their own brand
+export const resellers = pgTable('resellers', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
   contactEmail: text('contact_email'),
   status: tenantStatus('status').notNull().default('active'),
+  // null = no limit
+  maxTenants: integer('max_tenants'),
+  // Brand shown in the admin panel of the reseller and its customers
+  brandName: text('brand_name').notNull(),
+  logoUrl: text('logo_url'),
+  logoDarkUrl: text('logo_dark_url'),
+  accentColor: text('accent_color'),
+  websiteUrl: text('website_url'),
+  supportEmail: text('support_email'),
+  // The reseller's own address for the admin panel, served by Caddy with automatic SSL
+  adminHostname: text('admin_hostname').unique(),
+  // Set by the platform admin per reseller: which RHIS mentions stay visible
+  showPoweredBy: boolean('show_powered_by').notNull().default(true),
+  showDesignedBy: boolean('show_designed_by').notNull().default(false),
   notes: text('notes'),
-  // Set while the guest portal is paused for unpaid invoices; the customer can still sign in and pay
-  billingSuspendedAt: timestamp('billing_suspended_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const tenants = pgTable(
+  'tenants',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    // Customers of a reseller; null = a direct customer of the platform
+    resellerId: uuid('reseller_id').references(() => resellers.id, { onDelete: 'restrict' }),
+    name: text('name').notNull(),
+    slug: text('slug').notNull().unique(),
+    contactEmail: text('contact_email'),
+    status: tenantStatus('status').notNull().default('active'),
+    notes: text('notes'),
+    // Set while the guest portal is paused for unpaid invoices; the customer can still sign in and pay
+    billingSuspendedAt: timestamp('billing_suspended_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('tenants_reseller_idx').on(t.resellerId)],
+);
 
 export const users = pgTable(
   'users',
@@ -30,6 +61,8 @@ export const users = pgTable(
     passwordHash: text('password_hash'),
     role: userRole('role').notNull(),
     tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }),
+    // Reseller admins belong to a reseller instead of a customer
+    resellerId: uuid('reseller_id').references(() => resellers.id, { onDelete: 'cascade' }),
     isActive: boolean('is_active').notNull().default(true),
     entraOid: text('entra_oid').unique(),
     // Preferred language for the interface and e-mails (null = follow the browser)
@@ -46,7 +79,7 @@ export const users = pgTable(
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('users_tenant_idx').on(t.tenantId)],
+  (t) => [index('users_tenant_idx').on(t.tenantId), index('users_reseller_idx').on(t.resellerId)],
 );
 
 export const sessions = pgTable('sessions', {
@@ -97,6 +130,7 @@ export const auditLog = pgTable(
 
 export type User = typeof users.$inferSelect;
 export type Tenant = typeof tenants.$inferSelect;
+export type Reseller = typeof resellers.$inferSelect;
 
 // ── UniFi consoles and guest portal ──────────────────────────────────────────
 

@@ -6,6 +6,8 @@ import type { NoId } from '../shared/portalDesign.js';
 import { createMailBlock, defaultMailTheme, mailKinds, renderMail, type MailBlock, type MailContent, type MailKind } from '../shared/mailDesign.js';
 import { sendMail, type MailAttachment } from './mailer.js';
 import { adminBaseUrl } from './settings.js';
+import { designedByFor, resellerOfUser } from './resellers.js';
+import type { User } from '../db/schema.js';
 
 /**
  * E-mail templates. Every e-mail has a built-in default (from the translations), which
@@ -247,11 +249,19 @@ export async function saveTemplate(kind: MailKind, locale: Locale, tenantId: str
 export const deleteTemplate = (kind: MailKind, locale: Locale, tenantId: string | null) =>
   db.delete(schema.mailTemplates).where(and(eq(schema.mailTemplates.kind, kind), eq(schema.mailTemplates.locale, locale), scopeWhere(tenantId)));
 
-export type MailData = { vars: Record<string, string>; raw?: Record<string, string>; dataText?: string; baseUrl?: string };
+export type MailData = {
+  vars: Record<string, string>;
+  raw?: Record<string, string>;
+  dataText?: string;
+  baseUrl?: string;
+  /** Recipient of a platform e-mail, so the e-mail follows the brand of their reseller */
+  brandOf?: Pick<User, 'resellerId' | 'tenantId'>;
+};
 
 export async function renderTemplate(kind: MailKind, locale: Locale, tenantId: string | null, data: MailData, override?: MailContent) {
   const content = override ?? (await effectiveTemplate(kind, locale, tenantId)).content;
-  return renderMail(content, { ...data, baseUrl: data.baseUrl ?? (await adminBaseUrl()), locale });
+  const designedBy = data.brandOf ? ((await resellerOfUser(data.brandOf))?.showDesignedBy ?? true) : await designedByFor(tenantId);
+  return renderMail(content, { ...data, baseUrl: data.baseUrl ?? (await adminBaseUrl()), locale, designedBy });
 }
 
 export async function sendTemplate(to: string, kind: MailKind, locale: Locale, tenantId: string | null, data: MailData, attachments?: MailAttachment[]) {

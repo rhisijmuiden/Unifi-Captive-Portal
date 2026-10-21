@@ -5,6 +5,8 @@
 :root {
   --nacht: #14213d;
   --koraal: #ff6b57;
+  /* Text on the accent colour; a reseller's own colour may need white instead */
+  --on-koraal: #14213d;
   --lucht: #9cc3ff;
   --wolk: #f6f7fb;
   --surface: #f6f7fb;
@@ -55,6 +57,7 @@
   --font-sans: 'Archivo Variable', system-ui, sans-serif;
   --color-nacht: var(--nacht);
   --color-koraal: var(--koraal);
+  --color-on-koraal: var(--on-koraal);
   --color-lucht: var(--lucht);
   --color-wolk: var(--wolk);
   --color-surface: var(--surface);

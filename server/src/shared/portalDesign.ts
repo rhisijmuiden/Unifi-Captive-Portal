@@ -81,6 +81,8 @@ export type RenderContext = {
   languages: { code: string; href: string }[];
   /** The customer's privacy page (erase requests), linked in the footer. */
   privacyHref?: string;
+  /** "Designed by RHIS" in the footer; a reseller's customers can be set to leave it out. */
+  designedBy?: boolean;
 };
 
 export const MEDIA_PATH = /^\/portal\/media\/[0-9a-f-]{36}$/;
@@ -436,7 +438,15 @@ export function renderPortalBody(design: PortalDesign, ctx: RenderContext, messa
       ]
     : design.blocks.map((b) => wrap(renderBlock(b, ctx)));
   const layout = pageClass(design.theme);
-  return `<div class="cp-page ${layout}" style="${esc(themeStyle(design.theme))}"><main class="cp-main">${blocks.join('')}${languageNav(ctx)}</main><footer class="cp-foot">${ctx.privacyHref ? `<a href="${esc(ctx.privacyHref)}">${esc(guestStrings[ctx.locale].privacy)}</a> · ` : ''}Designed by <a href="https://rhis.nl" rel="noopener">RHIS</a></footer></div>`;
+  return `<div class="cp-page ${layout}" style="${esc(themeStyle(design.theme))}"><main class="cp-main">${blocks.join('')}${languageNav(ctx)}</main>${footer(ctx)}</div>`;
+}
+
+function footer(ctx: RenderContext) {
+  const parts = [
+    ctx.privacyHref ? `<a href="${esc(ctx.privacyHref)}">${esc(guestStrings[ctx.locale].privacy)}</a>` : '',
+    ctx.designedBy === false ? '' : 'Designed by <a href="https://rhis.nl" rel="noopener">RHIS</a>',
+  ].filter(Boolean);
+  return parts.length ? `<footer class="cp-foot">${parts.join(' · ')}</footer>` : '';
 }
 
 export function renderPortalDocument(

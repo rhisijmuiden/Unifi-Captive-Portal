@@ -28,6 +28,8 @@ import { MarketingPage } from './pages/Marketing';
 import { FeedbackPage } from './pages/Feedback';
 import { AdsPage } from './pages/Ads';
 import { TenantsPage } from './pages/Tenants';
+import { BrandingPage, ResellersPage } from './pages/Resellers';
+import { useApplyBrand } from './lib/brand';
 import { UsersPage } from './pages/Users';
 import './i18n';
 import './styles.css';
@@ -62,6 +64,12 @@ function RequireAuth({ children, roles }: { children: ReactNode; roles?: string[
 // Portal pages belong to a customer's own environment
 const TENANT = ['tenant_admin', 'tenant_user'];
 
+/** Accent colour and tab title of a reseller's brand. */
+function BrandStyle() {
+  useApplyBrand();
+  return null;
+}
+
 const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/setup', element: <SetupPage /> },
@@ -78,10 +86,12 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <DashboardPage /> },
-      { path: 'tenants', element: <RequireAuth roles={['superadmin']}><TenantsPage /></RequireAuth> },
+      { path: 'tenants', element: <RequireAuth roles={['superadmin', 'reseller_admin']}><TenantsPage /></RequireAuth> },
+      { path: 'resellers', element: <RequireAuth roles={['superadmin']}><ResellersPage /></RequireAuth> },
+      { path: 'branding', element: <RequireAuth roles={['reseller_admin']}><BrandingPage /></RequireAuth> },
       { path: 'billing', element: <RequireAuth roles={['superadmin']}><BillingPage /></RequireAuth> },
       { path: 'invoices', element: <RequireAuth roles={['tenant_admin']}><InvoicesPage /></RequireAuth> },
-      { path: 'users', element: <RequireAuth roles={['superadmin', 'tenant_admin']}><UsersPage /></RequireAuth> },
+      { path: 'users', element: <RequireAuth roles={['superadmin', 'tenant_admin', 'reseller_admin']}><UsersPage /></RequireAuth> },
       { path: 'settings/smtp', element: <RequireAuth roles={['superadmin']}><SmtpSettingsPage /></RequireAuth> },
       { path: 'settings/security', element: <RequireAuth roles={['superadmin']}><SecuritySettingsPage /></RequireAuth> },
       { path: 'live', element: <RequireAuth roles={TENANT}><LivePage /></RequireAuth> },
@@ -113,6 +123,7 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
+      <BrandStyle />
       <RouterProvider router={router} />
       <Toaster position="top-right" richColors closeButton />
     </QueryClientProvider>

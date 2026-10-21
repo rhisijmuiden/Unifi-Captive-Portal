@@ -58,6 +58,7 @@ import { portalTemplates } from '@shared/portalTemplates';
 import { ColorField, ImageUpload, Segmented, Slider, useConfirm } from '../components/controls';
 import { Button, Card, Field, Input, Modal, PageHeader, Select, Spinner, Textarea, cx } from '../components/ui';
 import i18n, { languages } from '../i18n';
+import { useBrand } from '../lib/brand';
 import { api } from '../lib/api';
 import { useTenantScope } from '../lib/tenant';
 
@@ -153,7 +154,7 @@ function Canvas({ design, ctx, selected, onSelect, device }: { design: PortalDes
           </nav>
         )}
       </main>
-      <footer className="cp-foot">Designed by RHIS</footer>
+      {ctx.designedBy !== false && <footer className="cp-foot">Designed by RHIS</footer>}
     </div>
   );
   if (device === 'desktop') {
@@ -359,6 +360,7 @@ export function PortalEditorPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const brand = useBrand();
   const ctx: RenderContext = useMemo(() => {
     const auth = query.data?.auth;
     const pkgs = (packages.data?.packages ?? []).filter((p) => p.active);
@@ -376,8 +378,9 @@ export function PortalEditorPage() {
         packages: pkgs.length ? pkgs.map((p) => ({ id: p.id, name: p.name[lang] || p.name.en || Object.values(p.name)[0] || '—', price: money(p.priceCents), minutes: p.durationMinutes })) : [{ id: 'x', name: 'Day pass', price: money(495), minutes: 1440 }],
         action: '#',
       },
+      designedBy: brand ? brand.showDesignedBy : true,
     };
-  }, [query.data, packages.data, lang, portalLangs]);
+  }, [query.data, packages.data, lang, portalLangs, brand]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 

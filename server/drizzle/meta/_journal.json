@@ -71,6 +71,13 @@
       "when": 1792562399323,
       "tag": "0009_step7_marketing_survey_ads",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792563973918,
+      "tag": "0010_step7_resellers",
+      "breakpoints": true
     }
   ]
 }

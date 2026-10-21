@@ -1,5 +1,5 @@
 import { and, eq, gt, isNull } from 'drizzle-orm';
-import { adminBaseUrl } from './settings.js';
+import { baseUrlForUser } from './resellers.js';
 import { db, schema } from '../db/index.js';
 import type { User } from '../db/schema.js';
 import { randomToken, sha256 } from '../lib/crypto.js';
@@ -28,14 +28,14 @@ export async function consumeToken(token: string) {
 
 export async function sendInvite(user: User) {
   const token = await issueToken(user.id, 'invite');
-  const url = `${await adminBaseUrl()}/reset-password?token=${token}&invite=1`;
+  const url = `${await baseUrlForUser(user)}/reset-password?token=${token}&invite=1`;
   const locale = normalizeLocale(user.locale) ?? DEFAULT_LOCALE;
-  await sendTemplate(user.email, 'invite', locale, null, { vars: { name: user.name, email: user.email, actionUrl: url } });
+  await sendTemplate(user.email, 'invite', locale, null, { vars: { name: user.name, email: user.email, actionUrl: url }, brandOf: user });
 }
 
 export async function sendPasswordReset(user: User) {
   const token = await issueToken(user.id, 'password_reset');
-  const url = `${await adminBaseUrl()}/reset-password?token=${token}`;
+  const url = `${await baseUrlForUser(user)}/reset-password?token=${token}`;
   const locale = normalizeLocale(user.locale) ?? DEFAULT_LOCALE;
-  await sendTemplate(user.email, 'passwordReset', locale, null, { vars: { name: user.name, email: user.email, actionUrl: url } });
+  await sendTemplate(user.email, 'passwordReset', locale, null, { vars: { name: user.name, email: user.email, actionUrl: url }, brandOf: user });
 }

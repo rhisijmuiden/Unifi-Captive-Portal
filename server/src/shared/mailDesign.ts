@@ -147,6 +147,8 @@ export type MailRenderInput = {
   dataText?: string;
   baseUrl: string;
   locale: string;
+  /** "Designed by RHIS" under the e-mail; a reseller can be set to leave it out */
+  designedBy?: boolean;
 };
 
 const FOOTER = (muted: string, accent: string) =>
@@ -156,8 +158,8 @@ export function renderMail(content: MailContent, input: MailRenderInput) {
   const subject = fillPlain(content.subject, input.vars).replace(/[\r\n]+/g, ' ').trim();
   if (content.mode === 'html') {
     let html = fillHtml(content.html, input.vars, input.raw);
-    // "Designed by RHIS" is part of every e-mail
-    if (!/rhis\.nl/i.test(html)) {
+    // "Designed by RHIS" is part of every e-mail, unless a reseller's customers are set to leave it out
+    if (input.designedBy !== false && !/rhis\.nl/i.test(html)) {
       const footer = FOOTER('#4F5B73', '#B8392A');
       html = /<\/body>/i.test(html) ? html.replace(/<\/body>/i, `${footer}</body>`) : `${html}${footer}`;
     }
@@ -215,8 +217,8 @@ export function renderMail(content: MailContent, input: MailRenderInput) {
   const html = `<!doctype html><html lang="${esc(input.locale)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(subject)}</title></head>
 <body style="margin:0;padding:0;background:${c.bg};font-family:${fonts[th.font] ?? fonts.sans};color:${c.text}">
 <div style="max-width:560px;margin:0 auto;padding:32px 16px"><div style="background:${c.card};border:1px solid #DCE1EB;border-radius:${radius}px;padding:32px">
-${logoHtml}${parts.join('')}</div>${FOOTER(c.muted, c.accent)}</div></body></html>`;
-  return { subject, html, text: [...lines, 'Designed by RHIS - https://rhis.nl'].join('\n').replace(/\n{3,}/g, '\n\n').trim() };
+${logoHtml}${parts.join('')}</div>${input.designedBy === false ? '' : FOOTER(c.muted, c.accent)}</div></body></html>`;
+  return { subject, html, text: [...lines, ...(input.designedBy === false ? [] : ['Designed by RHIS - https://rhis.nl'])].join('\n').replace(/\n{3,}/g, '\n\n').trim() };
 }
 
 export function htmlToText(html: string) {

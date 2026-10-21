@@ -34,7 +34,7 @@ export const api = {
   del: <T>(path: string) => request<T>('DELETE', path),
 };
 
-export type Role = 'superadmin' | 'tenant_admin' | 'tenant_user';
+export type Role = 'superadmin' | 'tenant_admin' | 'tenant_user' | 'reseller_admin';
 
 export type User = {
   id: string;
@@ -42,6 +42,7 @@ export type User = {
   name: string;
   role: Role;
   tenantId: string | null;
+  resellerId: string | null;
   isActive: boolean;
   hasPassword: boolean;
   ssoLinked: boolean;
@@ -60,6 +61,8 @@ export type Tenant = {
   notes: string | null;
   createdAt: string;
   userCount?: number;
+  resellerId: string | null;
+  resellerName?: string | null;
 };
 
 export type AuthState = {
@@ -72,4 +75,17 @@ export type AuthState = {
   sso: { entraEnabled: boolean; buttonLabel: string; allowLocalLogin: boolean };
   passwordResetAvailable: boolean;
   version: string;
+  /** A reseller's own brand; null = the RHIS brand */
+  brand: Brand | null;
+};
+
+export type Brand = {
+  name: string;
+  logoUrl: string | null;
+  logoDarkUrl: string | null;
+  accentColor: string | null;
+  websiteUrl: string | null;
+  supportEmail: string | null;
+  showPoweredBy: boolean;
+  showDesignedBy: boolean;
 };

@@ -50,6 +50,8 @@ export async function editorRoutes(app: FastifyInstance) {
     let tenantId: string | null = null;
     if (user.role === 'superadmin') tenantId = null;
     else if (user.role === 'tenant_admin') tenantId = user.tenantId;
+    // Reseller logos are not tied to one customer
+    else if (user.role === 'reseller_admin') tenantId = null;
     else throw forbidden();
     const { dataUrl } = z.object({ dataUrl: z.string().max(3 * 1024 * 1024) }).parse(req.body);
     const m = /^data:([\w/+.-]+);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl);

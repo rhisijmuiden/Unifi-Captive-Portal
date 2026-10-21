@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Activity, AlertTriangle, ArrowRight, Building2, CheckCircle2, Circle, Globe, KeyRound, Mail, Router, Server, SlidersHorizontal, UserCheck, Users } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowRight, Building2, CheckCircle2, Circle, Globe, KeyRound, Mail, Palette, Router, Server, SlidersHorizontal, UserCheck, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -41,6 +41,9 @@ export function DashboardPage() {
   const { data: auth } = useAuth();
   const user = auth!.user!;
   const isAdmin = user.role === 'superadmin';
+  // Resellers see their own customers' figures, like a small platform admin
+  const isReseller = user.role === 'reseller_admin';
+  const manages = isAdmin || isReseller;
   const { data, isLoading } = useQuery({ queryKey: ['dashboard'], queryFn: () => api.get<Dashboard>('/dashboard') });
   const smtp = useQuery({ queryKey: ['settings', 'smtp'], queryFn: () => api.get<{ enabled: boolean }>('/settings/smtp'), enabled: isAdmin });
   const sso = useQuery({ queryKey: ['settings', 'sso'], queryFn: () => api.get<{ entraEnabled: boolean }>('/settings/sso'), enabled: isAdmin });
@@ -56,7 +59,13 @@ export function DashboardPage() {
         { done: (data?.tenants ?? 0) > 0, label: t('dashboard.stepTenant'), hint: t('dashboard.stepTenantHint'), to: '/tenants', icon: Building2 },
         { done: (data?.users ?? 0) > 1, label: t('dashboard.stepInvite'), hint: t('dashboard.stepInviteHint'), to: '/users', icon: Users },
       ]
-    : [
+    : isReseller
+      ? [
+          { done: Boolean(auth?.brand?.logoUrl), label: t('dashboard.stepBrand'), hint: t('dashboard.stepBrandHint'), to: '/branding', icon: Palette },
+          { done: (data?.tenants ?? 0) > 0, label: t('dashboard.stepTenant'), hint: t('dashboard.stepTenantHint'), to: '/tenants', icon: Building2 },
+          { done: (data?.users ?? 0) > 1, label: t('dashboard.stepInvite'), hint: t('dashboard.stepInviteHint'), to: '/users', icon: Users },
+        ]
+      : [
         { done: (data?.consoles ?? 0) > 0, label: t('dashboard.stepConsoleOwn'), hint: t('dashboard.stepConsoleHint'), to: '/consoles', icon: Router },
         { done: Boolean(data?.portalConfigured), label: t('dashboard.stepPortal'), hint: t('dashboard.stepPortalHint'), to: '/portal-settings', icon: SlidersHorizontal },
         { done: (data?.activeHostnames ?? 0) > 0, label: t('dashboard.stepDomain'), hint: t('dashboard.stepDomainHint'), to: '/hostnames', icon: Globe },
@@ -65,7 +74,7 @@ export function DashboardPage() {
 
   return (
     <>
-      <PageHeader eyebrow={t('dashboard.eyebrow')} title={t(greetingKey, { name: user.name.split(' ')[0] })} description={isAdmin ? t('dashboard.adminIntro') : t('dashboard.tenantIntro')} />
+      <PageHeader eyebrow={t('dashboard.eyebrow')} title={t(greetingKey, { name: user.name.split(' ')[0] })} description={isAdmin ? t('dashboard.adminIntro') : isReseller ? t('dashboard.resellerIntro') : t('dashboard.tenantIntro')} />
 
       {data?.billingSuspended && (
         <Link to={user.role === 'tenant_admin' ? '/invoices' : '#'} className="mb-6 flex gap-3 rounded-2xl border border-offline/30 bg-offline/10 p-4 text-sm">
@@ -78,10 +87,10 @@ export function DashboardPage() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {isAdmin && <Stat icon={<Building2 className="size-5" />} label={t('dashboard.tenants')} value={isLoading ? <Spinner /> : data?.tenants} to="/tenants" />}
-        <Stat icon={<Users className="size-5" />} label={isAdmin ? t('dashboard.users') : t('dashboard.teamMembers')} value={isLoading ? <Spinner /> : data?.users} to={user.role !== 'tenant_user' ? '/users' : undefined} />
-        <Stat icon={<UserCheck className="size-5" />} label={t('dashboard.guestsToday')} value={isLoading ? <Spinner /> : data?.guestsToday} to={isAdmin ? undefined : '/guests'} />
-        <Stat icon={<Router className="size-5" />} label={t('dashboard.consoles')} value={isLoading ? <Spinner /> : data?.consoles} to={isAdmin ? undefined : '/consoles'} />
+        {manages && <Stat icon={<Building2 className="size-5" />} label={t('dashboard.tenants')} value={isLoading ? <Spinner /> : data?.tenants} to="/tenants" />}
+        <Stat icon={<Users className="size-5" />} label={manages ? t('dashboard.users') : t('dashboard.teamMembers')} value={isLoading ? <Spinner /> : data?.users} to={user.role !== 'tenant_user' ? '/users' : undefined} />
+        <Stat icon={<UserCheck className="size-5" />} label={t('dashboard.guestsToday')} value={isLoading ? <Spinner /> : data?.guestsToday} to={manages ? undefined : '/guests'} />
+        <Stat icon={<Router className="size-5" />} label={t('dashboard.consoles')} value={isLoading ? <Spinner /> : data?.consoles} to={manages ? undefined : '/consoles'} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
