@@ -29,6 +29,8 @@ import { settingsRoutes } from './routes/settings.js';
 import { socialRoutes } from './routes/social.js';
 import { smsRoutes } from './routes/sms.js';
 import { hotelRoutes } from './routes/hotel.js';
+import { marketingRoutes } from './routes/marketing.js';
+import { adRoutes } from './routes/ads.js';
 import { systemRoutes } from './routes/system.js';
 import { tenantRoutes } from './routes/tenants.js';
 import { userRoutes } from './routes/users.js';
@@ -132,6 +134,8 @@ export async function buildApp() {
   await app.register(liveRoutes);
   await app.register(smsRoutes);
   await app.register(hotelRoutes);
+  await app.register(marketingRoutes);
+  await app.register(adRoutes);
   await app.register(guestPortalRoutes);
   await app.register(apiRoutes);
 

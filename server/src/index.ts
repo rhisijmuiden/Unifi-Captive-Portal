@@ -9,6 +9,7 @@ import { pollInvoicePayments, runBilling } from './services/billing.js';
 import { syncAllConsoles } from './services/consoles.js';
 import { purgeOldStays, syncAllHotels } from './services/hotel.js';
 import { purgeOldCodes } from './services/sms.js';
+import { runRetention, syncAllContacts } from './services/marketing.js';
 import { checkHostnames } from './services/hostnames.js';
 import { runMonitoringAlerts } from './services/monitoring.js';
 import { runMonthlyReports } from './services/notifications.js';
@@ -29,6 +30,9 @@ const jobs = [
   // Hotel stays from a connected PMS (Apaleo, Mews); a guest whose room is not found triggers an extra sync
   every(10 * 60_000, syncAllHotels),
   every(24 * 3600_000, () => Promise.all([purgeOldCodes(), purgeOldStays()])),
+  // Newsletter contacts to Mailchimp/HubSpot, and removing guest data past the customer's retention period
+  every(15 * 60_000, syncAllContacts),
+  every(6 * 3600_000, runRetention),
   // Hostnames waiting for DNS or a certificate are retried; active ones are re-verified
   every(5 * 60_000, () => checkHostnames(['pending', 'dns_ok', 'error'])),
   every(6 * 3600_000, () => checkHostnames(['active'])),

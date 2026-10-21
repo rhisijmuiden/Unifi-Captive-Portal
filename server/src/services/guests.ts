@@ -5,6 +5,7 @@ import type { PortalDesign } from '../shared/portalDesign.js';
 import { defaultDesign } from '../shared/portalTemplates.js';
 import { randomToken } from '../lib/crypto.js';
 import { authorizeGuest, findClient, normalizeMac, targetFromConsole, UnifiError, type GuestLimits } from './unifi.js';
+import { recordContact } from './marketing.js';
 import { emit } from './webhooks.js';
 
 /** A guest page that was not used within this time must be reopened through the Wi-Fi redirect. */
@@ -139,6 +140,8 @@ export async function authorizeSession(s: GuestSession, opts: AuthorizeOptions =
       authorizedAt: updated.authorizedAt,
       accessUntil: updated.accessUntil,
     });
+    // The contact list for marketing; never blocks the guest
+    void recordContact(updated).catch((err) => console.warn(`recording contact failed: ${(err as Error).message}`));
     return { ok: true as const, session: updated, settings: p };
   } catch (err) {
     const message = err instanceof UnifiError ? err.message : String(err);

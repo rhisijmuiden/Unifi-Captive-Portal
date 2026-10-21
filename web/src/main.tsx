@@ -24,6 +24,9 @@ import { VoucherPrintPage, VouchersPage } from './pages/Vouchers';
 import { HostingSettingsPage, SecuritySettingsPage, SmtpSettingsPage, SsoSettingsPage } from './pages/Settings';
 import { LivePage } from './pages/Live';
 import { HotelPage } from './pages/Hotel';
+import { MarketingPage } from './pages/Marketing';
+import { FeedbackPage } from './pages/Feedback';
+import { AdsPage } from './pages/Ads';
 import { TenantsPage } from './pages/Tenants';
 import { UsersPage } from './pages/Users';
 import './i18n';
@@ -83,6 +86,9 @@ const router = createBrowserRouter([
       { path: 'settings/security', element: <RequireAuth roles={['superadmin']}><SecuritySettingsPage /></RequireAuth> },
       { path: 'live', element: <RequireAuth roles={TENANT}><LivePage /></RequireAuth> },
       { path: 'hotel', element: <RequireAuth roles={TENANT}><HotelPage /></RequireAuth> },
+      { path: 'marketing', element: <RequireAuth roles={TENANT}><MarketingPage /></RequireAuth> },
+      { path: 'feedback', element: <RequireAuth roles={TENANT}><FeedbackPage /></RequireAuth> },
+      { path: 'ads', element: <RequireAuth roles={TENANT}><AdsPage /></RequireAuth> },
       { path: 'settings/sso', element: <RequireAuth roles={['superadmin']}><SsoSettingsPage /></RequireAuth> },
       { path: 'api', element: <RequireAuth roles={['superadmin', 'tenant_admin']}><ApiPage /></RequireAuth> },
       { path: 'backups', element: <RequireAuth roles={['superadmin']}><BackupsPage /></RequireAuth> },

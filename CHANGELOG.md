@@ -4,6 +4,19 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.7.0-beta.3] - 2026-10-21 (test channel)
+
+Step 7, part 3: marketing, GDPR, feedback and ads. Three new pages under **Marketing** in the customer's environment.
+
+- **Newsletter & GDPR**: every guest who signs in with an e-mail address becomes a contact (name, visits, last visit); the opt-in box now also appears on the **Account** tab for Google, Apple, Microsoft and Facebook. Export to **Mailchimp** (audience, optional double opt-in, tag `wifi`) or **HubSpot** (private app), automatically right away and every 15 minutes or with **Send now**, with a status per contact and a **Test connection** button. **Download CSV** of the opt-ins or all contacts.
+- **Retention**: name, e-mail and phone of guests without opt-in can be erased automatically after 30 days to 2 years; statistics stay anonymous.
+- **Deletion requests**: a **Privacy** link on every guest page. The guest gets a confirmation e-mail (new template *Erase request (guests)*, valid 48 hours) and after confirming everything about the address is erased, also at Mailchimp or HubSpot. Admins can erase an address themselves; all requests are listed, without keeping the address.
+- **Feedback**: an optional question with 1 to 5 stars and a comment on the *You are connected* page, then a **Google review** button for every guest. Average, distribution per star and comments for 30, 90 or 365 days.
+- **Ads and splash video**: images (2 MB) or MP4/WebM videos (25 MB) before sign-in (once per visit, with a **Continue** button after a set number of seconds, no JavaScript needed) or after sign-in (with a counted click-through link). Optional period, pause, a random pick between active ads, and views, clicks and click rate per day. Videos are streamed with range requests.
+- The *You are connected* page only says it will redirect when it really does.
+- API: new customer scope `marketing` for all of the above.
+- New guide: [Newsletter, GDPR, feedback and ads](docs/en/marketing-feedback-ads.md).
+
 ## [0.7.0-beta.2] - 2026-10-21 (test channel)
 
 Step 7, part 2: more ways for guests to sign in.

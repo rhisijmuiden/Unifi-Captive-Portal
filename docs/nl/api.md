@@ -6,7 +6,7 @@ Alles wat je in de webinterface kunt, kan ook via de REST API. Zo koppel je ande
 
 | | Wie | Wat |
 | --- | --- | --- |
-| **Klant-API** | klantbeheerders, onder **API** in hun eigen omgeving | consoles, hostnames, portalinstellingen en ontwerp, gasten, vouchers, hotelverblijven, instellingen voor sms en sociale login, betalingen en pakketten, meldingen en gastmails, rapporten, teamleden en hun eigen facturen |
+| **Klant-API** | klantbeheerders, onder **API** in hun eigen omgeving | consoles, hostnames, portalinstellingen en ontwerp, gasten, vouchers, hotelverblijven, nieuwsbriefcontacten en verwijderverzoeken, enquête en advertenties, instellingen voor sms en sociale login, betalingen en pakketten, meldingen en gastmails, rapporten, teamleden en hun eigen facturen |
 | **Platform-API** | de platformbeheerder, onder **Systeem → API** | klanten (aanmaken, wijzigen, opschorten, verwijderen, met een eerste beheerder), gebruikers, serverinstellingen (SMTP, SSO, hosting, facturatie-instellingen), e-mailtemplates van het platform, facturatie, back-ups en updates |
 
 De twee overlappen nooit: een klantsleutel ziet geen andere klanten of serverinstellingen, en een platformsleutel kan niet bij de portals van klanten. Dat volgt dezelfde verdeling als de webinterface.

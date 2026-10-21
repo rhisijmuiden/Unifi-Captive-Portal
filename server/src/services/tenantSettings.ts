@@ -76,6 +76,37 @@ export const hotelSettingsSchema = z.object({
   mewsAccessToken: z.string().default(''),
 });
 
+// Newsletter: guests who opted in are sent to the customer's Mailchimp audience or HubSpot
+export const marketingSettingsSchema = z.object({
+  provider: z.enum(['none', 'mailchimp', 'hubspot']).default('none'),
+  // Mailchimp API key ends in the data centre, e.g. "…-us21"
+  mailchimpApiKey: z.string().default(''),
+  mailchimpAudienceId: z.string().trim().max(40).default(''),
+  // Mailchimp sends its own confirmation e-mail first (double opt-in)
+  mailchimpDoubleOptIn: z.boolean().default(false),
+  // HubSpot private app with the crm.objects.contacts.write scope
+  hubspotToken: z.string().default(''),
+  autoSync: z.boolean().default(true),
+  // Personal data of guests without opt-in is removed after this many days (0 = keep)
+  retentionDays: z.coerce.number().int().min(0).max(3650).default(0),
+});
+
+const texts = z.record(z.string().regex(/^[a-z]{2}$/), z.string().max(300));
+
+// A short question on the "connected" page, optionally followed by a Google review link
+export const surveySettingsSchema = z.object({
+  enabled: z.boolean().default(false),
+  question: texts.default({}),
+  allowComment: z.boolean().default(true),
+  googleReviewUrl: z
+    .string()
+    .trim()
+    .regex(/^(https:\/\/\S+)?$/, 'errors.urlFormat')
+    .default(''),
+  // Show the review button to every guest after answering (Google does not allow asking only happy guests)
+  reviewButton: z.boolean().default(true),
+});
+
 // Two-factor sign-in for the customer's own team, on top of what the platform requires
 export const securitySettingsSchema = z.object({
   require2fa: z.enum(['off', 'admins', 'all']).default('off'),
@@ -88,6 +119,8 @@ const definitions = {
   sms: { schema: smsSettingsSchema, secrets: ['twilioAuthToken', 'messagebirdApiKey'] },
   hotel: { schema: hotelSettingsSchema, secrets: ['apaleoClientSecret', 'mewsClientToken', 'mewsAccessToken'] },
   security: { schema: securitySettingsSchema, secrets: [] },
+  marketing: { schema: marketingSettingsSchema, secrets: ['mailchimpApiKey', 'hubspotToken'] },
+  survey: { schema: surveySettingsSchema, secrets: [] },
 } as const;
 
 type Definitions = typeof definitions;

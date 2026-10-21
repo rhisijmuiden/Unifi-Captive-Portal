@@ -47,6 +47,7 @@ export type MailKind =
   | 'deviceOffline'
   | 'deviceOnline'
   | 'guestWelcome'
+  | 'guestPrivacy'
   | 'paymentReceipt';
 
 /** Which templates exist, who may change them and which placeholders they offer. */
@@ -69,6 +70,7 @@ export const mailKinds: Record<MailKind, { tenant: boolean; vars: string[]; data
   deviceOffline: { tenant: false, vars: ['tenantName', 'deviceName', 'model', 'siteName', 'since', 'actionUrl'], data: false },
   deviceOnline: { tenant: false, vars: ['tenantName', 'deviceName', 'model', 'siteName', 'since', 'downtime', 'actionUrl'], data: false },
   guestWelcome: { tenant: true, vars: ['name', 'email', 'networkName', 'validUntil'], data: false },
+  guestPrivacy: { tenant: true, vars: ['email', 'networkName', 'actionUrl'], data: false },
   paymentReceipt: { tenant: true, vars: ['name', 'email', 'networkName', 'package', 'amount', 'reference', 'date', 'validUntil'], data: true },
 };
 export const mailKindList = Object.keys(mailKinds) as MailKind[];

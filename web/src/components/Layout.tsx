@@ -4,6 +4,7 @@ import {
   BedDouble,
   BellRing,
   Building2,
+  Clapperboard,
   Code,
   CreditCard,
   DatabaseBackup,
@@ -14,6 +15,7 @@ import {
   LogOut,
   Mail,
   MailOpen,
+  Megaphone,
   Menu,
   Moon,
   Palette,
@@ -23,6 +25,7 @@ import {
   Server,
   ShieldCheck,
   SlidersHorizontal,
+  Star,
   Ticket,
   Sun,
   UserCheck,
@@ -68,6 +71,14 @@ function navFor(user: User, t: TFunction): Section[] {
       ...(user.role === 'tenant_admin' ? [{ to: '/mail-templates', label: t('nav.guestMails'), icon: MailOpen }] : []),
     ],
   };
+  const marketing: Section = {
+    title: t('nav.marketing'),
+    items: [
+      { to: '/marketing', label: t('nav.newsletter'), icon: Megaphone },
+      { to: '/feedback', label: t('nav.feedback'), icon: Star },
+      { to: '/ads', label: t('nav.ads'), icon: Clapperboard },
+    ],
+  };
   // The platform admin manages customers and the server; portals live in each customer's own environment
   if (user.role === 'superadmin') {
     return [
@@ -96,7 +107,7 @@ function navFor(user: User, t: TFunction): Section[] {
   const base: Item[] = [{ to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, end: true }];
   if (user.role === 'tenant_admin')
     base.push({ to: '/users', label: t('nav.team'), icon: Users }, { to: '/invoices', label: t('nav.invoices'), icon: Receipt }, { to: '/api', label: t('nav.api'), icon: Code });
-  return [{ items: base }, portal, insights];
+  return [{ items: base }, portal, insights, marketing];
 }
 
 function useTheme() {

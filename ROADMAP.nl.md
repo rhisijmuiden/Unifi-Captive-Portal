@@ -77,10 +77,10 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 
 - ✅ **SMS-verificatie** voor gasten met het eigen Twilio- of MessageBird-account van de klant, met limieten per gast, nummer en dag
 - ✅ **Google-, Apple- en Microsoft-login** voor gasten, elk met een eigen app van de klant, samen met Facebook in één tabblad
-- 📋 **Marketing en AVG**: opt-in voor de nieuwsbrief, export naar Mailchimp en HubSpot, en verwijderverzoeken van gasten afhandelen
+- ✅ **Marketing en AVG**: opt-in voor de nieuwsbrief, export naar Mailchimp en HubSpot (en CSV), een bewaartermijn, en verwijderverzoeken van gasten met bevestiging per e-mail
 - ✅ **Live dashboard** per klant: gasten online per locatie en access point, vandaag per uur tegenover vorige week, manieren van inloggen en de laatste aanmeldingen (dataverbruik per access point volgt zodra de UniFi-API dat biedt)
-- 📋 **Enquête na het inloggen** of een reviewverzoek (Google Reviews)
-- 📋 **Advertenties of een splash-video** vóór toegang, met vertoningsstatistieken
+- ✅ **Enquête na het inloggen** met sterren en een opmerking, gevolgd door een knop voor een Google-review
+- ✅ **Advertenties of een splash-video** vóór of na toegang, met weergaven, klikken en planning
 - 📋 **White-label voor resellers**: partners die zelf klanten beheren onder hun eigen merk
 - ✅ **Monitoring**: een e-mail en webhook als een console of access point langer offline is dan de klant instelt, en als hij weer werkt
 - ✅ **Tweestapsverificatie (2FA)** voor beheerders en klanten, met herstelcodes en beleid per platform en per klant

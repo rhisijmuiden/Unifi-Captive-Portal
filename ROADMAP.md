@@ -77,10 +77,10 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 
 - ✅ **SMS verification** for guests with the customer's own Twilio or MessageBird account, with limits per guest, number and day
 - ✅ **Google, Apple and Microsoft login** for guests, each with the customer's own app, sharing one tab with Facebook
-- 📋 **Marketing and GDPR**: newsletter opt-in, export to Mailchimp and HubSpot, and handling guests' deletion requests
+- ✅ **Marketing and GDPR**: newsletter opt-in, export to Mailchimp and HubSpot (and CSV), a retention period, and guests' deletion requests confirmed by e-mail
 - ✅ **Live dashboard** per customer: guests online per location and access point, today by hour against last week, sign-in methods and the latest sign-ins (data use per access point follows once the UniFi API offers it)
-- 📋 **Survey after sign-in** or a review request (Google Reviews)
-- 📋 **Ads or a splash video** before access, with view statistics
+- ✅ **Survey after sign-in** with stars and a comment, followed by a Google review button
+- ✅ **Ads or a splash video** before or after access, with views, clicks and a schedule
 - 📋 **White label for resellers**: partners who manage their own customers under their own brand
 - ✅ **Monitoring**: an e-mail and webhook when a console or access point stays offline longer than the customer's threshold, and when it is back
 - ✅ **Two-factor authentication (2FA)** for admins and customers, with recovery codes and policies per platform and per customer

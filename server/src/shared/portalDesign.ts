@@ -79,6 +79,8 @@ export type RenderContext = {
   login: LoginContext;
   /** Links to the same page in the portal's other languages. */
   languages: { code: string; href: string }[];
+  /** The customer's privacy page (erase requests), linked in the footer. */
+  privacyHref?: string;
 };
 
 export const MEDIA_PATH = /^\/portal\/media\/[0-9a-f-]{36}$/;
@@ -185,6 +187,24 @@ export const portalCss = `
 .cp-page .cp-btn-apple{background:#000;color:#fff}
 .cp-page .cp-link{display:inline-block;margin-top:12px;padding:0;border:0;background:none;color:var(--accent);font:inherit;font-size:.9rem;font-weight:600;cursor:pointer;text-decoration:underline}
 .cp-page .cp-sent{font-size:.92rem;margin-bottom:12px}
+.cp-page .cp-ad{position:relative;margin:4px 0 8px}
+.cp-page .cp-ad img,.cp-page .cp-ad video{display:block;width:100%;height:auto;max-height:60vh;object-fit:contain;border-radius:var(--radius);background:#000}
+.cp-page .cp-ad img{background:transparent}
+.cp-page .cp-ad small{display:block;margin-top:6px;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.cp-page .cp-gate{display:grid}
+.cp-page .cp-gate>*{grid-area:1/1}
+.cp-page .cp-gate .cp-wait{margin-top:16px;padding:14px;text-align:center;font-size:.92rem;color:var(--muted);animation:cp-out 0s linear var(--wait,5s) forwards}
+.cp-page .cp-gate .cp-btn{visibility:hidden;animation:cp-in 0s linear var(--wait,5s) forwards}
+@keyframes cp-in{to{visibility:visible}}
+@keyframes cp-out{to{visibility:hidden}}
+.cp-page .cp-stars{display:flex;flex-direction:row-reverse;justify-content:flex-end;gap:4px;margin:6px 0 12px}
+.cp-page.cp-center .cp-stars{justify-content:center}
+.cp-page .cp-stars input{position:absolute;opacity:0;pointer-events:none}
+.cp-page .cp-stars label{font-size:2.2rem;line-height:1;color:color-mix(in srgb,var(--text) 18%,transparent);cursor:pointer}
+.cp-page .cp-stars input:checked~label,.cp-page .cp-stars label:hover,.cp-page .cp-stars label:hover~label{color:#F5B301}
+.cp-page .cp-stars input:focus-visible+label{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);border-radius:6px}
+.cp-page textarea.cp-input{min-height:84px;resize:vertical}
+.cp-page .cp-btn-review{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#1f1f1f;border:1px solid #dadce0}
 .cp-page .cp-btn-outline{background:transparent;color:var(--accent);border:2px solid var(--accent);margin-top:0}
 .cp-page .cp-tab-r{position:absolute;opacity:0;pointer-events:none}
 .cp-page .cp-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:calc(var(--radius) * .7 + 4px);background:color-mix(in srgb,var(--text) 6%,transparent);margin-bottom:16px}
@@ -273,7 +293,8 @@ function socialForm(methods: SocialMethod[], ctx: RenderContext, cls: string) {
   const buttons = methods
     .map((m) => `<button class="cp-btn cp-btn-social cp-btn-${m}" type="submit" name="method" value="${m}">${socialIcons[m]}<span>${esc(continueWith(s, m))}</span></button>`)
     .join('');
-  return `<form class="cp-panel ${cls}" method="post" action="${esc(login.action)}">${errorFor(login, 'social')}<input type="hidden" name="lang" value="${ctx.locale}">${termsCheck(s, login)}${buttons}</form>`;
+  const marketing = login.emailFields.marketing ? `<label class="cp-check"><input type="checkbox" name="marketing" value="1"> <span>${esc(s.marketing)}</span></label>` : '';
+  return `<form class="cp-panel ${cls}" method="post" action="${esc(login.action)}">${errorFor(login, 'social')}<input type="hidden" name="lang" value="${ctx.locale}">${termsCheck(s, login)}${marketing}${buttons}</form>`;
 }
 
 function methodForm(m: Exclude<LoginMethod, SocialMethod>, ctx: RenderContext, cls: string) {
@@ -410,12 +431,12 @@ export function renderPortalBody(design: PortalDesign, ctx: RenderContext, messa
   const blocks = message
     ? [
         ...design.blocks.filter((b) => b.type === 'logo').map((b) => wrap(renderBlock(b, ctx))),
-        wrap(`<h1 class="cp-h-lg">${esc(message.title)}</h1>`),
-        wrap(`<p>${esc(message.text)}</p>${message.extra ?? ''}`),
+        message.title ? wrap(`<h1 class="cp-h-lg">${esc(message.title)}</h1>`) : '',
+        wrap(`${message.text ? `<p>${esc(message.text)}</p>` : ''}${message.extra ?? ''}`),
       ]
     : design.blocks.map((b) => wrap(renderBlock(b, ctx)));
   const layout = pageClass(design.theme);
-  return `<div class="cp-page ${layout}" style="${esc(themeStyle(design.theme))}"><main class="cp-main">${blocks.join('')}${languageNav(ctx)}</main><footer class="cp-foot">Designed by <a href="https://rhis.nl" rel="noopener">RHIS</a></footer></div>`;
+  return `<div class="cp-page ${layout}" style="${esc(themeStyle(design.theme))}"><main class="cp-main">${blocks.join('')}${languageNav(ctx)}</main><footer class="cp-foot">${ctx.privacyHref ? `<a href="${esc(ctx.privacyHref)}">${esc(guestStrings[ctx.locale].privacy)}</a> · ` : ''}Designed by <a href="https://rhis.nl" rel="noopener">RHIS</a></footer></div>`;
 }
 
 export function renderPortalDocument(

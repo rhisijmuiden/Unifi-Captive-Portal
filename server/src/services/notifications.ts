@@ -181,11 +181,11 @@ export async function runMonthlyReports(now = new Date()) {
 
 /** Welcome and receipt e-mails to guests; never throws, a failed e-mail must not block access. */
 export async function sendGuestMail(
-  kind: Extract<MailKind, 'guestWelcome' | 'paymentReceipt'>,
+  kind: Extract<MailKind, 'guestWelcome' | 'paymentReceipt' | 'guestPrivacy'>,
   tenantId: string,
   to: string,
   locale: Locale,
-  input: { name: string; email: string; validUntil: Date | null; package?: string; amount?: string; reference?: string; date?: Date; rows?: [string, string][] },
+  input: { name: string; email: string; validUntil: Date | null; actionUrl?: string; package?: string; amount?: string; reference?: string; date?: Date; rows?: [string, string][] },
 ) {
   try {
     const smtp = await getSettings('smtp');
@@ -197,6 +197,7 @@ export async function sendGuestMail(
       networkName: tenant?.name ?? '',
       validUntil: input.validUntil ? formatDateTime(locale, input.validUntil) : '—',
       package: input.package ?? '',
+      actionUrl: input.actionUrl ?? '',
       amount: input.amount ?? '',
       reference: input.reference ?? '',
       date: formatDateTime(locale, input.date ?? new Date()),

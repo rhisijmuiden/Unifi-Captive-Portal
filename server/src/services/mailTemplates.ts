@@ -160,6 +160,15 @@ export function defaultMailTemplate(kind: MailKind, locale: Locale): MailContent
       ],
     },
     guestWelcome: { subject: m('welcomeSubject'), blocks: [{ type: 'heading', text: m('welcomeTitle') }, { type: 'text', text: m('welcomeBody') }] },
+    guestPrivacy: {
+      subject: m('privacySubject'),
+      blocks: [
+        { type: 'heading', text: m('privacyTitle') },
+        { type: 'text', text: m('privacyBody') },
+        { type: 'button', label: m('privacyButton'), url: '{{actionUrl}}' },
+        { type: 'text', text: m('privacyIgnore') },
+      ],
+    },
     paymentReceipt: {
       subject: m('receiptSubject'),
       blocks: [

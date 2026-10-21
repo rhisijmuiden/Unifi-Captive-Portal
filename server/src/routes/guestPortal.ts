@@ -13,8 +13,12 @@ import { claimVoucher, releaseVoucher } from '../services/vouchers.js';
 import { facebookConfigured, facebookLoginUrl, facebookProfile } from '../services/facebook.js';
 import { devicesOnStay, findStay, normalizeRoom, roomFailed, roomLocked, syncIfStale } from '../services/hotel.js';
 import { maskPhone, pendingCode, sendGuestCode, smsConfigured, verifyGuestCode } from '../services/sms.js';
+import { countAd, pickAd } from '../services/ads.js';
+import { completePrivacyRequest, createPrivacyRequest, findPrivacyRequest, knowsEmail } from '../services/marketing.js';
+import { audit } from '../lib/auth.js';
+import type { GuestSession, PortalAd } from '../db/schema.js';
 import { oidcConfigured, oidcLoginUrl, oidcProfile, oidcProviders, type OidcProvider } from '../services/socialLogin.js';
-import { guestStrings, moneyLabel, type GuestStrings } from '../shared/guestStrings.js';
+import { fill, guestStrings, moneyLabel, type GuestStrings } from '../shared/guestStrings.js';
 import { pickText, type LoginContext, type LoginMethod } from '../shared/portalDesign.js';
 import { esc, renderGuestPage, renderMessage } from '../views/portal.js';
 
@@ -43,9 +47,33 @@ function html(reply: FastifyReply, body: string, status = 200) {
   return reply
     .code(status)
     .header('cache-control', 'no-store')
-    .header('content-security-policy', "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; form-action 'self' https:; frame-ancestors 'none'; base-uri 'none'")
+    .header('content-security-policy', "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; media-src 'self'; form-action 'self' https:; frame-ancestors 'none'; base-uri 'none'")
     .type('text/html; charset=utf-8')
     .send(body);
+}
+
+/** The customer's privacy page, linked in the guest portal footer. */
+const slugs = new Map<string, string>();
+async function privacyPath(tenantId: string) {
+  let slug = slugs.get(tenantId);
+  if (!slug) {
+    const t = await db.query.tenants.findFirst({ where: eq(schema.tenants.id, tenantId), columns: { slug: true } });
+    if (!t) return undefined;
+    slug = t.slug;
+    slugs.set(tenantId, slug);
+  }
+  return `/portal/privacy/${slug}`;
+}
+
+/** An advert's image or video; "after" adverts link through the click counter. */
+function adHtml(ad: PortalAd, label: string, token?: string) {
+  const src = `/portal/media/${ad.mediaId}`;
+  const media =
+    ad.kind === 'video'
+      ? `<video src="${src}" autoplay muted playsinline${ad.placement === 'after' ? ' loop' : ''} controls preload="auto"></video>`
+      : `<img src="${src}" alt="${esc(ad.name)}">`;
+  const linked = ad.placement === 'after' && token && safeUrl(ad.linkUrl) ? `<a href="/portal/ad/${ad.id}/click?s=${encodeURIComponent(token)}" rel="noopener">${media}</a>` : media;
+  return `<div class="cp-ad">${linked}<small>${esc(label)}</small></div>`;
 }
 
 /** The address the guest is on, for links that must come back here (payment return). */
@@ -132,12 +160,24 @@ export async function guestPortalRoutes(app: FastifyInstance) {
     if (!/^[0-9a-f-]{36}$/.test(req.params.id)) return reply.code(404).send();
     const row = await db.query.media.findFirst({ where: eq(schema.media.id, req.params.id) });
     if (!row) return reply.code(404).send();
-    return reply
+    reply
       .header('cache-control', 'public, max-age=31536000, immutable')
       .header('content-security-policy', "default-src 'none'; style-src 'unsafe-inline'; sandbox")
       .header('cross-origin-resource-policy', 'cross-origin')
-      .type(row.mime)
-      .send(row.data);
+      .header('accept-ranges', 'bytes')
+      .type(row.mime);
+    // Videos: iPhones only play what can be fetched in ranges
+    const range = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range ?? ''));
+    if (range && (range[1] || range[2])) {
+      const size = row.data.length;
+      let start = range[1] ? Number(range[1]) : size - Number(range[2]);
+      let end = range[1] && range[2] ? Number(range[2]) : size - 1;
+      start = Math.max(0, start);
+      end = Math.min(end, size - 1);
+      if (start > end) return reply.code(416).header('content-range', `bytes */${size}`).send();
+      return reply.code(206).header('content-range', `bytes ${start}-${end}/${size}`).send(row.data.subarray(start, end + 1));
+    }
+    return reply.send(row.data);
   });
 
   const render = async (
@@ -151,6 +191,7 @@ export async function guestPortalRoutes(app: FastifyInstance) {
     return html(
       reply,
       renderGuestPage({
+        privacyHref: await privacyPath(p.tenantId),
         locale: opts.locale,
         design: designFor(p),
         languages: p.languages,
@@ -186,6 +227,18 @@ export async function guestPortalRoutes(app: FastifyInstance) {
     if (s.status === 'authorized' && s.accessUntil && s.accessUntil > new Date()) return reply.redirect(`/portal/${s.token}/done`);
     const p = await getPortalSettings(s.tenantId);
     const locale = guestLocale(req, req.query.lang ?? s.locale, p.languages);
+    // A splash advert once per guest page, before the sign-in options
+    if (!s.adSeenAt) {
+      const ad = await pickAd(s.tenantId, 'before');
+      await db.update(schema.guestSessions).set({ adSeenAt: new Date() }).where(eq(schema.guestSessions.id, s.id));
+      if (ad) {
+        void countAd(ad.id, 'views').catch(() => undefined);
+        const g = guestStrings[locale];
+        const seconds = Math.max(0, Math.min(60, ad.seconds));
+        const gate = `<div class="cp-gate" style="--wait:${seconds}s">${seconds ? `<p class="cp-wait">${esc(fill(g.adWait, { n: seconds }))}</p>` : ''}<a class="cp-btn" href="/portal/${esc(s.token)}?lang=${locale}">${esc(g.adContinue)}</a></div>`;
+        return html(reply, renderMessage(locale, '', '', { extra: adHtml(ad, g.adLabel) + gate, design: designFor(p), languages: p.languages, path: `/portal/${s.token}`, privacyHref: await privacyPath(s.tenantId) }));
+      }
+    }
     // A code was sent but not entered yet (e.g. after switching language): ask for it again
     const pending = p.auth.methods.includes('sms') ? await pendingCode(s.id) : null;
     return render(req, reply, p, {
@@ -302,6 +355,11 @@ export async function guestPortalRoutes(app: FastifyInstance) {
         });
         req.log.info({ session: s.id, room: normalizeRoom(values.room) }, 'hotel guest signed in');
         return result.ok ? reply.redirect(`${path}/done`, 303) : failed(result.error);
+      }
+
+      if ((oidcProviders as string[]).includes(method) || method === 'facebook') {
+        // The newsletter checkbox travels with the session to the provider and back
+        await db.update(schema.guestSessions).set({ marketingOptIn: p.auth.marketingOptIn && body.marketing === '1' }).where(eq(schema.guestSessions.id, s.id));
       }
 
       if ((oidcProviders as string[]).includes(method)) {
@@ -478,30 +536,152 @@ export async function guestPortalRoutes(app: FastifyInstance) {
     });
   });
 
-  app.get<{ Params: { token: string }; Querystring: { lang?: string } }>('/portal/:token/done', async (req, reply) => {
-    const s = await loadSession(req.params.token);
-    if (!s || s.status !== 'authorized') return reply.redirect(`/portal/${req.params.token}`);
+  /**
+   * "You are connected": validity, an optional survey (then a Google review link), an
+   * optional advert and the button onwards. Only a plain page forwards by itself.
+   */
+  const donePage = async (req: FastifyRequest, reply: FastifyReply, s: GuestSession, opts: { lang?: string; thanks?: boolean } = {}) => {
     const p = await getPortalSettings(s.tenantId);
-    const locale = guestLocale(req, req.query.lang ?? s.locale, p.languages);
+    const locale = guestLocale(req, opts.lang ?? s.locale, p.languages);
     const g = guestStrings[locale];
+    const path = `/portal/${s.token}`;
     const next = safeUrl(p.successUrl) ?? safeUrl(s.originalUrl);
     const until = s.accessUntil
       ? new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone: process.env.TZ || 'Europe/Amsterdam' }).format(s.accessUntil)
       : null;
-    const extra = `${until ? `<p class="cp-note">${esc(g.validUntil.replace('{{time}}', until))}</p>` : ''}${
-      next ? `<a class="cp-btn" href="${esc(next)}">${esc(g.continue)}</a>` : ''
-    }`;
-    const title = s.method === 'payment' ? g.paymentPaidTitle : g.successTitle;
+    const survey = await getTenantSettings(s.tenantId, 'survey');
+    const answered = Boolean(await db.query.surveyResponses.findFirst({ where: eq(schema.surveyResponses.guestSessionId, s.id), columns: { id: true } }));
+    const review = survey.reviewButton && safeUrl(survey.googleReviewUrl);
+    const reviewBtn = review ? `<a class="cp-btn cp-btn-review" href="${esc(review)}" rel="noopener" target="_blank">${esc(g.reviewButton)}</a>` : '';
+    let middle = '';
+    if (opts.thanks) {
+      middle = `<p class="cp-note">${esc(g.surveyThanksBody)}</p>${review ? `<p class="cp-note">${esc(g.reviewAsk)}</p>${reviewBtn}` : ''}`;
+    } else if (survey.enabled && !answered) {
+      const question = pickText(survey.question, locale, p.languages[0] ?? DEFAULT_LOCALE) || g.surveyDefault;
+      const stars = [5, 4, 3, 2, 1]
+        .map((n) => `<input type="radio" name="rating" value="${n}" id="cp-r${n}" required><label for="cp-r${n}" title="${esc(fill(g.surveyStars, { n }))}">★</label>`)
+        .join('');
+      const comment = survey.allowComment ? `<label class="cp-field"><span>${esc(g.surveyComment)} <small>(${esc(g.optional)})</small></span><textarea class="cp-input" name="comment" maxlength="1000"></textarea></label>` : '';
+      middle = `<form method="post" action="${esc(path)}/survey" class="cp-panel cp-solo" style="margin-top:18px"><input type="hidden" name="lang" value="${locale}"><p class="cp-field"><span>${esc(question)}</span></p><div class="cp-stars" role="radiogroup" aria-label="${esc(g.surveyRate)}">${stars}</div>${comment}<button class="cp-btn" type="submit">${esc(g.surveySend)}</button></form>`;
+    } else if (review && !answered) {
+      middle = `<p class="cp-note">${esc(g.reviewAsk)}</p>${reviewBtn}`;
+    }
+    const ad = await pickAd(s.tenantId, 'after');
+    if (ad) void countAd(ad.id, 'views').catch(() => undefined);
+    const onwards = next ? `<a class="cp-btn${middle ? ' cp-btn-outline' : ''}" style="margin-top:16px" href="${esc(next)}">${esc(g.continue)}</a>` : '';
+    const extra = `${until ? `<p class="cp-note">${esc(g.validUntil.replace('{{time}}', until))}</p>` : ''}${ad ? adHtml(ad, g.adLabel, s.token) : ''}${middle}${onwards}`;
+    const title = opts.thanks ? g.surveyThanksTitle : s.method === 'payment' ? g.paymentPaidTitle : g.successTitle;
+    const refresh = next && !middle && !ad ? { seconds: 4, url: next } : undefined;
     return html(
       reply,
-      renderMessage(locale, title, g.successBody, {
+      renderMessage(locale, title, opts.thanks ? '' : refresh ? g.successBody : g.successBodyStay, {
         extra,
         design: designFor(p),
         languages: p.languages,
-        path: `/portal/${s.token}/done`,
-        refresh: next ? { seconds: 4, url: next } : undefined,
+        path: `${path}/done`,
+        privacyHref: await privacyPath(s.tenantId),
+        refresh,
       }),
     );
-  });
-}
+  };
 
+  app.get<{ Params: { token: string }; Querystring: { lang?: string } }>('/portal/:token/done', async (req, reply) => {
+    const s = await loadSession(req.params.token);
+    if (!s || s.status !== 'authorized') return reply.redirect(`/portal/${req.params.token}`);
+    return donePage(req, reply, s, { lang: req.query.lang });
+  });
+
+  app.post<{ Params: { token: string }; Body: { rating?: string; comment?: string; lang?: string } }>(
+    '/portal/:token/survey',
+    { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } },
+    async (req, reply) => {
+      const s = await loadSession(req.params.token);
+      if (!s || s.status !== 'authorized') return reply.redirect(`/portal/${req.params.token}`, 303);
+      const rating = Number(req.body?.rating);
+      if (Number.isInteger(rating) && rating >= 1 && rating <= 5) {
+        await db
+          .insert(schema.surveyResponses)
+          .values({ tenantId: s.tenantId, guestSessionId: s.id, rating, comment: clean(req.body?.comment, 1000).replace(/\s+/g, ' ') || null, locale: s.locale })
+          .onConflictDoNothing();
+        return donePage(req, reply, s, { lang: req.body?.lang, thanks: true });
+      }
+      return donePage(req, reply, s, { lang: req.body?.lang });
+    },
+  );
+
+  /** A click on an advert on the "connected" page: counted, then on to the advertiser. */
+  app.get<{ Params: { id: string }; Querystring: { s?: string } }>('/portal/ad/:id/click', async (req, reply) => {
+    if (!/^[0-9a-f-]{36}$/.test(req.params.id)) return reply.code(404).send();
+    const ad = await db.query.portalAds.findFirst({ where: eq(schema.portalAds.id, req.params.id) });
+    const target = ad && safeUrl(ad.linkUrl);
+    if (!ad || !target) return reply.code(404).send();
+    const s = req.query.s ? await loadSession(String(req.query.s).slice(0, 100)) : null;
+    if (s?.tenantId === ad.tenantId) await countAd(ad.id, 'clicks');
+    return reply.header('cache-control', 'no-store').redirect(target);
+  });
+
+  // ── Privacy: guests ask for their data to be erased (GDPR art. 17) ──
+
+  const privacyTenant = async (req: FastifyRequest, slug?: string) => {
+    if (slug) {
+      const t = await db.query.tenants.findFirst({ where: eq(schema.tenants.slug, slug.slice(0, 80)), columns: { id: true } });
+      return t?.id ?? null;
+    }
+    return (await hostnameTenant(req.hostname)).tenantId ?? null;
+  };
+
+  const privacyPage = async (req: FastifyRequest, reply: FastifyReply, tenantId: string | null, lang: string | undefined, view: 'form' | 'sent', error?: string) => {
+    if (!tenantId) {
+      const locale = guestLocale(req, lang, Object.keys(guestStrings));
+      return html(reply, renderMessage(locale, t(locale, 'portal.unknownTitle'), t(locale, 'portal.unknownBody')), 404);
+    }
+    const p = await getPortalSettings(tenantId);
+    const locale = guestLocale(req, lang, p.languages);
+    const g = guestStrings[locale];
+    const path = req.url.split('?')[0];
+    const opts = { design: designFor(p), languages: p.languages, path };
+    if (view === 'sent') return html(reply, renderMessage(locale, g.privacySentTitle, g.privacySentBody, opts));
+    const form = `<form method="post" action="${esc(path)}" class="cp-panel cp-solo" style="margin-top:14px">${error ? `<p class="cp-alert" role="alert">${esc(error)}</p>` : ''}<input type="hidden" name="lang" value="${locale}"><label class="cp-field"><span>${esc(g.email)}</span><input class="cp-input" type="email" name="email" required autocomplete="email" maxlength="254"></label><button class="cp-btn" type="submit">${esc(g.privacyRequest)}</button></form>`;
+    return html(reply, renderMessage(locale, g.privacyTitle, g.privacyIntro, { ...opts, extra: form }), error ? 400 : 200);
+  };
+
+  const privacyLimit = { config: { rateLimit: { max: 5, timeWindow: '10 minutes' } } };
+  const requestErase = async (req: FastifyRequest<{ Body: { email?: string; lang?: string } }>, reply: FastifyReply, slug?: string) => {
+    const tenantId = await privacyTenant(req, slug);
+    const email = clean(req.body?.email, 254).toLowerCase();
+    if (!tenantId) return privacyPage(req, reply, null, req.body?.lang, 'form');
+    const p = await getPortalSettings(tenantId);
+    const locale = guestLocale(req, req.body?.lang, p.languages);
+    if (!EMAIL_RE.test(email)) return privacyPage(req, reply, tenantId, locale, 'form', guestStrings[locale].emailInvalid);
+    // The same answer whether or not we know the address, so nobody can test addresses here
+    if (await knowsEmail(tenantId, email)) {
+      const token = await createPrivacyRequest(tenantId, email);
+      const origin = (await tenantPortalOrigin(tenantId)) ?? (await adminBaseUrl());
+      void sendGuestMail('guestPrivacy', tenantId, email, locale, { name: '', email, validUntil: null, actionUrl: `${origin}/portal/privacy/confirm/${token}?lang=${locale}` });
+    }
+    return privacyPage(req, reply, tenantId, locale, 'sent');
+  };
+  app.get<{ Querystring: { lang?: string } }>('/portal/privacy', async (req, reply) => privacyPage(req, reply, await privacyTenant(req), req.query.lang, 'form'));
+  app.post<{ Body: { email?: string; lang?: string } }>('/portal/privacy', privacyLimit, (req, reply) => requestErase(req, reply));
+  app.get<{ Params: { slug: string }; Querystring: { lang?: string } }>('/portal/privacy/:slug', async (req, reply) => privacyPage(req, reply, await privacyTenant(req, req.params.slug), req.query.lang, 'form'));
+  app.post<{ Params: { slug: string }; Body: { email?: string; lang?: string } }>('/portal/privacy/:slug', privacyLimit, (req, reply) => requestErase(req, reply, req.params.slug));
+
+  // The link in the e-mail shows a button; the erase itself is a POST, so link scanners cannot trigger it
+  const confirmPage = async (req: FastifyRequest<{ Params: { token: string }; Querystring: { lang?: string } }>, reply: FastifyReply, erase: boolean) => {
+    const r = await findPrivacyRequest(req.params.token.slice(0, 100));
+    const p = r ? await getPortalSettings(r.tenantId) : null;
+    const locale = guestLocale(req, req.query.lang, p?.languages ?? Object.keys(guestStrings));
+    const g = guestStrings[locale];
+    const opts = p ? { design: designFor(p), languages: p.languages, path: req.url.split('?')[0] } : {};
+    if (!r || r.expired || r.status !== 'pending' || !r.email) return html(reply, renderMessage(locale, g.privacyExpiredTitle, g.privacyExpiredBody, opts), 410);
+    if (!erase) {
+      const form = `<form method="post" action="${esc(req.url.split('?')[0])}?lang=${locale}"><button class="cp-btn" type="submit">${esc(g.privacyConfirm)}</button></form>`;
+      return html(reply, renderMessage(locale, g.privacyConfirmTitle, g.privacyConfirmBody, { ...opts, extra: form }));
+    }
+    const result = await completePrivacyRequest(r.id);
+    if (result) await audit(req, 'privacy.erased', { sessions: result.sessions, via: 'guest', providerError: result.providerError }, r.tenantId);
+    return html(reply, renderMessage(locale, g.privacyDoneTitle, g.privacyDoneBody, opts));
+  };
+  app.get<{ Params: { token: string }; Querystring: { lang?: string } }>('/portal/privacy/confirm/:token', (req, reply) => confirmPage(req, reply, false));
+  app.post<{ Params: { token: string }; Querystring: { lang?: string } }>('/portal/privacy/confirm/:token', privacyLimit, (req, reply) => confirmPage(req, reply, true));
+}

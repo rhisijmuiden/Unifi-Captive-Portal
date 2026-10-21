@@ -6,11 +6,12 @@ import { portalInput } from '../routes/portal.js';
 import { adminInput, tenantInput } from '../routes/tenants.js';
 import { userInput } from '../routes/users.js';
 import { stayInput, staysImport } from '../routes/hotel.js';
+import { adInput } from '../routes/ads.js';
 import { voucherInput } from '../routes/vouchers.js';
 import { targetSchema } from '../services/backups.js';
 import { mailContentSchema } from '../services/mailTemplates.js';
 import { portalDesignSchema } from '../services/portalDesign.js';
-import { hotelSettingsSchema, notificationSettingsSchema, paymentSettingsSchema, securitySettingsSchema, smsSettingsSchema, socialSettingsSchema } from '../services/tenantSettings.js';
+import { hotelSettingsSchema, marketingSettingsSchema, notificationSettingsSchema, paymentSettingsSchema, securitySettingsSchema, smsSettingsSchema, socialSettingsSchema, surveySettingsSchema } from '../services/tenantSettings.js';
 
 /**
  * The public REST API (/api/v1/…). Every operation is one of the routes the admin interface
@@ -29,6 +30,7 @@ export const scopes: Record<Audience, Record<string, Text>> = {
     guests: { en: 'Guests', nl: 'Gasten' },
     vouchers: { en: 'Vouchers', nl: 'Vouchers' },
     hotel: { en: 'Hotel stays for the room login', nl: 'Hotelverblijven voor de kamerlogin' },
+    marketing: { en: 'Newsletter contacts, privacy requests, survey and ads', nl: 'Nieuwsbriefcontacten, privacyverzoeken, enquête en advertenties' },
     payments: { en: 'Payments and packages', nl: 'Betalingen en pakketten' },
     notifications: { en: 'Notifications and guest e-mails', nl: 'Meldingen en gastmails' },
     reports: { en: 'Overview and reports', nl: 'Overzicht en rapporten' },
@@ -124,6 +126,31 @@ export const operations: Operation[] = [
     body: staysImport,
     summary: { en: 'Import many stays (CSV text or JSON list); stays with an externalId are updated when sent again', nl: 'Veel verblijven importeren (CSV-tekst of JSON-lijst); verblijven met een externalId worden bijgewerkt' },
   },
+
+  { method: 'GET', route: '/api/marketing-settings', tenant: 'marketing', summary: { en: 'Newsletter export settings (Mailchimp or HubSpot)', nl: 'Instellingen nieuwsbriefexport (Mailchimp of HubSpot)' } },
+  { method: 'PUT', route: '/api/marketing-settings', tenant: 'marketing', body: marketingSettingsSchema.partial(), summary: { en: 'Change the newsletter export settings', nl: 'Nieuwsbriefexport wijzigen' } },
+  { method: 'POST', route: '/api/marketing-settings/test', tenant: 'marketing', body: marketingSettingsSchema.partial(), summary: { en: 'Test the Mailchimp or HubSpot connection', nl: 'Verbinding met Mailchimp of HubSpot testen' } },
+  { method: 'POST', route: '/api/marketing/sync', tenant: 'marketing', summary: { en: 'Send new and changed opt-in contacts now', nl: 'Nieuwe en gewijzigde opt-incontacten nu versturen' } },
+  {
+    method: 'GET',
+    route: '/api/marketing/contacts',
+    tenant: 'marketing',
+    params: [
+      { name: 'optIn', in: 'query', type: 'boolean', text: { en: 'Only guests who opted in', nl: 'Alleen gasten met opt-in' } },
+      { name: 'format', in: 'query', enum: ['csv'], text: { en: 'csv for a download of all contacts', nl: 'csv voor een download van alle contacten' } },
+    ],
+    summary: { en: 'Guest contacts (e-mail, opt-in, visits)', nl: 'Gastcontacten (e-mail, opt-in, bezoeken)' },
+  },
+  { method: 'POST', route: '/api/marketing/forget', tenant: 'marketing', body: z.object({ email: z.string() }), summary: { en: 'Erase all data about an e-mail address (GDPR), also at the newsletter provider', nl: 'Alle gegevens van een e-mailadres wissen (AVG), ook bij de nieuwsbriefprovider' } },
+  { method: 'GET', route: '/api/marketing/privacy-requests', tenant: 'marketing', summary: { en: 'Deletion requests from guests', nl: 'Verwijderverzoeken van gasten' } },
+  { method: 'GET', route: '/api/survey-settings', tenant: 'marketing', summary: { en: 'Post-login survey settings', nl: 'Instellingen enquête na het inloggen' } },
+  { method: 'PUT', route: '/api/survey-settings', tenant: 'marketing', body: surveySettingsSchema.partial(), summary: { en: 'Change the survey settings', nl: 'Enquête wijzigen' } },
+  { method: 'GET', route: '/api/survey', tenant: 'marketing', params: [{ name: 'days', in: 'query', type: 'integer', text: { en: 'Period in days (default 90)', nl: 'Periode in dagen (standaard 90)' } }], summary: { en: 'Survey results: average, per star, per week and comments', nl: 'Enquêteresultaten: gemiddelde, per ster, per week en opmerkingen' } },
+  { method: 'GET', route: '/api/ads', tenant: 'marketing', summary: { en: 'Ads and splash videos with views and clicks', nl: 'Advertenties en splashvideo\'s met weergaven en klikken' } },
+  { method: 'POST', route: '/api/ads', tenant: 'marketing', body: adInput, summary: { en: 'Add an ad', nl: 'Advertentie toevoegen' } },
+  { method: 'PUT', route: '/api/ads/:id', tenant: 'marketing', params: [id], body: adInput.partial(), summary: { en: 'Change an ad', nl: 'Advertentie wijzigen' } },
+  { method: 'DELETE', route: '/api/ads/:id', tenant: 'marketing', params: [id], summary: { en: 'Delete an ad', nl: 'Advertentie verwijderen' } },
+  { method: 'POST', route: '/api/media/video', tenant: 'marketing', summary: { en: 'Upload a video (raw mp4 or webm body, max. 25 MB)', nl: 'Video uploaden (mp4 of webm als ruwe body, max. 25 MB)' } },
 
   { method: 'GET', route: '/api/guests', tenant: 'guests', params: [{ name: 'limit', in: 'query', type: 'integer', text: { en: 'Maximum number (default 100, max. 500)', nl: 'Maximum aantal (standaard 100, max. 500)' } }], summary: { en: 'Latest guest sessions with statistics', nl: 'Laatste gastsessies met statistieken' } },
   { method: 'DELETE', route: '/api/guests/:id', tenant: 'guests', params: [id], summary: { en: "Delete a guest's personal data (GDPR)", nl: 'Persoonsgegevens van een gast verwijderen (AVG)' } },
