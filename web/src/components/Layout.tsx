@@ -82,13 +82,14 @@ function navFor(user: User, t: TFunction): Section[] {
           { to: '/settings/hosting', label: t('nav.hosting'), icon: Server },
           { to: '/mail-templates', label: t('nav.mailTemplates'), icon: MailOpen },
           { to: '/backups', label: t('nav.backups'), icon: DatabaseBackup },
-          { to: '/api', label: t('nav.api'), icon: Code, soon: true },
+          { to: '/api', label: t('nav.api'), icon: Code },
         ],
       },
     ];
   }
   const base: Item[] = [{ to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, end: true }];
-  if (user.role === 'tenant_admin') base.push({ to: '/users', label: t('nav.team'), icon: Users }, { to: '/invoices', label: t('nav.invoices'), icon: Receipt });
+  if (user.role === 'tenant_admin')
+    base.push({ to: '/users', label: t('nav.team'), icon: Users }, { to: '/invoices', label: t('nav.invoices'), icon: Receipt }, { to: '/api', label: t('nav.api'), icon: Code });
   return [{ items: base }, portal, insights];
 }
 

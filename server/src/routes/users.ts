@@ -7,7 +7,7 @@ import { badRequest, forbidden, notFound, translateError } from '../lib/errors.j
 import { requestLocale } from '../i18n/index.js';
 import { sendInvite } from '../services/tokens.js';
 
-const userInput = z.object({
+export const userInput = z.object({
   name: z.string().trim().min(1).max(120),
   email: z.string().trim().toLowerCase().email(),
   role: z.enum(['superadmin', 'tenant_admin', 'tenant_user']),

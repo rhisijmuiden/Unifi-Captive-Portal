@@ -64,17 +64,29 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - ✅ Guide for backups, restore and disaster recovery
 - 📋 Complete guides for customers and admins
 
-## Step 6: Full API 📋
+## Step 6: Full API (v0.6) ✅
 
-- 📋 Complete REST API for every customer (tenant): consoles, hostnames, portals, guests, payments and reports
-- 📋 Platform API for the main admin portal: create, change, suspend and delete customers and their users
-- 📋 API keys per customer and for the platform, with scopes (read/write) and expiry, created and revoked in the interface
-- 📋 OpenAPI documentation with an interactive explorer (EN/NL)
-- 📋 Webhooks for events such as guest authorized, payment received and certificate issued
-- 📋 Rate limiting and an audit trail per API key
+- ✅ Complete REST API for every customer (tenant) at `/api/v1`: consoles, hostnames, portal settings and design, guests, vouchers, payments and packages, notifications and guest e-mails, reports, team members and invoices
+- ✅ Platform API for the main admin portal: create (with a first admin), change, suspend and delete customers, users, server settings, platform e-mail templates, billing, backups and updates
+- ✅ API keys per customer and for the platform, with read/write scopes per part, expiry date and rate limit, created, changed, revoked and deleted in the interface; the key is shown once and stored hashed
+- ✅ OpenAPI 3.1 documentation in English and Dutch with an interactive explorer in the interface, and `/api/v1/openapi.json` for other tools
+- ✅ Signed webhooks (HMAC-SHA256) for guest authorized, payment received, hostname live, console offline/online, invoices, customers and backups, with retries, delivery log, test button and secret rotation
+- ✅ Rate limiting and an audit trail per API key (every request for 90 days, plus the changes it made)
+
+## Step 7: Guest experience, marketing and growth 📋
+
+- 📋 **SMS verification** for guests (e.g. MessageBird or Twilio), next to e-mail and Facebook
+- 📋 **Google, Apple and Microsoft login** for guests
+- 📋 **Marketing and GDPR**: newsletter opt-in, export to Mailchimp and HubSpot, and handling guests' deletion requests
+- 📋 **Live dashboard** per customer: active guests, data use per access point and peak hours
+- 📋 **Survey after sign-in** or a review request (Google Reviews)
+- 📋 **Ads or a splash video** before access, with view statistics
+- 📋 **White label for resellers**: partners who manage their own customers under their own brand
+- 📋 **Monitoring**: an alert when a console goes offline or a link fails
+- 📋 **Two-factor authentication (2FA)** for admins and customers
+- 📋 **Hotel/PMS link**: guests sign in with room number and last name
 
 ## Later
 
 - 📋 Entra SSO per customer (customers sign in with their own Microsoft tenant)
-- 📋 Two-factor authentication (TOTP) for password accounts
 - 📋 More languages for the admin interface and guest portals (e.g. German and French)

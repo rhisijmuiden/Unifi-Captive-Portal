@@ -8,6 +8,7 @@ import { moneyLabel } from '../shared/guestStrings.js';
 import { authorizeSession } from './guests.js';
 import { sendGuestMail } from './notifications.js';
 import { getTenantSettings, type TenantSettingsValue } from './tenantSettings.js';
+import { emit } from './webhooks.js';
 
 /**
  * Paid access through Mollie or Stripe, with the customer's own account. We talk to their
@@ -186,6 +187,19 @@ export async function finalizePayment(paymentId: string) {
     .where(and(eq(schema.payments.id, paymentId), inArray(schema.payments.status, ['open', 'expired', 'canceled', 'failed'])))
     .returning();
   if (!payment) return null;
+  emit(payment.tenantId, 'payment.paid', {
+    id: payment.id,
+    guestSessionId: payment.guestSessionId,
+    packageId: payment.packageId,
+    packageName: payment.packageName,
+    durationMinutes: payment.durationMinutes,
+    amountCents: payment.amountCents,
+    currency: payment.currency,
+    provider: payment.provider,
+    providerRef: payment.providerRef,
+    email: payment.email,
+    paidAt: payment.paidAt,
+  });
   const session = payment.guestSessionId ? await db.query.guestSessions.findFirst({ where: eq(schema.guestSessions.id, payment.guestSessionId) }) : null;
   if (!session) return payment;
   const pkg = payment.packageId ? await db.query.paymentPackages.findFirst({ where: eq(schema.paymentPackages.id, payment.packageId) }) : null;

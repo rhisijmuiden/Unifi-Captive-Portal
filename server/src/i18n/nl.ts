@@ -2,6 +2,18 @@ import { guestStrings } from '../shared/guestStrings.js';
 // Nederlandse servermeldingen en e-mails. Nieuwe taal: kopieer en.ts en registreer hem in ./index.ts.
 const nl = {
   errors: {
+    apiKeyInvalid: 'API-sleutel ontbreekt of is onbekend. Stuur hem mee als "Authorization: Bearer <sleutel>"',
+    apiKeyExpired: 'Deze API-sleutel is verlopen',
+    apiKeyRevoked: 'Deze API-sleutel is ingetrokken',
+    apiKeySuspended: 'Dit klantaccount is opgeschort',
+    apiScope: 'Deze API-sleutel mist de scope {{scope}}',
+    apiNotAvailable: 'Deze bewerking is niet beschikbaar in de API',
+    apiRateLimit: 'Te veel verzoeken; probeer het over {{seconds}} seconden opnieuw',
+    apiScopesEmpty: 'Kies minstens één scope',
+    webhookUrl: 'Vul een geldig adres in dat begint met https://',
+    webhookHttps: 'Webhooks moeten https:// gebruiken',
+    webhookPrivate: 'Webhooks kunnen geen privé- of lokale netwerkadressen aanroepen',
+    webhookEvents: 'Kies minstens één gebeurtenis',
     unauthorized: 'Niet ingelogd',
     forbidden: 'Geen toegang',
     notFound: 'Niet gevonden',

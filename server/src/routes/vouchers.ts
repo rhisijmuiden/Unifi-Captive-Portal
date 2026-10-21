@@ -9,7 +9,7 @@ import { createVouchers, formatCode, voucherStatus } from '../services/vouchers.
 
 const limit = (max: number, min = 1) => z.coerce.number().int().min(min).max(max).nullable().default(null);
 
-const voucherInput = z.object({
+export const voucherInput = z.object({
   count: z.coerce.number().int(),
   batch: z.string().trim().max(80).nullable().default(null),
   note: z.string().trim().max(200).nullable().default(null),

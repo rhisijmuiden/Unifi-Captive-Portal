@@ -2,6 +2,7 @@ import { and, eq, inArray, notInArray } from 'drizzle-orm';
 import { db, schema } from '../db/index.js';
 import type { Console } from '../db/schema.js';
 import { listDevices, normalizeMac, targetFromConsole, UnifiError } from './unifi.js';
+import { emit } from './webhooks.js';
 
 /** Refreshes the access-point list of every enabled site, so redirected guests can be matched to a customer. */
 export async function syncConsole(c: Console) {
@@ -22,10 +23,12 @@ export async function syncConsole(c: Console) {
       });
     }
     await db.update(schema.consoles).set({ status: 'ok', lastError: null, lastSyncAt: new Date() }).where(eq(schema.consoles.id, c.id));
+    if (c.status === 'error') emit(c.tenantId, 'console.online', { id: c.id, name: c.name });
     return { ok: true as const };
   } catch (err) {
     const message = err instanceof UnifiError ? err.message : String(err);
     await db.update(schema.consoles).set({ status: 'error', lastError: message, lastSyncAt: new Date() }).where(eq(schema.consoles.id, c.id));
+    if (c.status !== 'error') emit(c.tenantId, 'console.offline', { id: c.id, name: c.name, error: message });
     return { ok: false as const, error: message };
   }
 }

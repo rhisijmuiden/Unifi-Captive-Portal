@@ -32,7 +32,7 @@ const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const interval = z.enum(['month', 'quarter', 'year']);
 const cents = z.coerce.number().int().min(0).max(100_000_000);
 
-const planInput = z.object({
+export const planInput = z.object({
   name: z.string().trim().min(1).max(120),
   description: z.string().trim().max(500).default(''),
   priceCents: cents,
@@ -40,7 +40,7 @@ const planInput = z.object({
   active: z.boolean().default(true),
 });
 
-const profileInput = z.object({
+export const profileInput = z.object({
   companyName: z.string().trim().max(200).default(''),
   address: z.string().max(1000).default(''),
   email: z.union([z.email(), z.literal('')]).default(''),
@@ -66,7 +66,7 @@ const lineInput = z.object({
   unitCents: z.coerce.number().int().min(-100_000_000).max(100_000_000),
 });
 
-const invoiceInput = z.object({
+export const invoiceInput = z.object({
   lines: z.array(lineInput).min(1).max(50),
   notes: z.string().max(2000).default(''),
   vatRateBp: z.coerce.number().int().min(0).max(10_000).optional(),

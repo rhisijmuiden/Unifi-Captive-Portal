@@ -10,7 +10,7 @@ import { pruneDisabledSites, syncConsole } from '../services/consoles.js';
 import { getSettings } from '../services/settings.js';
 import { listSiteManagerHosts, listSites, UnifiError, type ConsoleTarget } from '../services/unifi.js';
 
-const connectionInput = z
+export const connectionInput = z
   .object({
     connection: z.enum(['site_manager', 'direct']),
     hostId: z.string().trim().optional().nullable(),
@@ -24,7 +24,7 @@ const connectionInput = z
   })
   .refine((v) => (v.connection === 'site_manager' ? Boolean(v.hostId) : Boolean(v.baseUrl)), { message: 'errors.consoleTarget' });
 
-const sitesInput = z.array(z.object({ id: z.string().min(1), internalReference: z.string().min(1), name: z.string() })).min(1, 'errors.chooseSite');
+export const sitesInput = z.array(z.object({ id: z.string().min(1), internalReference: z.string().min(1), name: z.string() })).min(1, 'errors.chooseSite');
 
 function publicConsole(c: Console) {
   const { apiKey: _key, ...rest } = c;

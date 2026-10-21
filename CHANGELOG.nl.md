@@ -4,6 +4,21 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.6.0-beta.1] - 2026-10-21 (testkanaal)
+
+Stap 6: volledige API.
+
+- **REST API** op `/api/v1` met API-sleutels (`Authorization: Bearer cpk_…`). Hij gebruikt dezelfde routes en controles als de webinterface, zodat alles gelijk blijft.
+  - **Klant-API**: consoles, hostnames, portalinstellingen en ontwerp, afbeeldingen, Facebook-login, gasten (ook verwijderen volgens de AVG), vouchers, betaalinstellingen en pakketten, betalingen, meldingen en gastmailtemplates, overzicht en maandrapport, teamleden en facturen (ook als pdf).
+  - **Platform-API**: klanten (aanmaken met een eerste beheerder, wijzigen, opschorten, verwijderen), gebruikers, serverinstellingen (SMTP, SSO, systeem, hosting, facturatie-instellingen), e-mailtemplates van het platform, facturatie (plannen, abonnementen, facturen), back-ups (locaties, nu uitvoeren; terugzetten blijft in de webinterface) en updates.
+- **API-sleutels** onder het nieuwe menu-item **API** (klantbeheerders) en **Systeem → API** (platformbeheerder): lees/schrijfrechten per onderdeel, vervaldatum (30/90/365 dagen, een datum of nooit), verzoeken per minuut, bewerken, intrekken en verwijderen. De sleutel wordt één keer getoond en als SHA-256-hash opgeslagen; sleutels werken niet meer als hun klant is opgeschort.
+- **Rate limiting** per sleutel per minuut met `X-RateLimit-*`-headers en `429`, plus een limiet op mislukte sleutelpogingen per adres.
+- **Audit trail per sleutel**: elk verzoek (methode, pad, status, duur, IP) 90 dagen, en wijzigingen via de API worden gelogd met de sleutel erbij.
+- **Webhooks**: ondertekende (HMAC-SHA256 over tijdstempel en body) berichten voor `guest.authorized`, `payment.paid`, `hostname.active`, `console.offline`/`console.online` en `invoice.issued`/`invoice.paid` (klanten) en `tenant.created`/`updated`/`deleted`, facturen en `backup.succeeded`/`failed` (platform). Herhaalpogingen van 1 min tot 24 uur, uitgezet na 50 fouten op rij, afleverlogboek met antwoorden, **Testen**, **Opnieuw sturen**, geheim tonen en vervangen. Webhooks van klanten roepen alleen openbare `https://`-adressen aan (opnieuw gecontroleerd bij het verbinden, zodat DNS ze niet naar het interne netwerk kan sturen).
+- **Documentatie**: OpenAPI 3.1 in het Nederlands en Engels met een verkenner in de interface (zoeken, parameters, voorbeeld-bodies, uitproberen met een sleutel, cURL), te downloaden en openbaar op `/api/v1/openapi.json`.
+- Nieuwe handleiding: [API en webhooks](docs/nl/api.md).
+- Roadmap: nieuwe stap 7 met ideeën voor gastbeleving, marketing en groei.
+
 ## [0.5.0-beta.1] - 2026-10-21 (testkanaal)
 
 Stap 5: back-ups en herstel.

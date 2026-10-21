@@ -3,6 +3,18 @@ import type { Messages } from './nl.js';
 
 const en: Messages = {
   errors: {
+    apiKeyInvalid: 'Missing or unknown API key. Send it as "Authorization: Bearer <key>"',
+    apiKeyExpired: 'This API key has expired',
+    apiKeyRevoked: 'This API key has been revoked',
+    apiKeySuspended: 'This customer account is suspended',
+    apiScope: 'This API key is missing the scope {{scope}}',
+    apiNotAvailable: 'This operation is not available in the API',
+    apiRateLimit: 'Too many requests; try again in {{seconds}} seconds',
+    apiScopesEmpty: 'Choose at least one scope',
+    webhookUrl: 'Enter a valid address starting with https://',
+    webhookHttps: 'Webhooks must use https://',
+    webhookPrivate: 'Webhooks cannot call private or local network addresses',
+    webhookEvents: 'Choose at least one event',
     unauthorized: 'Not signed in',
     forbidden: 'Access denied',
     notFound: 'Not found',

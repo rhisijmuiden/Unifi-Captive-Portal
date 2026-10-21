@@ -8,8 +8,10 @@ import Fastify from 'fastify';
 import { ZodError } from 'zod';
 import { config } from './config.js';
 import { loadUser } from './lib/auth.js';
+import { apiKeyGate, API_V1, isApiV1, logApiRequest } from './api/gate.js';
 import { requestLocale, t } from './i18n/index.js';
 import { AppError } from './lib/errors.js';
+import { apiRoutes } from './routes/api.js';
 import { authRoutes } from './routes/auth.js';
 import { backupRoutes } from './routes/backups.js';
 import { billingRoutes } from './routes/billing.js';
@@ -36,6 +38,8 @@ const PORTAL_PATH = /^\/(portal|guest)\/|^\/api\/health$/;
 
 export async function buildApp() {
   const app = Fastify({
+    // /api/v1/… is the public REST API: the same routes as the interface, reached with an API key
+    rewriteUrl: (req) => (req.url && API_V1.test(req.url) ? req.url.replace(API_V1, '/api/') : (req.url ?? '/')),
     // Only Caddy on this machine may set X-Forwarded-* headers
     trustProxy: '127.0.0.1',
     logger: config.isDev ? { transport: { target: 'pino-pretty' } } : { level: 'info' },
@@ -46,6 +50,7 @@ export async function buildApp() {
   await app.register(formbody, { bodyLimit: 16_384 });
 
   app.decorateRequest('user', null);
+  app.decorateRequest('apiKey', null);
   app.addHook('onRequest', async (req, reply) => {
     if (req.url.startsWith('/api/caddy/')) return;
     const host = req.hostname;
@@ -63,11 +68,16 @@ export async function buildApp() {
   });
   app.addHook('onRequest', async (req, reply) => {
     if (!req.url.startsWith('/api/')) return;
+    // API requests carry a key instead of a session cookie, so they cannot be forged cross-site
+    if (isApiV1(req)) return apiKeyGate(req, reply);
     // A custom header cannot be sent cross-site without a CORS preflight, which we never allow
     if (MUTATING.has(req.method) && req.headers['x-requested-with'] !== 'captive-portal') {
       return reply.code(403).send({ error: t(requestLocale(req), 'errors.invalidRequest') });
     }
     req.user = await loadUser(req);
+  });
+  app.addHook('onResponse', async (req, reply) => {
+    if (req.apiKey) await logApiRequest(req, reply).catch((err) => req.log.error(err));
   });
   app.addHook('onSend', async (_req, reply) => {
     reply.header('x-content-type-options', 'nosniff');
@@ -108,6 +118,7 @@ export async function buildApp() {
   await app.register(backupRoutes);
   await app.register(socialRoutes);
   await app.register(guestPortalRoutes);
+  await app.register(apiRoutes);
 
   if (existsSync(webDist)) {
     await app.register(fastifyStatic, { root: webDist, wildcard: false });

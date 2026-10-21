@@ -30,6 +30,7 @@ import './styles.css';
 // The editors carry CodeMirror and dnd-kit; load them only when opened
 const PortalEditorPage = lazy(() => import('./pages/PortalEditor').then((m) => ({ default: m.PortalEditorPage })));
 const MailTemplatesPage = lazy(() => import('./pages/MailTemplates').then((m) => ({ default: m.MailTemplatesPage })));
+const ApiPage = lazy(() => import('./pages/Api').then((m) => ({ default: m.ApiPage })));
 const MailTemplateEditorPage = lazy(() => import('./pages/MailTemplates').then((m) => ({ default: m.MailTemplateEditorPage })));
 
 const queryClient = new QueryClient({
@@ -76,6 +77,7 @@ const router = createBrowserRouter([
       { path: 'users', element: <RequireAuth roles={['superadmin', 'tenant_admin']}><UsersPage /></RequireAuth> },
       { path: 'settings/smtp', element: <RequireAuth roles={['superadmin']}><SmtpSettingsPage /></RequireAuth> },
       { path: 'settings/sso', element: <RequireAuth roles={['superadmin']}><SsoSettingsPage /></RequireAuth> },
+      { path: 'api', element: <RequireAuth roles={['superadmin', 'tenant_admin']}><ApiPage /></RequireAuth> },
       { path: 'backups', element: <RequireAuth roles={['superadmin']}><BackupsPage /></RequireAuth> },
       { path: 'settings/hosting', element: <RequireAuth roles={['superadmin']}><HostingSettingsPage /></RequireAuth> },
       { path: 'consoles', element: <RequireAuth roles={TENANT}><ConsolesPage /></RequireAuth> },
