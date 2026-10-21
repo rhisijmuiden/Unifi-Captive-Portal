@@ -243,6 +243,8 @@ export const guestSessions = pgTable(
     paymentId: uuid('payment_id'),
     // Hotel login: the stay (room + surname) the guest signed in with
     hotelStayId: uuid('hotel_stay_id'),
+    // When the guest saw the advert before signing in (shown once per guest page)
+    adSeenAt: timestamp('ad_seen_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     authorizedAt: timestamp('authorized_at', { withTimezone: true }),
     accessUntil: timestamp('access_until', { withTimezone: true }),
@@ -729,3 +731,110 @@ export const hotelStays = pgTable(
 
 export type GuestVerification = typeof guestVerifications.$inferSelect;
 export type HotelStay = typeof hotelStays.$inferSelect;
+
+// ── Step 7, part 3: marketing, privacy requests, survey and adverts ──
+
+/** One person per e-mail address and customer, built from the guest sign-ins; synced to Mailchimp or HubSpot. */
+export const guestContacts = pgTable(
+  'guest_contacts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    email: text('email').notNull(),
+    name: text('name'),
+    phone: text('phone'),
+    locale: text('locale'),
+    // Last sign-in method, e.g. email or google
+    source: text('source'),
+    optIn: boolean('opt_in').notNull().default(false),
+    optInAt: timestamp('opt_in_at', { withTimezone: true }),
+    visits: integer('visits').notNull().default(1),
+    firstSeenAt: timestamp('first_seen_at', { withTimezone: true }).notNull().defaultNow(),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    syncedAt: timestamp('synced_at', { withTimezone: true }),
+    syncError: text('sync_error'),
+  },
+  (t) => [uniqueIndex('guest_contacts_email_unique').on(t.tenantId, t.email), index('guest_contacts_seen_idx').on(t.tenantId, t.lastSeenAt)],
+);
+
+/** A guest's request to erase their data, confirmed through a link in an e-mail. */
+export const privacyRequests = pgTable(
+  'privacy_requests',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    // Kept until the request is done, then only the hash remains as proof
+    email: text('email'),
+    emailHash: text('email_hash').notNull(),
+    tokenHash: text('token_hash').notNull().unique(),
+    status: text('status').$type<'pending' | 'done'>().notNull().default('pending'),
+    sessions: integer('sessions').notNull().default(0),
+    via: text('via').$type<'guest' | 'admin'>().notNull().default('guest'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    doneAt: timestamp('done_at', { withTimezone: true }),
+  },
+  (t) => [index('privacy_requests_tenant_idx').on(t.tenantId, t.createdAt)],
+);
+
+/** Answers to the short survey after signing in. */
+export const surveyResponses = pgTable(
+  'survey_responses',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    guestSessionId: uuid('guest_session_id')
+      .references(() => guestSessions.id, { onDelete: 'set null' })
+      .unique(),
+    rating: integer('rating').notNull(),
+    comment: text('comment'),
+    locale: text('locale'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('survey_responses_tenant_idx').on(t.tenantId, t.createdAt)],
+);
+
+/** An image or video on the guest portal: before signing in (splash) or on the "connected" page. */
+export const portalAds = pgTable(
+  'portal_ads',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    kind: text('kind').$type<'image' | 'video'>().notNull(),
+    mediaId: uuid('media_id').references(() => media.id, { onDelete: 'set null' }),
+    linkUrl: text('link_url'),
+    placement: text('placement').$type<'before' | 'after'>().notNull(),
+    // Before signing in: how long the guest watches before "Continue" appears
+    seconds: integer('seconds').notNull().default(5),
+    active: boolean('active').notNull().default(true),
+    startsAt: timestamp('starts_at', { withTimezone: true }),
+    endsAt: timestamp('ends_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('portal_ads_tenant_idx').on(t.tenantId)],
+);
+
+export const adStats = pgTable(
+  'ad_stats',
+  {
+    adId: uuid('ad_id')
+      .notNull()
+      .references(() => portalAds.id, { onDelete: 'cascade' }),
+    day: date('day').notNull(),
+    views: integer('views').notNull().default(0),
+    clicks: integer('clicks').notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.adId, t.day] })],
+);
+
+export type GuestContact = typeof guestContacts.$inferSelect;
+export type PortalAd = typeof portalAds.$inferSelect;

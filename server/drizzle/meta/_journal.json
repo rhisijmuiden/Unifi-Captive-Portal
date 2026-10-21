@@ -64,6 +64,13 @@
       "when": 1792561064829,
       "tag": "0008_step7_sms_hotel",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792562399323,
+      "tag": "0009_step7_marketing_survey_ads",
+      "breakpoints": true
     }
   ]
 }

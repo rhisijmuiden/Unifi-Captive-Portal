@@ -15,6 +15,8 @@ type Page = {
   /** Languages the portal offers; the first one is the fallback for missing texts. */
   languages?: string[];
   path: string;
+  /** The customer's privacy page, linked in the footer. */
+  privacyHref?: string;
 };
 
 const context = (page: Page, login?: LoginContext): RenderContext => {
@@ -23,6 +25,7 @@ const context = (page: Page, login?: LoginContext): RenderContext => {
     locale: page.locale,
     fallbackLocale: languages[0],
     languages: languages.map((code) => ({ code, href: `${page.path}?lang=${code}` })),
+    privacyHref: page.privacyHref,
     login: login ?? { methods: [], requireTerms: false, terms: '', emailFields: { name: 'off', phone: 'off', marketing: false }, paymentEmail: 'off', packages: [], action: '' },
   };
 };
@@ -31,9 +34,9 @@ export function renderGuestPage(page: Page & { title: string; login: LoginContex
   return renderPortalDocument(page.design ?? defaultDesign(), context(page, page.login), { title: page.title });
 }
 
-type MessageOptions = { extra?: string; design?: PortalDesign; languages?: string[]; path?: string; refresh?: { seconds: number; url: string } };
+type MessageOptions = { extra?: string; design?: PortalDesign; languages?: string[]; path?: string; refresh?: { seconds: number; url: string }; privacyHref?: string };
 
 export function renderMessage(locale: GuestLocale, title: string, text: string, opts: MessageOptions = {}) {
-  const page = { locale, design: opts.design, languages: opts.languages, path: opts.path ?? '' };
+  const page = { locale, design: opts.design, languages: opts.languages, path: opts.path ?? '', privacyHref: opts.privacyHref };
   return renderPortalDocument(opts.design ?? defaultDesign(), context(page), { title, message: { title, text, extra: opts.extra }, refresh: opts.refresh });
 }

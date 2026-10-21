@@ -4,6 +4,19 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.7.0-beta.3] - 2026-10-21 (testkanaal)
+
+Stap 7, deel 3: marketing, AVG, feedback en advertenties. Drie nieuwe pagina's onder **Marketing** in de omgeving van de klant.
+
+- **Nieuwsbrief & AVG**: elke gast die met een e-mailadres inlogt wordt een contact (naam, bezoeken, laatste bezoek); het opt-in-vinkje staat nu ook op het tabblad **Account** voor Google, Apple, Microsoft en Facebook. Export naar **Mailchimp** (audience, optioneel dubbele opt-in, tag `wifi`) of **HubSpot** (private app), automatisch direct en elk kwartier of met **Nu versturen**, met een status per contact en een knop **Koppeling testen**. **CSV downloaden** van de opt-ins of alle contacten.
+- **Bewaartermijn**: naam, e-mail en telefoon van gasten zonder opt-in kunnen na 30 dagen tot 2 jaar automatisch gewist worden; statistieken blijven anoniem.
+- **Verwijderverzoeken**: een **Privacy**-link op elke gastpagina. De gast krijgt een bevestigingsmail (nieuwe template *Verwijderverzoek (gasten)*, 48 uur geldig) en na bevestigen wordt alles van het adres gewist, ook bij Mailchimp of HubSpot. Beheerders kunnen zelf een adres wissen; alle verzoeken staan in een lijst, zonder het adres te bewaren.
+- **Feedback**: een optionele vraag met 1 tot 5 sterren en een opmerking op de pagina *Je bent verbonden*, daarna een knop voor een **Google-review** voor elke gast. Gemiddelde, verdeling per ster en opmerkingen over 30, 90 of 365 dagen.
+- **Advertenties en splashvideo**: afbeeldingen (2 MB) of MP4/WebM-video's (25 MB) voor het inloggen (één keer per bezoek, met een knop **Verder** na een in te stellen aantal seconden, zonder JavaScript) of na het inloggen (met een getelde doorklik-link). Optionele periode, pauzeren, een willekeurige keuze tussen actieve advertenties, en weergaven, klikken en CTR per dag. Video's worden gestreamd met range requests.
+- De pagina *Je bent verbonden* zegt alleen dat hij doorstuurt als dat ook gebeurt.
+- API: nieuwe klant-scope `marketing` voor al het bovenstaande.
+- Nieuwe handleiding: [Nieuwsbrief, AVG, feedback en advertenties](docs/nl/marketing-feedback-advertenties.md).
+
 ## [0.7.0-beta.2] - 2026-10-21 (testkanaal)
 
 Stap 7, deel 2: meer manieren voor gasten om in te loggen.
