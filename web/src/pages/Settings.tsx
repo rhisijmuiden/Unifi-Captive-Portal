@@ -351,6 +351,62 @@ export function SsoSettingsPage() {
 
 type Hosting = { publicIpv4: string; publicIpv6: string; adminHostname: string; forceHttps: boolean };
 type HostingCheck = { status: HostnameStatus; error: string | null };
+type CaddyStatus = { https: boolean; http: boolean; running: boolean; configured: boolean | null };
+
+/** Live health of Caddy, with the commands to repair it on the server when something is off. */
+function CaddyStatusCard() {
+  const { t } = useTranslation();
+  const { data, isFetching, refetch } = useQuery({
+    queryKey: ['caddy-status'],
+    queryFn: () => api.get<CaddyStatus>('/settings/hosting/caddy'),
+    refetchInterval: 60_000,
+  });
+  const healthy = data && data.https && data.http && data.configured !== false;
+  const rows: [string, boolean | null][] = data
+    ? [
+        [t('hosting.caddy.https'), data.https],
+        [t('hosting.caddy.http'), data.http],
+        [t('hosting.caddy.config'), data.configured],
+      ]
+    : [];
+  return (
+    <Card className="h-fit p-6">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          {healthy ? <CheckCircle2 className="size-5 text-online" /> : <TriangleAlert className="size-5 text-warning" />}
+          <h2 className="font-semibold">{t('hosting.caddy.title')}</h2>
+        </div>
+        <Button variant="ghost" size="sm" loading={isFetching} onClick={() => refetch()}>
+          {t('hosting.caddy.recheck')}
+        </Button>
+      </div>
+      {!data ? (
+        <Spinner />
+      ) : (
+        <>
+          <ul className="space-y-2 text-sm">
+            {rows.map(([label, ok]) => (
+              <li key={label} className="flex items-center justify-between gap-3">
+                <span className="text-muted">{label}</span>
+                <Badge tone={ok === null ? 'neutral' : ok ? 'online' : 'offline'}>
+                  {ok === null ? t('hosting.caddy.unknown') : ok ? t('hosting.caddy.ok') : t('hosting.caddy.fail')}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+          {!healthy && (
+            <div className="mt-4 space-y-2 text-sm">
+              <p className="text-muted">{t(data.running ? 'hosting.caddy.partial' : 'hosting.caddy.down')}</p>
+              <pre className="overflow-x-auto rounded-xl bg-nacht p-3 font-mono text-xs leading-relaxed text-white/90">{CADDY_REPAIR}</pre>
+            </div>
+          )}
+        </>
+      )}
+    </Card>
+  );
+}
+
+const CADDY_REPAIR = 'systemctl status caddy --no-pager\njournalctl -u caddy -n 50 --no-pager\nbash /opt/captive-portal/install/caddy.sh';
 
 export function HostingSettingsPage() {
   const { t } = useTranslation();
@@ -418,17 +474,20 @@ export function HostingSettingsPage() {
             {check.error && <p className="text-sm text-offline">{check.error.message}</p>}
           </Section>
         </div>
-        <Card className="h-fit p-6">
-          <div className="mb-3 flex items-center gap-2">
-            <ShieldCheck className="size-5 text-online" />
-            <h2 className="font-semibold">{t('hosting.howTitle')}</h2>
-          </div>
-          <ul className="space-y-3 text-sm text-muted">
-            <li>{t('hosting.how1')}</li>
-            <li>{t('hosting.how2')}</li>
-            <li>{t('hosting.how3')}</li>
-          </ul>
-        </Card>
+        <div className="space-y-6">
+          <CaddyStatusCard />
+          <Card className="h-fit p-6">
+            <div className="mb-3 flex items-center gap-2">
+              <ShieldCheck className="size-5 text-online" />
+              <h2 className="font-semibold">{t('hosting.howTitle')}</h2>
+            </div>
+            <ul className="space-y-3 text-sm text-muted">
+              <li>{t('hosting.how1')}</li>
+              <li>{t('hosting.how2')}</li>
+              <li>{t('hosting.how3')}</li>
+            </ul>
+          </Card>
+        </div>
       </div>
     </>
   );

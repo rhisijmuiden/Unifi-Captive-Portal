@@ -1,4 +1,5 @@
 import { promises as dns } from 'node:dns';
+import net from 'node:net';
 import tls from 'node:tls';
 import { eq, inArray } from 'drizzle-orm';
 import { config } from '../config.js';
@@ -81,6 +82,39 @@ export function probeTls(host: string, timeoutMs = 90_000): Promise<CheckResult>
       finish({ status: 'dns_ok', error: err.code === 'ECONNREFUSED' ? 'tlsUnavailable' : `tlsFailed:${err.code ?? err.message}` }),
     );
   });
+}
+
+const CADDY_ADMIN_URL = process.env.CADDY_ADMIN_URL ?? 'http://127.0.0.1:2019';
+
+function portOpen(port: number, timeoutMs = 3000): Promise<boolean> {
+  return new Promise((done) => {
+    const socket = net.connect({ host: TLS_PROBE_HOST, port, timeout: timeoutMs });
+    const finish = (ok: boolean) => {
+      socket.destroy();
+      done(ok);
+    };
+    socket.once('connect', () => finish(true));
+    socket.once('timeout', () => finish(false));
+    socket.once('error', () => finish(false));
+  });
+}
+
+/** Health of the HTTPS front end, so the platform admin can see why certificates are not issued. */
+export async function caddyStatus() {
+  const [https, http, config] = await Promise.all([
+    portOpen(TLS_PROBE_PORT),
+    portOpen(Number(process.env.HTTP_PROBE_PORT ?? 80)),
+    fetch(`${CADDY_ADMIN_URL}/config/`, { signal: AbortSignal.timeout(3000) })
+      .then(async (r) => (r.ok ? await r.text() : null))
+      .catch(() => null),
+  ]);
+  return {
+    https,
+    http,
+    running: https || http || config !== null,
+    // Caddy loaded our Caddyfile when its on-demand check points at this app
+    configured: config === null ? null : config.includes('/api/caddy/ask'),
+  };
 }
 
 export async function checkHostname(h: Hostname) {

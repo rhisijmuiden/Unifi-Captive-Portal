@@ -55,7 +55,20 @@ Vanaf dan worden gasten naar `https://gast.bedrijf.nl` gestuurd. Zonder actieve 
 | Er is nog geen A- of AAAA-record gevonden | Maak het record aan. Een nieuw record kan tot een paar uur nodig hebben om zichtbaar te worden. |
 | Het record wijst naar … in plaats van naar deze server | Pas de waarde aan, of verwijder een oud AAAA-record. |
 | Het certificaat is nog niet uitgegeven | Meestal tijdelijk (bijvoorbeeld limieten van Let's Encrypt). Het platform probeert het automatisch opnieuw. Controleer of poort 80 en 443 open staan. |
-| De SSL-dienst (Caddy) reageert niet | Platformbeheerder: `systemctl status caddy` en `journalctl -u caddy -n 50`. |
+| De SSL-dienst (Caddy) reageert niet | Platformbeheerder: zie [Als Caddy niet reageert](#als-caddy-niet-reageert). |
+
+## Als Caddy niet reageert
+
+De kaart **SSL-dienst (Caddy)** onder **Hosting & SSL** laat zien of Caddy op poort 443 en 80 luistert en of het de configuratie van deze app gebruikt. Staat er iets op rood, voer dan als root op de server uit:
+
+```bash
+systemctl status caddy --no-pager        # draait Caddy?
+journalctl -u caddy -n 50 --no-pager     # waarom is het gestopt?
+ss -ltnp | grep -E ':(80|443) '          # wie luistert op 80/443?
+bash /opt/captive-portal/install/caddy.sh  # Caddy installeren of herstellen
+```
+
+Het herstelscript installeert Caddy als het ontbreekt, schrijft de configuratie, weigert te starten als een andere webserver (zoals Apache of nginx) poort 80 of 443 bezet, en toont het log van Caddy als het niet opstart. Bij een LXC-container moeten poort 80 en 443 ook naar de container worden doorgestuurd.
 
 ## Eigen reverse proxy in plaats van Caddy
 

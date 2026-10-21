@@ -16,7 +16,9 @@ MARKER='# Managed by Captive Portal'
 if ! command -v caddy >/dev/null; then
   echo "==> Installing Caddy (official repository)"
   export DEBIAN_FRONTEND=noninteractive
-  apt-get install -y -qq debian-keyring debian-archive-keyring apt-transport-https curl gnupg >/dev/null
+  # debian-keyring and apt-transport-https from Caddy's own guide are not needed (and not on every Debian 13)
+  apt-get update -qq
+  apt-get install -y -qq debian-archive-keyring curl gnupg >/dev/null
   install -d -m 0755 /usr/share/keyrings
   curl -fsSL 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
   curl -fsSL 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' >/etc/apt/sources.list.d/caddy-stable.list
@@ -46,8 +48,28 @@ if ! grep -q '^CP_ACME_EMAIL=.' "$CONF_DIR/caddy.env" && head -n1 "$CADDYFILE" |
   sed -i '/email {\$CP_ACME_EMAIL}/d' "$CADDYFILE"
 fi
 
-caddy validate --config "$CADDYFILE" --adapter caddyfile >/dev/null
+# Another web server on 80/443 keeps Caddy from starting
+busy=$(ss -Hltnp '( sport = :80 or sport = :443 )' 2>/dev/null | grep -v '"caddy"' | grep -oP 'users:\(\("\K[^"]+' | sort -u | tr '\n' ' ' || true)
+if [[ -n "$busy" ]]; then
+  echo " ✗ Port 80/443 is in use by: $busy" >&2
+  echo "   Stop and disable it (e.g. systemctl disable --now apache2 nginx), then run: bash $APP_DIR/install/caddy.sh" >&2
+  exit 1
+fi
+
+# Validate with the same environment the service gets, so {$CP_ACME_EMAIL} is filled in
+( set -a; . "$CONF_DIR/caddy.env"; set +a; caddy validate --config "$CADDYFILE" --adapter caddyfile >/dev/null )
 systemctl daemon-reload
 systemctl enable caddy >/dev/null
 systemctl restart caddy
-echo " ✓ Caddy $(caddy version | awk '{print $1}') serves HTTPS on ports 80/443"
+
+# Wait until Caddy really listens; show its log when it does not
+for _ in $(seq 1 15); do
+  if systemctl is-active --quiet caddy && (exec 3<>/dev/tcp/127.0.0.1/443) 2>/dev/null; then
+    echo " ✓ Caddy $(caddy version | awk '{print $1}') serves HTTPS on ports 80/443"
+    exit 0
+  fi
+  sleep 1
+done
+echo " ✗ Caddy did not start listening on port 443. Last log lines:" >&2
+journalctl -u caddy -n 30 --no-pager >&2 || true
+exit 1
