@@ -9,6 +9,7 @@ import {
   CreditCard,
   DatabaseBackup,
   Globe,
+  Handshake,
   Info,
   KeyRound,
   LayoutDashboard,
@@ -18,6 +19,7 @@ import {
   Megaphone,
   Menu,
   Moon,
+  Paintbrush,
   Palette,
   Receipt,
   Radio,
@@ -44,6 +46,8 @@ import { DesignedBy } from './DesignedBy';
 import { InfoDialog } from './InfoDialog';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { cx } from './ui';
+import { useBrand } from '../lib/brand';
+import { BrandLogo } from './BrandLogo';
 
 type Item = { to: string; label: string; icon: LucideIcon; soon?: boolean; end?: boolean };
 type Section = { title?: string; items: Item[] };
@@ -86,6 +90,7 @@ function navFor(user: User, t: TFunction): Section[] {
         items: [
           { to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, end: true },
           { to: '/tenants', label: t('nav.tenants'), icon: Building2 },
+          { to: '/resellers', label: t('nav.resellers'), icon: Handshake },
           { to: '/billing', label: t('nav.billing'), icon: Receipt },
           { to: '/users', label: t('nav.users'), icon: Users },
         ],
@@ -100,6 +105,19 @@ function navFor(user: User, t: TFunction): Section[] {
           { to: '/mail-templates', label: t('nav.mailTemplates'), icon: MailOpen },
           { to: '/backups', label: t('nav.backups'), icon: DatabaseBackup },
           { to: '/api', label: t('nav.api'), icon: Code },
+        ],
+      },
+    ];
+  }
+  // A reseller manages its own customers, team and brand; portals stay in each customer's environment
+  if (user.role === 'reseller_admin') {
+    return [
+      {
+        items: [
+          { to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, end: true },
+          { to: '/tenants', label: t('nav.tenants'), icon: Building2 },
+          { to: '/users', label: t('nav.team'), icon: Users },
+          { to: '/branding', label: t('nav.branding'), icon: Paintbrush },
         ],
       },
     ];
@@ -142,6 +160,7 @@ export function Layout() {
   const qc = useQueryClient();
   const { isDark, toggle } = useTheme();
   const { t } = useTranslation();
+  const brand = useBrand();
 
   useEffect(() => setMobileOpen(false), [location.pathname]);
 
@@ -160,8 +179,8 @@ export function Layout() {
   const sidebar = (
     <aside className="flex h-full w-[272px] flex-col bg-nacht text-white">
       <div className="flex items-center justify-between px-6 pt-6 pb-5">
-        <div>
-          <img src="/rhis-logo-wit.svg" alt="RHIS" className="h-7 w-auto" />
+        <div className="min-w-0">
+          <BrandLogo brand={brand} onDark />
           <p className="mt-2 text-[11px] font-semibold tracking-[0.18em] text-lucht/80 uppercase">Captive Portal</p>
         </div>
         <button className="rounded-lg p-1.5 text-white/60 hover:bg-white/10 lg:hidden" onClick={() => setMobileOpen(false)} aria-label={t('nav.closeMenu')}>
@@ -215,17 +234,19 @@ export function Layout() {
           <span className="flex-1 text-left">{t('nav.info')}</span>
           <span className="rounded-full bg-white/10 px-2 py-0.5 font-mono text-[11px] text-lucht">v{data!.version}</span>
         </button>
-        <a
-          href="https://rhis.nl"
-          target="_blank"
-          rel="noopener"
-          className="mx-1 flex items-center gap-3 rounded-[10px] border border-white/10 bg-white/[0.03] px-3 py-2.5 transition hover:border-koraal/40 hover:bg-white/5"
-        >
-          <img src="/rhis-logo-wit.svg" alt="RHIS" className="h-4 w-auto" />
-          <span className="text-[11px] text-white/50">
-            {t('common.poweredBy')} <span className="font-semibold text-white/80">RHIS</span>
-          </span>
-        </a>
+        {(!brand || brand.showPoweredBy) && (
+          <a
+            href="https://rhis.nl"
+            target="_blank"
+            rel="noopener"
+            className="mx-1 flex items-center gap-3 rounded-[10px] border border-white/10 bg-white/[0.03] px-3 py-2.5 transition hover:border-koraal/40 hover:bg-white/5"
+          >
+            <img src="/rhis-logo-wit.svg" alt="RHIS" className="h-4 w-auto" />
+            <span className="text-[11px] text-white/50">
+              {t('common.poweredBy')} <span className="font-semibold text-white/80">RHIS</span>
+            </span>
+          </a>
+        )}
         <div className="flex items-center justify-between px-2 pt-1">
           <LanguageSwitcher tone="dark" />
           <button onClick={toggle} className="rounded-lg p-1.5 text-white/55 hover:bg-white/10 hover:text-white" aria-label={t('nav.theme')} title={t('nav.theme')}>
@@ -265,8 +286,7 @@ export function Layout() {
         <button onClick={() => setMobileOpen(true)} className="rounded-lg p-2 hover:bg-sunken" aria-label={t('nav.openMenu')}>
           <Menu className="size-5" />
         </button>
-        <img src="/rhis-logo.svg" alt="RHIS" className="h-5 dark:hidden" />
-        <img src="/rhis-logo-wit.svg" alt="RHIS" className="hidden h-5 dark:block" />
+        <BrandLogo brand={brand} small />
         <LanguageSwitcher className="ml-auto" />
         <NavLink to="/account" className="rounded-lg p-2 hover:bg-sunken" aria-label={t('nav.account')}>
           <UserCircle className="size-5" />
@@ -279,7 +299,7 @@ export function Layout() {
         </div>
       </main>
 
-      <DesignedBy />
+      {(!brand || brand.showDesignedBy) && <DesignedBy />}
       <InfoDialog open={infoOpen} onClose={() => setInfoOpen(false)} />
     </div>
   );

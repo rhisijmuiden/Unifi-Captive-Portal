@@ -119,6 +119,11 @@ const nl = {
     twoFactorActive: 'Tweestapsverificatie staat al aan',
     twoFactorRequiredPolicy: 'Tweestapsverificatie is verplicht voor je account en kan niet uit',
     ownTwoFactor: 'Zet je eigen tweestapsverificatie uit via Mijn account',
+    resellerHasTenants: 'Deze reseller heeft nog {{count}} klant(en). Verplaats of verwijder die eerst.',
+    resellerLimit: 'Je hebt je limiet van {{max}} klanten bereikt. Vraag de platformbeheerder om die te verhogen.',
+    resellerUnknown: 'Deze reseller bestaat niet',
+    chooseReseller: 'Kies een reseller',
+    resellerSuspended: 'Dit account is opgeschort. Neem contact op met je leverancier.',
   },
   portal: guestStrings.nl,
   mail: {

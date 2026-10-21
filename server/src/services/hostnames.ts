@@ -6,6 +6,7 @@ import { db, schema } from '../db/index.js';
 import type { Hostname } from '../db/schema.js';
 import { isValidHostname, normalizeHostname } from '../lib/hostname.js';
 import { notifyHostnameLive } from './notifications.js';
+import { resellerHostnames } from './resellers.js';
 import { getSettings } from './settings.js';
 import { emit } from './webhooks.js';
 
@@ -117,6 +118,7 @@ export async function checkHostnames(statuses: Hostname['status'][]) {
 export async function mayIssueCertificate(domain: string) {
   const host = normalizeHostname(domain);
   if ((await adminHostnames()).has(host)) return true;
+  if ((await resellerHostnames()).has(host)) return true;
   const row = await db.query.hostnames.findFirst({ where: eq(schema.hostnames.hostname, host) });
   return row?.status === 'dns_ok' || row?.status === 'active';
 }

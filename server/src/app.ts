@@ -32,6 +32,7 @@ import { hotelRoutes } from './routes/hotel.js';
 import { marketingRoutes } from './routes/marketing.js';
 import { adRoutes } from './routes/ads.js';
 import { systemRoutes } from './routes/system.js';
+import { resellerRoutes } from './routes/resellers.js';
 import { tenantRoutes } from './routes/tenants.js';
 import { userRoutes } from './routes/users.js';
 import { voucherRoutes } from './routes/vouchers.js';
@@ -115,6 +116,7 @@ export async function buildApp() {
   });
 
   await app.register(authRoutes);
+  await app.register(resellerRoutes);
   await app.register(tenantRoutes);
   await app.register(userRoutes);
   await app.register(settingsRoutes);

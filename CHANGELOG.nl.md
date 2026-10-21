@@ -4,6 +4,19 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.7.0-beta.4] - 2026-10-21 (testkanaal)
+
+Stap 7, deel 4: white-label resellers. Hiermee is stap 7 af.
+
+- **Resellers** (nieuwe pagina **Resellers** in het hoofdbeheerpaneel): partners die het platform onder hun eigen merk aan hun eigen klanten verkopen. Per reseller: bedrijfsgegevens, een optionele **klantlimiet**, een optioneel **eigen beheeradres** (met automatisch Let's Encrypt-certificaat), de huisstijl (naam, logo voor lichte en donkere achtergronden, accentkleur, website, support-e-mail) en een eerste beheerder die per e-mail wordt uitgenodigd.
+- **RHIS-vermeldingen per reseller**: kies of **Powered by RHIS** (menu en Info, standaard aan) en **Designed by RHIS** (beheerpaneel, de gastportalen en e-mails van de klanten, standaard uit) zichtbaar blijven.
+- **Beheerpaneel voor resellers** met een nieuwe rol *Reseller-beheerder*: een overzicht van de eigen klanten, **Klanten** (aanmaken, wijzigen, opschorten, verwijderen, binnen de limiet), **Team** (eigen collega's en de teams van klanten) en **Huisstijl** met een voorbeeld. Net als de platformbeheerder ziet een reseller de consoles, portalen en gasten van zijn klanten niet.
+- De klanten van de reseller zien zijn merk in hun beheerpaneel (logo, accentkleur, tabtitel, support-e-mail onder Info en op de inlogpagina); op zijn eigen beheeradres staat het merk ook al vóór het inloggen. Uitnodigingen en wachtwoordmails linken naar dat adres.
+- Een reseller **opschorten** sluit het beheerpaneel en de API meteen voor zijn team en al zijn klanten; gastportalen blijven werken. Verwijderen kan pas als de reseller geen klanten meer heeft. Inloggen, tweestapsverificatie, wachtwoordherstel en inloggen met Microsoft weigeren opgeschorte klanten en resellers.
+- De platformbeheerder wijst bestaande klanten toe aan een reseller (of weer terug) bij het bewerken van de klant.
+- API: nieuwe platformscope `resellers` en `resellerId` bij klanten.
+- Nieuwe handleiding: [White-label resellers](docs/nl/resellers.md).
+
 ## [0.7.0-beta.3] - 2026-10-21 (testkanaal)
 
 Stap 7, deel 3: marketing, AVG, feedback en advertenties. Drie nieuwe pagina's onder **Marketing** in de omgeving van de klant.

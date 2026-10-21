@@ -7,7 +7,7 @@ Everything you can do in the web interface can also be done through the REST API
 | | Who | What |
 | --- | --- | --- |
 | **Customer API** | customer admins, under **API** in their own environment | consoles, hostnames, portal settings and design, guests, vouchers, hotel stays, newsletter contacts and deletion requests, survey and ads, SMS and social login settings, payments and packages, notifications and guest e-mails, reports, team members and their own invoices |
-| **Platform API** | the platform admin, under **System → API** | customers (create, change, suspend, delete, with a first admin), users, server settings (SMTP, SSO, hosting, billing settings), platform e-mail templates, billing, backups and updates |
+| **Platform API** | the platform admin, under **System → API** | customers (create, change, suspend, delete, with a first admin), white-label resellers, users, server settings (SMTP, SSO, hosting, billing settings), platform e-mail templates, billing, backups and updates |
 
 The two never overlap: a customer key cannot see other customers or server settings, and a platform key cannot reach the portals of customers. That follows the same split as the web interface.
 

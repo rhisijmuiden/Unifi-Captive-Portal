@@ -5,6 +5,8 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { DesignedBy } from '../components/DesignedBy';
+import { BrandLogo } from '../components/BrandLogo';
+import { useBrand } from '../lib/brand';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { CodeInput, TwoFactorSetup } from '../components/TwoFactor';
 import { Button, Field, Input } from '../components/ui';
@@ -13,10 +15,13 @@ import { useAuth, useRefreshAuth } from '../lib/auth';
 
 export function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   const { t } = useTranslation();
+  const brand = useBrand();
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
       <section className="signal-bg relative hidden flex-col justify-between overflow-hidden p-12 text-white lg:flex">
-        <img src="/rhis-logo-wit.svg" alt="RHIS" className="h-8 w-auto self-start" />
+        <div className="self-start">
+          <BrandLogo brand={brand} onDark />
+        </div>
         <div className="max-w-lg">
           <p className="mb-4 inline-flex rounded-full bg-lucht/15 px-3 py-1 text-xs font-semibold text-lucht">{t('auth.tagline')}</p>
           <h1 className="display text-4xl leading-tight xl:text-5xl">{t('auth.heroTitle')}</h1>
@@ -40,7 +45,17 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
             })}
           </ul>
         </div>
-        <p className="text-xs text-white/40">© {new Date().getFullYear()} RHIS</p>
+        <p className="text-xs text-white/40">
+          © {new Date().getFullYear()} {brand?.name ?? 'RHIS'}
+          {brand?.supportEmail && (
+            <>
+              {' · '}
+              <a className="hover:text-white/70" href={`mailto:${brand.supportEmail}`}>
+                {brand.supportEmail}
+              </a>
+            </>
+          )}
+        </p>
         <img src="/rhis-antenne.svg" alt="" className="pointer-events-none absolute -right-24 -bottom-24 size-[420px] opacity-[0.07]" />
       </section>
 
@@ -49,14 +64,15 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
           <LanguageSwitcher />
         </div>
         <div className="w-full max-w-sm">
-          <img src="/rhis-logo.svg" alt="RHIS" className="mb-10 h-7 lg:hidden dark:hidden" />
-          <img src="/rhis-logo-wit.svg" alt="RHIS" className="mb-10 hidden h-7 dark:block dark:lg:hidden" />
+          <div className="mb-10 lg:hidden">
+            <BrandLogo brand={brand} />
+          </div>
           <h2 className="display text-2xl">{title}</h2>
           <p className="mt-2 mb-8 text-muted">{subtitle}</p>
           {children}
         </div>
       </section>
-      <DesignedBy />
+      {(!brand || brand.showDesignedBy) && <DesignedBy />}
     </div>
   );
 }
@@ -74,7 +90,7 @@ function MicrosoftLogo() {
 
 
 
-const ssoErrorKeys = { sso_unknown: 1, sso_failed: 1, sso_disabled: 1, sso_mismatch: 1 } as const;
+const ssoErrorKeys = { sso_unknown: 1, sso_failed: 1, sso_disabled: 1, sso_mismatch: 1, sso_suspended: 1 } as const;
 
 export function LoginPage() {
   const { t } = useTranslation();

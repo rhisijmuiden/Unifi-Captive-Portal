@@ -38,6 +38,8 @@ const stricter = (a: 'off' | 'admins' | 'all', b: 'off' | 'admins' | 'all') => (
 export async function twoFactorRequired(user: Pick<User, 'role' | 'tenantId'>) {
   const platform = await platformPolicy();
   if (user.role === 'superadmin') return platform.requirePlatform;
+  // Reseller admins manage customers, so the customer policy applies to them like to customer admins
+  if (user.role === 'reseller_admin') return platform.requireCustomers !== 'off';
   if (!user.tenantId) return false;
   let own = tenantCache.get(user.tenantId);
   if (!own || Date.now() - own.at > 30_000) {

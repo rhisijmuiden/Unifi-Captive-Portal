@@ -4,6 +4,7 @@ import { packageInput } from '../routes/payments.js';
 import { planInput, profileInput, invoiceInput } from '../routes/billing.js';
 import { portalInput } from '../routes/portal.js';
 import { adminInput, tenantInput } from '../routes/tenants.js';
+import { resellerInput } from '../routes/resellers.js';
 import { userInput } from '../routes/users.js';
 import { stayInput, staysImport } from '../routes/hotel.js';
 import { adInput } from '../routes/ads.js';
@@ -39,6 +40,7 @@ export const scopes: Record<Audience, Record<string, Text>> = {
   },
   platform: {
     tenants: { en: 'Customers', nl: 'Klanten' },
+    resellers: { en: 'White-label resellers', nl: 'White-label resellers' },
     users: { en: 'Users', nl: 'Gebruikers' },
     settings: { en: 'Server settings and e-mail templates', nl: 'Serverinstellingen en e-mailtemplates' },
     billing: { en: 'Billing: plans, subscriptions and invoices', nl: 'Facturatie: plannen, abonnementen en facturen' },
@@ -202,6 +204,17 @@ export const operations: Operation[] = [
   },
   { method: 'PUT', route: '/api/tenants/:id', platform: 'tenants', params: [id], body: tenantInput.partial(), summary: { en: 'Change or suspend a customer', nl: 'Klant wijzigen of opschorten' } },
   { method: 'DELETE', route: '/api/tenants/:id', platform: 'tenants', params: [id], summary: { en: 'Delete a customer with all its data', nl: 'Klant met al zijn gegevens verwijderen' } },
+
+  { method: 'GET', route: '/api/resellers', platform: 'resellers', summary: { en: 'List resellers with their number of customers', nl: 'Resellers met hun aantal klanten' } },
+  {
+    method: 'POST',
+    route: '/api/resellers',
+    platform: 'resellers',
+    body: resellerInput.extend({ admin: adminInput }),
+    summary: { en: 'Create a reseller, optionally inviting its first admin', nl: 'Reseller aanmaken, eventueel met een uitnodiging voor de eerste beheerder' },
+  },
+  { method: 'PUT', route: '/api/resellers/:id', platform: 'resellers', params: [id], body: resellerInput.partial(), summary: { en: 'Change a reseller: brand, admin hostname, RHIS mentions, limit or status', nl: 'Reseller wijzigen: merk, beheeradres, RHIS-vermeldingen, limiet of status' } },
+  { method: 'DELETE', route: '/api/resellers/:id', platform: 'resellers', params: [id], summary: { en: 'Delete a reseller without customers', nl: 'Reseller zonder klanten verwijderen' } },
 
   {
     method: 'GET',

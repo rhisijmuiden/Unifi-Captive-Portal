@@ -2,11 +2,12 @@ import { and, count, eq, gt, or, sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db, schema } from '../db/index.js';
-import { audit, createSession, destroySession, publicUser, requireUser, secureCookies } from '../lib/auth.js';
+import { accountSuspended, audit, createSession, destroySession, publicUser, requireUser, secureCookies } from '../lib/auth.js';
 import { hashPassword, verifyPassword } from '../lib/crypto.js';
 import { badRequest, unauthorized } from '../lib/errors.js';
 import { buildEntraLogin, completeEntraLogin, entraConfig } from '../services/entra.js';
 import { adminBaseUrl, getSettings } from '../services/settings.js';
+import { brandFor, resellerForHost } from '../services/resellers.js';
 import {
   beginSetup,
   clearPendingLogin,
@@ -40,6 +41,8 @@ export async function authRoutes(app: FastifyInstance) {
       sso: { entraEnabled: sso.entraEnabled, buttonLabel: sso.buttonLabel, allowLocalLogin: sso.allowLocalLogin || !sso.entraEnabled },
       passwordResetAvailable: smtp.enabled,
       version: config.version,
+      // A reseller's own brand, by the signed-in user or the address the panel is opened on
+      brand: await brandFor(req.user, req.hostname),
     };
   });
 
@@ -71,10 +74,8 @@ export async function authRoutes(app: FastifyInstance) {
     if (sso.entraEnabled && !sso.allowLocalLogin && user.role !== 'superadmin') {
       throw unauthorized('errors.useMicrosoft');
     }
-    if (user.tenantId) {
-      const tenant = await db.query.tenants.findFirst({ where: eq(schema.tenants.id, user.tenantId) });
-      if (tenant?.status === 'suspended') throw unauthorized('errors.tenantSuspended');
-    }
+    const suspended = await accountSuspended(user);
+    if (suspended) throw unauthorized(suspended);
     // With two-factor sign-in, the session only comes after the code
     if (user.totpEnabledAt) {
       startPendingLogin(req, reply, user);
@@ -102,6 +103,8 @@ export async function authRoutes(app: FastifyInstance) {
       throw unauthorized('errors.twoFactorCode');
     }
     clearPendingLogin(reply);
+    const suspended = await accountSuspended(user);
+    if (suspended) throw unauthorized(suspended);
     await createSession(req, reply, user);
     req.user = user;
     await audit(req, 'auth.login', { method: 'password', twoFactor: used });
@@ -198,6 +201,9 @@ export async function authRoutes(app: FastifyInstance) {
       startPendingLogin(req, reply, user);
       return { twoFactor: true };
     }
+    // The new password is kept, but a suspended account does not get a session
+    const suspended = await accountSuspended(user);
+    if (suspended) throw unauthorized(suspended);
     await createSession(req, reply, user);
     req.user = user;
     await audit(req, 'auth.password_reset');
@@ -207,6 +213,9 @@ export async function authRoutes(app: FastifyInstance) {
   app.get('/api/auth/entra/start', async (_req, reply) => {
     const cfg = await entraConfig();
     if (!cfg) return reply.redirect('/login?error=sso_disabled');
+    // Microsoft returns to the platform's own address, so the sign-in starts there (e.g. from a reseller's address)
+    const base = new URL(await adminBaseUrl());
+    if (_req.hostname.replace(/:\d+$/, '') !== base.hostname && (await resellerForHost(_req.hostname))) return reply.redirect(new URL('/api/auth/entra/start', base).toString());
     const { url, flow } = await buildEntraLogin(cfg);
     reply.setCookie(FLOW_COOKIE, JSON.stringify(flow), {
       path: '/api/auth/entra',
@@ -237,6 +246,7 @@ export async function authRoutes(app: FastifyInstance) {
       }
       if (user.entraOid && user.entraOid !== identity.oid) return reply.redirect('/login?error=sso_mismatch');
       if (!user.entraOid) await db.update(schema.users).set({ entraOid: identity.oid }).where(eq(schema.users.id, user.id));
+      if (await accountSuspended(user)) return reply.redirect('/login?error=sso_suspended');
       await createSession(req, reply, user, 'entra');
       req.user = user;
       await audit(req, 'auth.login', { method: 'entra' });

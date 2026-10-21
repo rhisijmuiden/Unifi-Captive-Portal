@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { useBrand } from '../lib/brand';
+import { BrandLogo } from './BrandLogo';
 import { formatDate, formatDuration } from '../lib/format';
 import { Badge, Button, cx, Modal, Spinner, Switch } from './ui';
 
@@ -31,6 +33,7 @@ type UpdateCheck = {
 
 export function InfoDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
+  const brand = useBrand();
   const { data: auth } = useAuth();
   const isAdmin = auth?.user?.role === 'superadmin';
   const qc = useQueryClient();
@@ -72,11 +75,16 @@ export function InfoDialog({ open, onClose }: { open: boolean; onClose: () => vo
     <Modal open={open} onClose={onClose} title={t('info.title')} description={t('info.description')} wide>
       <div className="relative mb-6 overflow-hidden rounded-2xl signal-bg p-6 text-white">
         <div className="flex items-center gap-4">
-          <div className="relative grid size-14 place-items-center">
-            <span className="pulse-ring absolute inset-0 rounded-2xl border-2 border-koraal/70" />
-            <img src="/rhis-icon.svg" alt="" className="relative size-14 rounded-2xl" />
-          </div>
-          <div>
+          {brand ? (
+            // A reseller's own logo in place of the RHIS icon
+            <BrandLogo brand={brand} onDark />
+          ) : (
+            <div className="relative grid size-14 place-items-center">
+              <span className="pulse-ring absolute inset-0 rounded-2xl border-2 border-koraal/70" />
+              <img src="/rhis-icon.svg" alt="" className="relative size-14 rounded-2xl" />
+            </div>
+          )}
+          <div className={brand ? 'ml-auto text-right' : undefined}>
             <p className="display text-xl">Captive Portal</p>
             <p className="text-sm text-white/70">
               {t('info.version')} <span className="font-mono text-lucht">{info.data?.version ?? auth?.version}</span>
@@ -216,17 +224,27 @@ export function InfoDialog({ open, onClose }: { open: boolean; onClose: () => vo
         <p className="text-sm text-muted">{t('info.managed')}</p>
       )}
 
-      <p className="mt-6 text-xs text-muted">
-        {t('info.source')}{' '}
-        <a className="text-accent hover:underline" href={info.data?.repository ?? '#'} target="_blank" rel="noopener">
-          GitHub
-        </a>
-        . Designed by{' '}
-        <a className="text-accent hover:underline" href="https://rhis.nl" target="_blank" rel="noopener">
-          RHIS
-        </a>
-        .
-      </p>
+      {(!brand || brand.showPoweredBy) && (
+        <p className="mt-6 text-xs text-muted">
+          {t('info.source')}{' '}
+          <a className="text-accent hover:underline" href={info.data?.repository ?? '#'} target="_blank" rel="noopener">
+            GitHub
+          </a>
+          . {t('common.poweredBy')}{' '}
+          <a className="text-accent hover:underline" href="https://rhis.nl" target="_blank" rel="noopener">
+            RHIS
+          </a>
+          .
+        </p>
+      )}
+      {brand?.supportEmail && (
+        <p className="mt-6 text-xs text-muted">
+          {t('info.support')}{' '}
+          <a className="text-accent hover:underline" href={`mailto:${brand.supportEmail}`}>
+            {brand.supportEmail}
+          </a>
+        </p>
+      )}
     </Modal>
   );
 }

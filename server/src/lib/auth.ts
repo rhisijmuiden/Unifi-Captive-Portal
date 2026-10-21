@@ -4,7 +4,8 @@ import { config } from '../config.js';
 import { db, schema } from '../db/index.js';
 import type { ApiKey, User } from '../db/schema.js';
 import { randomToken, sha256 } from './crypto.js';
-import { forbidden, unauthorized } from './errors.js';
+import { forbidden, notFound, unauthorized } from './errors.js';
+import { resellerById, resellerOfTenant } from '../services/resellers.js';
 
 export const SESSION_COOKIE = 'cp_session';
 const SESSION_TTL_MS = 7 * 24 * 3600 * 1000;
@@ -51,7 +52,7 @@ export async function loadUser(req: FastifyRequest): Promise<User | null> {
   const token = req.cookies[SESSION_COOKIE];
   if (!token) return null;
   const rows = await db
-    .select({ user: schema.users, tenantStatus: schema.tenants.status, method: schema.sessions.method })
+    .select({ user: schema.users, tenantStatus: schema.tenants.status, tenantReseller: schema.tenants.resellerId, method: schema.sessions.method })
     .from(schema.sessions)
     .innerJoin(schema.users, eq(schema.users.id, schema.sessions.userId))
     .leftJoin(schema.tenants, eq(schema.tenants.id, schema.users.tenantId))
@@ -59,8 +60,22 @@ export async function loadUser(req: FastifyRequest): Promise<User | null> {
     .limit(1);
   const row = rows[0];
   if (!row || !row.user.isActive || row.tenantStatus === 'suspended') return null;
+  // A suspended reseller closes the admin panel for its own team and its customers
+  const resellerId = row.user.resellerId ?? row.tenantReseller;
+  if (resellerId && (await resellerById(resellerId))?.status === 'suspended') return null;
   req.sessionMethod = row.method;
   return row.user;
+}
+
+/** Why a user may not sign in now: a suspended customer or reseller. null = fine. */
+export async function accountSuspended(user: Pick<User, 'tenantId' | 'resellerId'>) {
+  if (user.tenantId) {
+    const tenant = await db.query.tenants.findFirst({ where: eq(schema.tenants.id, user.tenantId), columns: { status: true } });
+    if (tenant?.status === 'suspended') return 'errors.tenantSuspended';
+  }
+  const reseller = user.resellerId ? await resellerById(user.resellerId) : await resellerOfTenant(user.tenantId);
+  if (reseller?.status === 'suspended') return 'errors.resellerSuspended';
+  return null;
 }
 
 export const purgeExpiredSessions = () => db.delete(schema.sessions).where(lt(schema.sessions.expiresAt, new Date()));
@@ -84,6 +99,24 @@ export function requireTenantAdmin(req: FastifyRequest, tenantId?: string | null
   return user;
 }
 
+/** A reseller admin's own reseller. */
+export function requireReseller(req: FastifyRequest): { user: User; resellerId: string } {
+  const user = requireUser(req);
+  if (user.role !== 'reseller_admin' || !user.resellerId) throw forbidden();
+  return { user, resellerId: user.resellerId };
+}
+
+/** Platform admins and the customer's reseller may manage a customer (create, change, team, delete). */
+export async function requireTenantManager(req: FastifyRequest, tenantId: string) {
+  const user = requireUser(req);
+  if (user.role === 'superadmin') return user;
+  if (user.role !== 'reseller_admin' || !user.resellerId) throw forbidden();
+  const tenant = await db.query.tenants.findFirst({ where: eq(schema.tenants.id, tenantId), columns: { resellerId: true } });
+  if (!tenant) throw notFound();
+  if (tenant.resellerId !== user.resellerId) throw forbidden();
+  return user;
+}
+
 export function publicUser(u: User) {
   return {
     id: u.id,
@@ -91,6 +124,7 @@ export function publicUser(u: User) {
     name: u.name,
     role: u.role,
     tenantId: u.tenantId,
+    resellerId: u.resellerId,
     isActive: u.isActive,
     hasPassword: Boolean(u.passwordHash),
     ssoLinked: Boolean(u.entraOid),

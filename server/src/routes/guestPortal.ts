@@ -14,6 +14,7 @@ import { facebookConfigured, facebookLoginUrl, facebookProfile } from '../servic
 import { devicesOnStay, findStay, normalizeRoom, roomFailed, roomLocked, syncIfStale } from '../services/hotel.js';
 import { maskPhone, pendingCode, sendGuestCode, smsConfigured, verifyGuestCode } from '../services/sms.js';
 import { countAd, pickAd } from '../services/ads.js';
+import { designedByFor } from '../services/resellers.js';
 import { completePrivacyRequest, createPrivacyRequest, findPrivacyRequest, knowsEmail } from '../services/marketing.js';
 import { audit } from '../lib/auth.js';
 import type { GuestSession, PortalAd } from '../db/schema.js';
@@ -191,7 +192,7 @@ export async function guestPortalRoutes(app: FastifyInstance) {
     return html(
       reply,
       renderGuestPage({
-        privacyHref: await privacyPath(p.tenantId),
+        privacyHref: await privacyPath(p.tenantId), designedBy: await designedByFor(p.tenantId),
         locale: opts.locale,
         design: designFor(p),
         languages: p.languages,
@@ -236,7 +237,7 @@ export async function guestPortalRoutes(app: FastifyInstance) {
         const g = guestStrings[locale];
         const seconds = Math.max(0, Math.min(60, ad.seconds));
         const gate = `<div class="cp-gate" style="--wait:${seconds}s">${seconds ? `<p class="cp-wait">${esc(fill(g.adWait, { n: seconds }))}</p>` : ''}<a class="cp-btn" href="/portal/${esc(s.token)}?lang=${locale}">${esc(g.adContinue)}</a></div>`;
-        return html(reply, renderMessage(locale, '', '', { extra: adHtml(ad, g.adLabel) + gate, design: designFor(p), languages: p.languages, path: `/portal/${s.token}`, privacyHref: await privacyPath(s.tenantId) }));
+        return html(reply, renderMessage(locale, '', '', { extra: adHtml(ad, g.adLabel) + gate, design: designFor(p), languages: p.languages, path: `/portal/${s.token}`, privacyHref: await privacyPath(s.tenantId), designedBy: await designedByFor(s.tenantId) }));
       }
     }
     // A code was sent but not entered yet (e.g. after switching language): ask for it again
@@ -579,7 +580,7 @@ export async function guestPortalRoutes(app: FastifyInstance) {
         design: designFor(p),
         languages: p.languages,
         path: `${path}/done`,
-        privacyHref: await privacyPath(s.tenantId),
+        privacyHref: await privacyPath(s.tenantId), designedBy: await designedByFor(s.tenantId),
         refresh,
       }),
     );
@@ -639,7 +640,7 @@ export async function guestPortalRoutes(app: FastifyInstance) {
     const locale = guestLocale(req, lang, p.languages);
     const g = guestStrings[locale];
     const path = req.url.split('?')[0];
-    const opts = { design: designFor(p), languages: p.languages, path };
+    const opts = { design: designFor(p), languages: p.languages, path, designedBy: await designedByFor(tenantId) };
     if (view === 'sent') return html(reply, renderMessage(locale, g.privacySentTitle, g.privacySentBody, opts));
     const form = `<form method="post" action="${esc(path)}" class="cp-panel cp-solo" style="margin-top:14px">${error ? `<p class="cp-alert" role="alert">${esc(error)}</p>` : ''}<input type="hidden" name="lang" value="${locale}"><label class="cp-field"><span>${esc(g.email)}</span><input class="cp-input" type="email" name="email" required autocomplete="email" maxlength="254"></label><button class="cp-btn" type="submit">${esc(g.privacyRequest)}</button></form>`;
     return html(reply, renderMessage(locale, g.privacyTitle, g.privacyIntro, { ...opts, extra: form }), error ? 400 : 200);
@@ -672,7 +673,7 @@ export async function guestPortalRoutes(app: FastifyInstance) {
     const p = r ? await getPortalSettings(r.tenantId) : null;
     const locale = guestLocale(req, req.query.lang, p?.languages ?? Object.keys(guestStrings));
     const g = guestStrings[locale];
-    const opts = p ? { design: designFor(p), languages: p.languages, path: req.url.split('?')[0] } : {};
+    const opts = p ? { design: designFor(p), languages: p.languages, path: req.url.split('?')[0], designedBy: await designedByFor(p.tenantId) } : {};
     if (!r || r.expired || r.status !== 'pending' || !r.email) return html(reply, renderMessage(locale, g.privacyExpiredTitle, g.privacyExpiredBody, opts), 410);
     if (!erase) {
       const form = `<form method="post" action="${esc(req.url.split('?')[0])}?lang=${locale}"><button class="cp-btn" type="submit">${esc(g.privacyConfirm)}</button></form>`;

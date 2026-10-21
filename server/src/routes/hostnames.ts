@@ -15,6 +15,7 @@ import {
   probeTls,
 } from '../services/hostnames.js';
 import { getPublicSettings, getSettings } from '../services/settings.js';
+import { resellerHostnames } from '../services/resellers.js';
 
 const isLoopback = (ip: string | undefined) => ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
 
@@ -41,7 +42,7 @@ export async function hostnameRoutes(app: FastifyInstance) {
     const tenantId = tenantScope(req, true);
     const hostname = normalizeHostname(body.hostname);
     if (!isValidHostname(hostname)) throw badRequest('errors.hostnameFormat');
-    if ((await adminHostnames()).has(hostname)) throw badRequest('errors.hostnameReserved');
+    if ((await adminHostnames()).has(hostname) || (await resellerHostnames()).has(hostname)) throw badRequest('errors.hostnameReserved');
     if (await db.query.hostnames.findFirst({ where: eq(schema.hostnames.hostname, hostname) })) throw badRequest('errors.hostnameTaken');
     const [row] = await db.insert(schema.hostnames).values({ tenantId, hostname }).returning();
     await audit(req, 'hostname.created', { hostname }, tenantId);

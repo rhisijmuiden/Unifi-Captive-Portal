@@ -148,16 +148,18 @@ export function MailTemplateEditorPage() {
     setSaved(JSON.stringify(query.data.template));
   }, [query.data]);
   const dirty = content !== null && JSON.stringify(content) !== saved;
+  // A reseller's customers may have "Designed by RHIS" left out of their e-mails
+  const designedBy = auth?.brand ? auth.brand.showDesignedBy : true;
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   const preview = useMemo(() => {
     if (!content || !query.data) return null;
     try {
-      return renderMail(content, { ...query.data.sample, baseUrl: window.location.origin, locale });
+      return renderMail(content, { ...query.data.sample, baseUrl: window.location.origin, locale, designedBy });
     } catch {
       return null;
     }
-  }, [content, query.data, locale]);
+  }, [content, query.data, locale, designedBy]);
 
   const save = useMutation({
     mutationFn: () => api.put(`/mail-templates/${kind}`, { locale, ...content }),
@@ -192,7 +194,7 @@ export function MailTemplateEditorPage() {
     setBlocks(arrayMove(blocks, blocks.findIndex((b) => b.id === active.id), blocks.findIndex((b) => b.id === over.id)));
   };
   const copy = (v: string) => navigator.clipboard.writeText(v).then(() => toast.success(t('mailTemplates.copied', { value: v })));
-  const fillFromVisual = () => setContent({ ...content, html: renderMail({ ...content, mode: 'visual' }, { vars: Object.fromEntries(d.vars.map((v) => [v, `{{${v}}}`])), raw: { data: '{{{data}}}' }, baseUrl: window.location.origin, locale }).html });
+  const fillFromVisual = () => setContent({ ...content, html: renderMail({ ...content, mode: 'visual' }, { vars: Object.fromEntries(d.vars.map((v) => [v, `{{${v}}}`])), raw: { data: '{{{data}}}' }, baseUrl: window.location.origin, locale, designedBy }).html });
 
   return (
     <>

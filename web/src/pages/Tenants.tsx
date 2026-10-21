@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { Badge, Button, Card, EmptyState, Field, Input, Modal, PageHeader, Select, Spinner, Textarea } from '../components/ui';
 import { api, type Tenant } from '../lib/api';
+import { useAuth } from '../lib/auth';
 import { formatDate } from '../lib/format';
 
 const slugify = (v: string) =>
@@ -17,7 +18,7 @@ const slugify = (v: string) =>
     .replace(/^-+|-+$/g, '')
     .slice(0, 50);
 
-function TenantForm({ tenant, onClose }: { tenant: Tenant | null; onClose: () => void }) {
+function TenantForm({ tenant, onClose, resellers }: { tenant: Tenant | null; onClose: () => void; resellers?: { id: string; name: string }[] }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const [form, setForm] = useState({
@@ -26,14 +27,17 @@ function TenantForm({ tenant, onClose }: { tenant: Tenant | null; onClose: () =>
     contactEmail: tenant?.contactEmail ?? '',
     status: tenant?.status ?? 'active',
     notes: tenant?.notes ?? '',
+    // Only the platform admin assigns a customer to a reseller
+    ...(resellers ? { resellerId: tenant?.resellerId ?? '' } : {}),
   });
   const [admin, setAdmin] = useState({ name: '', email: '' });
   const [slugTouched, setSlugTouched] = useState(Boolean(tenant));
+  const body = () => ('resellerId' in form ? { ...form, resellerId: form.resellerId || null } : form);
   const save = useMutation({
     mutationFn: () =>
       tenant
-        ? api.put<{ invited?: string | null; inviteError?: string | null }>(`/tenants/${tenant.id}`, form)
-        : api.post<{ invited?: string | null; inviteError?: string | null }>('/tenants', { ...form, admin: admin.email.trim() ? admin : null }),
+        ? api.put<{ invited?: string | null; inviteError?: string | null }>(`/tenants/${tenant.id}`, body())
+        : api.post<{ invited?: string | null; inviteError?: string | null }>('/tenants', { ...body(), admin: admin.email.trim() ? admin : null }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['tenants'] });
       qc.invalidateQueries({ queryKey: ['users'] });
@@ -91,6 +95,18 @@ function TenantForm({ tenant, onClose }: { tenant: Tenant | null; onClose: () =>
             </Select>
           </Field>
         </div>
+        {resellers && resellers.length > 0 && (
+          <Field label={t('resellers.reseller')} htmlFor="t-reseller" hint={t('resellers.tenantHint')}>
+            <Select id="t-reseller" value={form.resellerId ?? ''} onChange={(e) => setForm({ ...form, resellerId: e.target.value })}>
+              <option value="">{t('resellers.direct')}</option>
+              {resellers.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
         {!tenant && (
           <div className="rounded-xl border border-line p-4">
             <p className="text-sm font-semibold">{t('tenants.adminTitle')}</p>
@@ -122,6 +138,9 @@ export function TenantsPage() {
   const [editing, setEditing] = useState<Tenant | null | 'new'>(null);
   const [deleting, setDeleting] = useState<Tenant | null>(null);
   const { data, isLoading } = useQuery({ queryKey: ['tenants'], queryFn: () => api.get<{ tenants: Tenant[] }>('/tenants') });
+  const isPlatform = useAuth().data?.user?.role === 'superadmin';
+  const resellers = useQuery({ queryKey: ['resellers'], queryFn: () => api.get<{ resellers: { id: string; name: string }[] }>('/resellers'), enabled: isPlatform });
+  const limit = useQuery({ queryKey: ['reseller'], queryFn: () => api.get<{ reseller: { maxTenants: number | null; tenantCount: number } }>('/reseller'), enabled: !isPlatform });
   const remove = useMutation({
     mutationFn: (id: string) => api.del(`/tenants/${id}`),
     onSuccess: () => {
@@ -139,11 +158,16 @@ export function TenantsPage() {
       <PageHeader
         eyebrow={t('tenants.eyebrow')}
         title={t('tenants.title')}
-        description={t('tenants.description')}
+        description={isPlatform ? t('tenants.description') : t('tenants.descriptionReseller')}
         actions={
-          <Button variant="accent" icon={<Plus className="size-4" />} onClick={() => setEditing('new')}>
-            {t('tenants.new')}
-          </Button>
+          <div className="flex items-center gap-3">
+            {limit.data?.reseller.maxTenants != null && (
+              <span className="text-sm text-muted">{t('resellers.usage', { count: limit.data.reseller.tenantCount, max: limit.data.reseller.maxTenants })}</span>
+            )}
+            <Button variant="accent" icon={<Plus className="size-4" />} onClick={() => setEditing('new')}>
+              {t('tenants.new')}
+            </Button>
+          </div>
         }
       />
       <Card>
@@ -184,7 +208,10 @@ export function TenantsPage() {
                         <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-lucht/25 text-sm font-bold text-nacht dark:text-lucht">{tenant.name.slice(0, 2).toUpperCase()}</span>
                         <div className="min-w-0">
                           <p className="truncate font-medium">{tenant.name}</p>
-                          <p className="truncate text-xs text-muted">{tenant.contactEmail ?? tenant.slug}</p>
+                          <p className="truncate text-xs text-muted">
+                            {tenant.contactEmail ?? tenant.slug}
+                            {isPlatform && tenant.resellerName && <span className="ml-2 rounded-full bg-sunken px-2 py-0.5 text-[11px]">{tenant.resellerName}</span>}
+                          </p>
                         </div>
                       </div>
                     </td>
@@ -197,9 +224,11 @@ export function TenantsPage() {
                     <td className="hidden px-6 py-3 text-muted md:table-cell">{formatDate(tenant.createdAt)}</td>
                     <td className="px-6 py-3">
                       <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => navigate(`/billing?tab=customers&edit=${tenant.id}`)} aria-label={t('tenants.billing')} title={t('tenants.billing')}>
-                          <Receipt className="size-4" />
-                        </Button>
+                        {isPlatform && (
+                          <Button variant="ghost" size="sm" onClick={() => navigate(`/billing?tab=customers&edit=${tenant.id}`)} aria-label={t('tenants.billing')} title={t('tenants.billing')}>
+                            <Receipt className="size-4" />
+                          </Button>
+                        )}
                         <Button variant="ghost" size="sm" onClick={() => setEditing(tenant)} aria-label={t('common.edit')}>
                           <Pencil className="size-4" />
                         </Button>
@@ -216,7 +245,7 @@ export function TenantsPage() {
         )}
       </Card>
 
-      {editing && <TenantForm tenant={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
+      {editing && <TenantForm tenant={editing === 'new' ? null : editing} resellers={isPlatform ? (resellers.data?.resellers ?? []) : undefined} onClose={() => setEditing(null)} />}
       <Modal
         open={Boolean(deleting)}
         onClose={() => setDeleting(null)}

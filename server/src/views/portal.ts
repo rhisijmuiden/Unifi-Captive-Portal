@@ -17,6 +17,7 @@ type Page = {
   path: string;
   /** The customer's privacy page, linked in the footer. */
   privacyHref?: string;
+  designedBy?: boolean;
 };
 
 const context = (page: Page, login?: LoginContext): RenderContext => {
@@ -26,6 +27,7 @@ const context = (page: Page, login?: LoginContext): RenderContext => {
     fallbackLocale: languages[0],
     languages: languages.map((code) => ({ code, href: `${page.path}?lang=${code}` })),
     privacyHref: page.privacyHref,
+    designedBy: page.designedBy,
     login: login ?? { methods: [], requireTerms: false, terms: '', emailFields: { name: 'off', phone: 'off', marketing: false }, paymentEmail: 'off', packages: [], action: '' },
   };
 };
@@ -34,9 +36,9 @@ export function renderGuestPage(page: Page & { title: string; login: LoginContex
   return renderPortalDocument(page.design ?? defaultDesign(), context(page, page.login), { title: page.title });
 }
 
-type MessageOptions = { extra?: string; design?: PortalDesign; languages?: string[]; path?: string; refresh?: { seconds: number; url: string }; privacyHref?: string };
+type MessageOptions = { extra?: string; design?: PortalDesign; languages?: string[]; path?: string; refresh?: { seconds: number; url: string }; privacyHref?: string; designedBy?: boolean };
 
 export function renderMessage(locale: GuestLocale, title: string, text: string, opts: MessageOptions = {}) {
-  const page = { locale, design: opts.design, languages: opts.languages, path: opts.path ?? '', privacyHref: opts.privacyHref };
+  const page = { locale, design: opts.design, languages: opts.languages, path: opts.path ?? '', privacyHref: opts.privacyHref, designedBy: opts.designedBy };
   return renderPortalDocument(opts.design ?? defaultDesign(), context(page), { title, message: { title, text, extra: opts.extra }, refresh: opts.refresh });
 }

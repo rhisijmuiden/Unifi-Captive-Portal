@@ -13,7 +13,7 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 export function Button({ variant = 'primary', size = 'md', loading, icon, className, children, disabled, ...rest }: ButtonProps) {
   const styles = {
     primary: 'bg-nacht text-white hover:bg-nacht/90 dark:bg-lucht dark:text-nacht dark:hover:bg-lucht/90',
-    accent: 'bg-koraal text-nacht hover:brightness-105 shadow-[0_6px_20px_-8px_rgb(255_107_87/0.7)]',
+    accent: 'bg-koraal text-on-koraal hover:brightness-105 shadow-[0_6px_20px_-8px_color-mix(in_srgb,var(--koraal)_70%,transparent)]',
     secondary: 'bg-raised text-ink border border-line hover:bg-sunken',
     ghost: 'text-muted hover:text-ink hover:bg-sunken',
     danger: 'bg-offline text-white hover:brightness-110',
@@ -126,7 +126,7 @@ export function Badge({ tone = 'neutral', children }: { tone?: 'neutral' | 'onli
     accent: 'bg-koraal/15 text-accent',
     info: 'bg-lucht/25 text-nacht dark:text-lucht',
   }[tone];
-  return <span className={cx('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold', tones)}>{children}</span>;
+  return <span className={cx('inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap', tones)}>{children}</span>;
 }
 
 export function StatusDot({ tone }: { tone: 'online' | 'warning' | 'offline' }) {
