@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, Copy, KeyRound, Lock, Mail, Send, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { BookOpen, CheckCircle2, Copy, Info, KeyRound, Lock, Mail, Send, ShieldCheck, TriangleAlert, XCircle } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import i18n from '../i18n';
 import { Badge, Button, Card, CardHeader, Field, Input, PageHeader, Select, Spinner, Switch, Textarea } from '../components/ui';
 import { api } from '../lib/api';
+import { guideUrl } from '../lib/docs';
 import { DnsRecords, StatusBadge, useCheckMessage, type HostnameStatus } from './Hostnames';
 
 type Smtp = {
@@ -32,6 +33,18 @@ type Smtp = {
   dkimSelector: string;
   dkimPrivateKey: string;
   dkimPrivateKeySet: boolean;
+  heloName: string;
+  heloNameEffective: string | null;
+  dkimRecord: { type: string; name: string; value: string } | null;
+};
+
+type MailCheck = {
+  id: 'helo' | 'spf' | 'dkim' | 'dmarc';
+  status: 'ok' | 'warning' | 'error' | 'info';
+  message: string;
+  params?: Record<string, string>;
+  found?: string | null;
+  suggest?: { type: string; name: string; value: string } | null;
 };
 
 type Sso = {
@@ -84,6 +97,75 @@ function Section({ title, description, children }: { title: string; description?
   );
 }
 
+function TxtRecord({ record }: { record: { type: string; name: string; value: string } }) {
+  const { t } = useTranslation();
+  const copy = (v: string) => navigator.clipboard.writeText(v).then(() => toast.success(t('common.copied')));
+  return (
+    <div className="space-y-2 rounded-xl border border-line p-3 font-mono text-xs">
+      {([['hostnames.recordType', record.type], ['hostnames.recordName', record.name], ['hostnames.recordValue', record.value]] as const).map(([label, value]) => (
+        <div key={label} className="flex items-start gap-2">
+          <span className="w-16 shrink-0 font-sans text-muted">{t(label)}</span>
+          <span className="min-w-0 flex-1 break-all">{value}</span>
+          {label !== 'hostnames.recordType' && (
+            <Button variant="ghost" size="sm" onClick={() => copy(value)} aria-label={t('common.copy')}>
+              <Copy className="size-3.5" />
+            </Button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const checkTone = { ok: 'text-online', warning: 'text-warning', error: 'text-offline', info: 'text-muted' } as const;
+const CheckIcon = { ok: CheckCircle2, warning: TriangleAlert, error: XCircle, info: Info } as const;
+
+function DeliverabilityCheck({ form }: { form: Smtp }) {
+  const { t } = useTranslation();
+  const check = useMutation({
+    mutationFn: () => api.post<{ fromDomain: string; checks: MailCheck[] }>('/settings/smtp/check', form),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Card>
+      <CardHeader title={t('smtp.check')} description={t('smtp.checkHint')} />
+      <div className="space-y-4 p-6">
+        <Button className="w-full" variant="ghost" icon={<ShieldCheck className="size-4" />} loading={check.isPending} onClick={() => check.mutate()}>
+          {t('smtp.checkRun')}
+        </Button>
+        {check.data && !check.data.fromDomain && <p className="text-sm text-warning">{t('smtp.checkNoDomain')}</p>}
+        {check.data?.checks.map((c) => {
+          const Icon = CheckIcon[c.status];
+          return (
+            <div key={c.id} className="space-y-2 border-t border-line pt-3 text-sm">
+              <div className={`flex gap-2 ${checkTone[c.status]}`}>
+                <Icon className="mt-0.5 size-4 shrink-0" />
+                <span className="font-semibold">{t(`smtp.checks.${c.id}`)}</span>
+              </div>
+              <p className="text-muted">{t(`smtp.checks.${c.message}` as 'smtp.checks.dkimMissing', { name: '', ...c.params })}</p>
+              {c.found && c.status !== 'ok' && (
+                <p className="font-mono text-xs break-all">
+                  <span className="font-sans text-muted">{t('smtp.checkFound')}: </span>
+                  {c.found}
+                </p>
+              )}
+              {c.suggest && c.id !== 'dkim' && (
+                <>
+                  <p className="text-xs font-medium">{t('smtp.checkSuggested')}</p>
+                  <TxtRecord record={c.suggest} />
+                </>
+              )}
+            </div>
+          );
+        })}
+        <a href={guideUrl('smtp', i18n.resolvedLanguage)} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-accent hover:underline">
+          <BookOpen className="size-4" /> {t('smtp.checkGuide')}
+        </a>
+      </div>
+    </Card>
+  );
+}
+
 const presets: { label: string; values: Partial<Smtp> }[] = [
   { label: 'Microsoft 365', values: { host: 'smtp.office365.com', port: 587, security: 'starttls' } },
   { label: 'Google Workspace', values: { host: 'smtp.gmail.com', port: 587, security: 'starttls' } },
@@ -96,6 +178,15 @@ export function SmtpSettingsPage() {
   const [testTo, setTestTo] = useState('');
   const test = useMutation({
     mutationFn: () => api.post<{ ok: boolean; error?: string; response?: string }>('/settings/smtp/test', { ...form, to: testTo }),
+  });
+  const generate = useMutation({
+    mutationFn: () => api.post<Smtp>('/settings/smtp/dkim-key', { domain: form?.dkimDomain, selector: form?.dkimSelector }),
+    // Only take over the DKIM fields, so other unsaved edits in the form stay
+    onSuccess: (data) => {
+      (['dkimEnabled', 'dkimDomain', 'dkimSelector', 'dkimPrivateKey', 'dkimPrivateKeySet', 'dkimRecord'] as const).forEach((k) => set(k, data[k] as never));
+      toast.success(t('smtp.dkimGenerated'));
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   if (loading || !form) return <Spinner />;
@@ -200,6 +291,9 @@ export function SmtpSettingsPage() {
             <Field label={t('smtp.replyTo')} htmlFor="reply">
               <Input id="reply" type="email" value={form.replyTo} onChange={(e) => set('replyTo', e.target.value)} />
             </Field>
+            <Field label={t('smtp.heloName')} htmlFor="helo" hint={t('smtp.heloNameHint', { name: form.heloNameEffective && !form.heloName ? form.heloNameEffective : t('smtp.heloNameNone') })}>
+              <Input id="helo" placeholder={form.heloNameEffective ?? 'portal.example.com'} value={form.heloName} onChange={(e) => set('heloName', e.target.value)} />
+            </Field>
           </Section>
 
           <Section title={t('smtp.dkim')} description={t('smtp.dkimHint')}>
@@ -214,7 +308,20 @@ export function SmtpSettingsPage() {
                     <Input id="dsel" placeholder="mail" value={form.dkimSelector} onChange={(e) => set('dkimSelector', e.target.value)} />
                   </Field>
                 </div>
-                <Field label={t('smtp.dkimKey')} htmlFor="dkey">
+                <Button
+                  variant="ghost"
+                  icon={<KeyRound className="size-4" />}
+                  loading={generate.isPending}
+                  onClick={() => (!form.dkimPrivateKeySet || window.confirm(t('smtp.dkimRegenerateConfirm'))) && generate.mutate()}
+                >
+                  {form.dkimPrivateKeySet ? t('smtp.dkimRegenerate') : t('smtp.dkimGenerate')}
+                </Button>
+                {form.dkimRecord && (
+                  <Field label={t('smtp.dkimRecord')} hint={t('smtp.dkimRecordHint')}>
+                    <TxtRecord record={form.dkimRecord} />
+                  </Field>
+                )}
+                <Field label={t('smtp.dkimPaste')} htmlFor="dkey">
                   <SecretInput id="dkey" multiline value={form.dkimPrivateKey} isSet={form.dkimPrivateKeySet} onChange={(v) => set('dkimPrivateKey', v)} />
                 </Field>
               </>
@@ -223,7 +330,7 @@ export function SmtpSettingsPage() {
         </div>
 
         <div className="space-y-6">
-          <Card className="sticky top-6">
+          <Card>
             <CardHeader title={t('smtp.test')} description={t('smtp.testHint')} />
             <div className="space-y-4 p-6">
               <Field label={t('smtp.recipient')} htmlFor="to">
@@ -255,6 +362,7 @@ export function SmtpSettingsPage() {
               </ul>
             </div>
           </Card>
+          <DeliverabilityCheck form={form} />
         </div>
       </div>
     </>

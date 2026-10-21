@@ -4,6 +4,15 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.7.2-beta.1] - 2026-10-21 (test channel)
+
+Fix for outgoing mail being marked as spam (`HELO_MISC_IP`, `KAM_DMARC_QUARANTINE`, `SPF_NONE`).
+
+- The app now greets the mail server with a real hostname instead of `[127.0.0.1]`. New **EHLO name** setting under **E-mail (SMTP) → Sender**; empty uses the admin hostname or the server's FQDN.
+- **DKIM**: **Generate key** creates a 2048-bit key, stores it encrypted and shows the TXT record to publish. Pasting your own key still works.
+- New **Deliverability check** card: checks the EHLO name and the SPF, DKIM and DMARC records of the sender domain, explains what is wrong and suggests the records to add.
+- Guide: [E-mail (SMTP)](docs/en/smtp.md#keeping-mail-out-of-spam) explains SPF, DKIM and DMARC.
+
 ## [0.7.1] - 2026-10-21
 
 Stable release of the Caddy fixes, identical to 0.7.1-beta.2: the SSL service (Caddy) status card under Hosting & SSL, and `install/caddy.sh` replacing the Caddy package's sample Caddyfile so Caddy serves HTTPS on port 443.

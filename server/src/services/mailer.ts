@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport/index.js';
 import { badRequest } from '../lib/errors.js';
+import { heloName } from './mailDns.js';
 import { getSettings, type SettingsValue } from './settings.js';
 
 type Smtp = SettingsValue<'smtp'>;
@@ -25,6 +26,7 @@ export async function createTransport(s: Smtp) {
   const options: SMTPTransport.Options = {
     host: s.host,
     port: s.port,
+    name: (await heloName(s)).name ?? undefined,
     secure: s.security === 'tls',
     requireTLS: s.security === 'starttls',
     ignoreTLS: s.security === 'none',

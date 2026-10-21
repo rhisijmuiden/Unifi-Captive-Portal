@@ -4,6 +4,15 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.7.2-beta.1] - 2026-10-21 (testkanaal)
+
+Oplossing voor uitgaande mail die als spam wordt gezien (`HELO_MISC_IP`, `KAM_DMARC_QUARANTINE`, `SPF_NONE`).
+
+- De app meldt zich bij de mailserver met een echte hostnaam in plaats van `[127.0.0.1]`. Nieuwe instelling **EHLO-naam** onder **E-mail (SMTP) → Afzender**; leeg gebruikt de admin-hostnaam of de FQDN van de server.
+- **DKIM**: **Sleutel genereren** maakt een 2048-bit sleutel, slaat die versleuteld op en toont het TXT-record om te publiceren. Een eigen sleutel plakken kan nog steeds.
+- Nieuwe kaart **Afleverbaarheidscontrole**: controleert de EHLO-naam en de SPF-, DKIM- en DMARC-records van het afzenderdomein, legt uit wat er mis is en stelt de records voor.
+- Handleiding: [E-mail (SMTP)](docs/nl/smtp.md#mail-uit-de-spam-houden) legt SPF, DKIM en DMARC uit.
+
 ## [0.7.1] - 2026-10-21
 
 Stabiele release van de Caddy-oplossingen, gelijk aan 0.7.1-beta.2: de statuskaart SSL-dienst (Caddy) onder Hosting & SSL, en `install/caddy.sh` dat het voorbeeld-Caddyfile van het Caddy-pakket vervangt zodat Caddy HTTPS op poort 443 aanbiedt.
