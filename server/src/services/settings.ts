@@ -24,6 +24,12 @@ export const smtpSchema = z.object({
   fromName: z.string().default('Captive Portal'),
   fromEmail: z.string().default(''),
   replyTo: z.string().default(''),
+  // Name sent with EHLO; empty = admin hostname or the server's FQDN (never an IP, spam filters punish that)
+  heloName: z
+    .string()
+    .transform(normalizeHostname)
+    .refine((v) => !v || isValidHostname(v), 'errors.hostnameFormat')
+    .default(''),
   dkimEnabled: z.boolean().default(false),
   dkimDomain: z.string().default(''),
   dkimSelector: z.string().default(''),
