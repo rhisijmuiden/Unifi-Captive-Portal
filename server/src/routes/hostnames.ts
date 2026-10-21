@@ -6,6 +6,7 @@ import { audit, requireSuperadmin, tenantScope } from '../lib/auth.js';
 import { badRequest, notFound } from '../lib/errors.js';
 import {
   adminHostnames,
+  caddyStatus,
   checkDns,
   checkHostname,
   clearHostnameCache,
@@ -98,5 +99,10 @@ export async function hostnameRoutes(app: FastifyInstance) {
     let result = await checkDns(adminHostname);
     if (result.status === 'dns_ok') result = await probeTls(adminHostname);
     return { ...result, settings: await getPublicSettings('hosting') };
+  });
+
+  app.get('/api/settings/hosting/caddy', async (req) => {
+    requireSuperadmin(req);
+    return caddyStatus();
   });
 }

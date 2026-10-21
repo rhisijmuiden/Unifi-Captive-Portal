@@ -235,6 +235,7 @@ export const operations: Operation[] = [
   { method: 'POST', route: '/api/settings/smtp/test', platform: 'settings', body: z.object({ to: z.string() }), summary: { en: 'Send a test e-mail', nl: 'Testmail versturen' } },
   { method: 'POST', route: '/api/settings/hosting/detect-ip', platform: 'settings', summary: { en: "Detect the server's public IP addresses", nl: 'Publieke IP-adressen van de server bepalen' } },
   { method: 'POST', route: '/api/settings/hosting/check', platform: 'settings', summary: { en: 'Check the admin hostname (DNS and SSL)', nl: 'Beheerhostname controleren (DNS en SSL)' } },
+  { method: 'GET', route: '/api/settings/hosting/caddy', platform: 'settings', summary: { en: 'Status of the SSL service (Caddy)', nl: 'Status van de SSL-service (Caddy)' } },
 
   { method: 'GET', route: '/api/billing/plans', platform: 'billing', summary: { en: 'List price plans', nl: 'Prijsplannen' } },
   { method: 'POST', route: '/api/billing/plans', platform: 'billing', body: planInput, summary: { en: 'Add a price plan', nl: 'Prijsplan toevoegen' } },

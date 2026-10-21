@@ -55,7 +55,20 @@ From then on guests are sent to `https://guest.company.com`. Without an active h
 | No A or AAAA record was found yet | Create the record. A new record can take up to a few hours to become visible. |
 | The record points to … instead of this server | Correct the value, or remove an old AAAA record. |
 | The certificate has not been issued yet | Usually temporary (for example Let's Encrypt rate limits). The platform retries automatically. Check that ports 80 and 443 are open. |
-| The SSL service (Caddy) does not respond | Platform admin: `systemctl status caddy` and `journalctl -u caddy -n 50`. |
+| The SSL service (Caddy) does not respond | Platform admin: see [When Caddy does not respond](#when-caddy-does-not-respond). |
+
+## When Caddy does not respond
+
+The **SSL service (Caddy)** card under **Hosting & SSL** shows whether Caddy listens on ports 443 and 80 and whether it runs this app's configuration. When something is red, run as root on the server:
+
+```bash
+systemctl status caddy --no-pager        # is Caddy running?
+journalctl -u caddy -n 50 --no-pager     # why did it stop?
+ss -ltnp | grep -E ':(80|443) '          # who listens on 80/443?
+bash /opt/captive-portal/install/caddy.sh  # install or repair Caddy
+```
+
+The repair script installs Caddy when it is missing, writes the configuration, refuses to start when another web server (such as Apache or nginx) holds port 80 or 443, and shows Caddy's log when it does not come up. On an LXC container, ports 80 and 443 must also be forwarded to the container.
 
 ## Your own reverse proxy instead of Caddy
 

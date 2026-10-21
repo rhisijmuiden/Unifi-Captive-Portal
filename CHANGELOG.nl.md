@@ -4,6 +4,15 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.7.1-beta.1] - 2026-10-21 (testkanaal)
+
+Oplossing voor *De SSL-dienst (Caddy) op de server reageert niet*.
+
+- **Hosting & SSL** heeft een kaart **SSL-dienst (Caddy)** die laat zien of Caddy op poort 443 en 80 luistert en de configuratie van deze app gebruikt, met de commando's om het te herstellen als dat niet zo is.
+- `install/caddy.sh` (draait bij de installatie en elke update) controleert de configuratie met het opgeslagen e-mailadres voor Let's Encrypt, zodat updates daar niet meer op vastlopen; het stopt met een duidelijke melding als een andere webserver poort 80 of 443 bezet, wacht tot Caddy echt luistert en toont het log van Caddy als dat niet lukt. De overbodige pakketten `debian-keyring` en `apt-transport-https` worden niet meer geïnstalleerd.
+- De melding voor klanten verwijst de platformbeheerder nu naar **Hosting & SSL**.
+- Handleiding: [Hostnamen en SSL](docs/nl/hostnamen-ssl.md#als-caddy-niet-reageert) heeft een sectie voor probleemoplossing.
+
 ## [0.7.0] - 2026-10-21
 
 Stabiele release van stap 7 (sms en sociale login, hotellogin, tweestapsverificatie, monitoring, live dashboard, marketing en AVG, feedback, advertenties en white-label resellers), gelijk aan 0.7.0-beta.4.
