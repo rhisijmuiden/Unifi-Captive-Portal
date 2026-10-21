@@ -81,7 +81,7 @@ The **Documentation** tab lists every operation per part, with its scope, parame
 
 On the **Webhooks** tab, click **New webhook**, enter the address and choose the events. You get a **signing secret** (`whsec_…`); you can show it again later or replace it with a new one.
 
-Customer events: `guest.authorized`, `payment.paid`, `hostname.active`, `console.offline`, `console.online`, `invoice.issued`, `invoice.paid`.
+Customer events: `guest.authorized`, `payment.paid`, `hostname.active`, `console.offline`, `console.online`, `device.offline`, `device.online`, `invoice.issued`, `invoice.paid`.
 Platform events: `tenant.created`, `tenant.updated`, `tenant.deleted`, `invoice.issued`, `invoice.paid`, `backup.succeeded`, `backup.failed`.
 
 Every event is a `POST` with JSON:

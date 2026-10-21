@@ -17,8 +17,10 @@ import {
   Moon,
   Palette,
   Receipt,
+  Radio,
   Router,
   Server,
+  ShieldCheck,
   SlidersHorizontal,
   Ticket,
   Sun,
@@ -57,6 +59,7 @@ function navFor(user: User, t: TFunction): Section[] {
   const insights: Section = {
     title: t('nav.insights'),
     items: [
+      { to: '/live', label: t('nav.live'), icon: Radio },
       { to: '/guests', label: t('nav.guests'), icon: UserCheck },
       { to: '/reports', label: t('nav.reports'), icon: BarChart3 },
       { to: '/notifications', label: t('nav.notifications'), icon: BellRing },
@@ -79,6 +82,7 @@ function navFor(user: User, t: TFunction): Section[] {
         items: [
           { to: '/settings/smtp', label: t('nav.smtp'), icon: Mail },
           { to: '/settings/sso', label: t('nav.sso'), icon: KeyRound },
+          { to: '/settings/security', label: t('nav.security'), icon: ShieldCheck },
           { to: '/settings/hosting', label: t('nav.hosting'), icon: Server },
           { to: '/mail-templates', label: t('nav.mailTemplates'), icon: MailOpen },
           { to: '/backups', label: t('nav.backups'), icon: DatabaseBackup },

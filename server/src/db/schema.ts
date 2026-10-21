@@ -34,6 +34,15 @@ export const users = pgTable(
     entraOid: text('entra_oid').unique(),
     // Preferred language for the interface and e-mails (null = follow the browser)
     locale: text('locale'),
+    // Two-factor sign-in with an authenticator app (TOTP); secrets are encrypted with APP_SECRET
+    totpSecret: text('totp_secret'),
+    // Secret shown during set-up, until the user confirms it with a first code
+    totpPendingSecret: text('totp_pending_secret'),
+    totpEnabledAt: timestamp('totp_enabled_at', { withTimezone: true }),
+    // Last time step a code was used for, so a code cannot be used twice
+    totpLastStep: integer('totp_last_step'),
+    // sha256 of the unused one-time recovery codes
+    recoveryCodes: jsonb('recovery_codes').$type<string[]>().notNull().default([]),
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -47,6 +56,8 @@ export const sessions = pgTable('sessions', {
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  // How the user signed in; Microsoft sign-ins rely on Entra's own multi-factor authentication
+  method: text('method').$type<'password' | 'entra'>().notNull().default('password'),
   ip: text('ip'),
   userAgent: text('user_agent'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -110,6 +121,8 @@ export const consoles = pgTable('consoles', {
   status: healthStatus('status').notNull().default('unknown'),
   lastError: text('last_error'),
   lastSyncAt: timestamp('last_sync_at', { withTimezone: true }),
+  // First failed check of the current outage; cleared when the console answers again
+  offlineSince: timestamp('offline_since', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -143,6 +156,9 @@ export const consoleDevices = pgTable('console_devices', {
     .references(() => tenants.id, { onDelete: 'cascade' }),
   name: text('name'),
   model: text('model'),
+  // State reported by UniFi (ONLINE, OFFLINE, UPDATING, …)
+  state: text('state'),
+  offlineSince: timestamp('offline_since', { withTimezone: true }),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

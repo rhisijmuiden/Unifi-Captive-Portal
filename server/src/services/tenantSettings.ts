@@ -18,6 +18,10 @@ export const paymentSettingsSchema = z.object({
 export const notificationSettingsSchema = z.object({
   hostnameLive: z.boolean().default(true),
   monthlyReport: z.boolean().default(true),
+  // Monitoring: an e-mail when a console (or an access point) stays offline this long, and when it is back
+  consoleOffline: z.boolean().default(true),
+  deviceOffline: z.boolean().default(false),
+  offlineMinutes: z.coerce.number().int().min(5).max(1440).default(10),
   // Customer admins get the notifications; extra addresses can be added
   notifyAdmins: z.boolean().default(true),
   recipients: z.array(z.string().email()).max(20).default([]),
@@ -31,10 +35,16 @@ export const socialSettingsSchema = z.object({
   facebookGraceMinutes: z.coerce.number().int().min(0).max(15).default(5),
 });
 
+// Two-factor sign-in for the customer's own team, on top of what the platform requires
+export const securitySettingsSchema = z.object({
+  require2fa: z.enum(['off', 'admins', 'all']).default('off'),
+});
+
 const definitions = {
   payments: { schema: paymentSettingsSchema, secrets: ['mollieApiKey', 'stripeSecretKey', 'stripeWebhookSecret'] },
   notifications: { schema: notificationSettingsSchema, secrets: [] },
   social: { schema: socialSettingsSchema, secrets: ['facebookAppSecret'] },
+  security: { schema: securitySettingsSchema, secrets: [] },
 } as const;
 
 type Definitions = typeof definitions;

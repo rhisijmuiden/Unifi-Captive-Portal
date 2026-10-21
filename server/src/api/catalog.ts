@@ -9,7 +9,7 @@ import { voucherInput } from '../routes/vouchers.js';
 import { targetSchema } from '../services/backups.js';
 import { mailContentSchema } from '../services/mailTemplates.js';
 import { portalDesignSchema } from '../services/portalDesign.js';
-import { notificationSettingsSchema, paymentSettingsSchema, socialSettingsSchema } from '../services/tenantSettings.js';
+import { notificationSettingsSchema, paymentSettingsSchema, securitySettingsSchema, socialSettingsSchema } from '../services/tenantSettings.js';
 
 /**
  * The public REST API (/api/v1/…). Every operation is one of the routes the admin interface
@@ -76,6 +76,7 @@ const settingsBody = z.record(z.string(), z.unknown());
 export const operations: Operation[] = [
   // ── Customer API ────────────────────────────────────────────────────────────
   { method: 'GET', route: '/api/dashboard', tenant: 'reports', platform: 'system', summary: { en: 'Overview figures and recent activity', nl: 'Overzichtscijfers en recente activiteit' } },
+  { method: 'GET', route: '/api/live', tenant: 'reports', summary: { en: 'Live figures: guests online, today per hour, latest sign-ins, console status', nl: 'Live cijfers: gasten online, vandaag per uur, laatste aanmeldingen, status consoles' } },
   { method: 'GET', route: '/api/reports/monthly', tenant: 'reports', params: [month], summary: { en: 'Monthly report: guests, registrations, payments and peak times', nl: 'Maandrapport: gasten, registraties, betalingen en piekmomenten' } },
 
   { method: 'GET', route: '/api/consoles', tenant: 'consoles', summary: { en: 'List consoles with their sites', nl: 'Consoles met hun sites' } },
@@ -129,6 +130,9 @@ export const operations: Operation[] = [
   { method: 'PUT', route: '/api/users/:id', tenant: 'users', platform: 'users', params: [id], body: userInput.omit({ sendInvite: true }).partial(), summary: { en: 'Change a user', nl: 'Gebruiker wijzigen' } },
   { method: 'POST', route: '/api/users/:id/invite', tenant: 'users', platform: 'users', params: [id], summary: { en: 'Send the invitation again', nl: 'Uitnodiging opnieuw sturen' } },
   { method: 'DELETE', route: '/api/users/:id', tenant: 'users', platform: 'users', params: [id], summary: { en: 'Delete a user', nl: 'Gebruiker verwijderen' } },
+  { method: 'POST', route: '/api/users/:id/reset-2fa', tenant: 'users', platform: 'users', params: [id], summary: { en: "Reset a user's two-factor authentication (lost phone)", nl: 'Tweestapsverificatie van een gebruiker resetten (telefoon kwijt)' } },
+  { method: 'GET', route: '/api/security-settings', tenant: 'users', summary: { en: 'Two-factor policy for your team', nl: 'Beleid voor tweestapsverificatie van je team' } },
+  { method: 'PUT', route: '/api/security-settings', tenant: 'users', body: securitySettingsSchema.partial(), summary: { en: 'Change the two-factor policy for your team', nl: 'Beleid voor tweestapsverificatie wijzigen' } },
 
   { method: 'GET', route: '/api/invoices', tenant: 'invoices', summary: { en: 'Your invoices and subscription', nl: 'Je facturen en abonnement' } },
   { method: 'GET', route: '/api/billing/invoices/:id/pdf', tenant: 'invoices', platform: 'billing', params: [id], produces: 'application/pdf', summary: { en: 'Download an invoice as PDF', nl: 'Factuur als pdf downloaden' } },
@@ -151,14 +155,14 @@ export const operations: Operation[] = [
     method: 'GET',
     route: '/api/settings/:key',
     platform: 'settings',
-    params: [{ name: 'key', in: 'path', required: true, enum: ['smtp', 'sso', 'system', 'hosting', 'billing'], text: { en: 'Settings group', nl: 'Instellingengroep' } }],
+    params: [{ name: 'key', in: 'path', required: true, enum: ['smtp', 'sso', 'system', 'hosting', 'billing', 'security'], text: { en: 'Settings group', nl: 'Instellingengroep' } }],
     summary: { en: 'Get server settings (secrets are never returned)', nl: 'Serverinstellingen ophalen (geheimen komen nooit terug)' },
   },
   {
     method: 'PUT',
     route: '/api/settings/:key',
     platform: 'settings',
-    params: [{ name: 'key', in: 'path', required: true, enum: ['smtp', 'sso', 'system', 'hosting', 'billing'], text: { en: 'Settings group', nl: 'Instellingengroep' } }],
+    params: [{ name: 'key', in: 'path', required: true, enum: ['smtp', 'sso', 'system', 'hosting', 'billing', 'security'], text: { en: 'Settings group', nl: 'Instellingengroep' } }],
     body: settingsBody,
     summary: { en: 'Change server settings', nl: 'Serverinstellingen wijzigen' },
     description: { en: 'Fields that are left out keep their value; an empty secret keeps the stored one.', nl: 'Weggelaten velden houden hun waarde; een leeg geheim houdt het opgeslagen geheim.' },

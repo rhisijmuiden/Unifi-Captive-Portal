@@ -21,6 +21,8 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   const data = res.headers.get('content-type')?.includes('json') ? await res.json() : null;
+  // The two-factor policy changed while signed in: set it up before doing anything else
+  if (res.status === 403 && data?.code === 'two_factor_setup' && location.pathname !== '/two-factor') location.assign('/two-factor');
   if (!res.ok) throw new ApiError(res.status, data?.error ?? `HTTP ${res.status}`);
   return data as T;
 }
@@ -43,6 +45,7 @@ export type User = {
   isActive: boolean;
   hasPassword: boolean;
   ssoLinked: boolean;
+  twoFactorEnabled: boolean;
   lastLoginAt: string | null;
   createdAt: string;
   locale: string | null;
@@ -62,6 +65,10 @@ export type Tenant = {
 export type AuthState = {
   needsSetup: boolean;
   user: User | null;
+  /** Signed in, but the policy requires two-factor authentication that is not set up yet */
+  twoFactorSetupRequired: boolean;
+  /** Password accepted, waiting for the code from the authenticator app */
+  twoFactorPending: boolean;
   sso: { entraEnabled: boolean; buttonLabel: string; allowLocalLogin: boolean };
   passwordResetAvailable: boolean;
   version: string;

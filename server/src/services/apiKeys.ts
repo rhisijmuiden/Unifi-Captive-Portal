@@ -60,6 +60,11 @@ export async function authenticateKey(header: string | undefined): Promise<KeyAu
     entraOid: null,
     // No saved language: API errors follow Accept-Language or X-Locale
     locale: null,
+    totpSecret: null,
+    totpPendingSecret: null,
+    totpEnabledAt: null,
+    totpLastStep: null,
+    recoveryCodes: [],
     lastLoginAt: null,
     createdAt: key.createdAt,
   };

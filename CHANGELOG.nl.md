@@ -4,6 +4,17 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.7.0-beta.1] - 2026-10-21 (testkanaal)
+
+Stap 7, deel 1: beveiliging, monitoring en een live dashboard.
+
+- **Tweestapsverificatie** voor iedereen: zet het aan bij **Mijn account** met elke authenticator-app (QR-code of sleutel), bevestig met een code en bewaar tien eenmalige **herstelcodes** (kopiëren of downloaden; op elk moment een nieuwe set). Na het wachtwoord wordt om een code gevraagd; een code werkt maar één keer, en te veel verkeerde codes zetten het account 15 minuten op pauze. Ook na een wachtwoordreset is de code nodig.
+- **Verplichte 2FA**: de platformbeheerder maakt het verplicht op de nieuwe pagina **Systeem → Beveiliging** voor platformbeheerders en/of klanten (beheerders of iedereen); klantbeheerders kunnen het voor hun eigen team verplichten op de pagina **Team**. Wie het moet gebruiken, krijgt direct na het inloggen het instelscherm. Inloggen met Microsoft (Entra) telt standaard als tweestapsverificatie (instelbaar). Beheerders kunnen de 2FA van een gebruiker **resetten** als telefoon en codes kwijt zijn; gebruikers krijgen een **2FA**-label.
+- **Monitoring**: consoles worden nu elke 5 minuten gecontroleerd (was elk uur), inclusief de status van elk access point. Bij **Notificaties → Monitoring** kiezen klanten e-mails voor *console offline* en *access point offline* en na hoeveel minuten (standaard 10); als alles weer werkt volgt een tweede e-mail met de duur. Nieuwe e-mailtemplates en webhooks `device.offline` / `device.online`.
+- **Live dashboard** (nieuwe pagina **Inzicht → Live**): gasten online per locatie en per access point, verbindingen en unieke apparaten vandaag tegenover dezelfde dag vorige week, het afgelopen uur, vandaag per uur met vorige week ter vergelijking, manieren van inloggen, de laatste aanmeldingen en de status van consoles en access points, elke 10 seconden ververst. Ook in de API als `GET /api/v1/live`.
+- API: beleid voor tweestapsverificatie (`/security-settings`), de 2FA van een gebruiker resetten en de live cijfers.
+- Nieuwe handleiding: [Beveiliging en tweestapsverificatie](docs/nl/beveiliging.md); monitoring en het live dashboard staan in [Notificaties](docs/nl/notificaties-mail.md).
+
 ## [0.6.0-beta.1] - 2026-10-21 (testkanaal)
 
 Stap 6: volledige API.

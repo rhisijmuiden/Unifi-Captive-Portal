@@ -19,7 +19,7 @@ Captive Portal is een multi-tenant webapplicatie. Jij (de platformbeheerder) hos
 
 Zie de [roadmap](ROADMAP.nl.md) voor wat er al werkt en wat eraan komt.
 
-## Wat zit er nu in (v0.6)
+## Wat zit er nu in (v0.7)
 
 - **UniFi-koppeling**: UniFi OS consoles koppelen (UDM, UCG, Dream Router, Cloud Key, zelf gehoste Network) via de UniFi Site Manager-cloud of rechtstreeks, met de officiële UniFi Network API. Gasten worden herkend aan het access point en doorgelaten met limieten voor tijd, data en snelheid.
 - **Gastportal** als external portal server, ontworpen in een **drag-and-drop portal-editor** met templates, afbeeldingen, kleuren en lettertypen, in het Nederlands en Engels (de klant kiest de talen, de gast kiest er één).
@@ -28,10 +28,12 @@ Zie de [roadmap](ROADMAP.nl.md) voor wat er al werkt en wat eraan komt.
 - **Back-ups en herstel**: versleutelde (AES-256) volledige en incrementele back-ups van de database en datamap naar **SCP**, **FTPS**, FTP of een lokale map, met een schema per locatie en bewaartermijn, en herstellen vanaf de remote locatie in de webinterface met een veiligheidskopie en automatische rollback.
 - **Volledige REST API en webhooks**: een klant-API voor alles in de omgeving van een klant en een platform-API voor klanten, gebruikers, serverinstellingen, facturatie, back-ups en updates. API-sleutels met lees/schrijfrechten, vervaldatum en rate limit, een audit trail per sleutel, ondertekende webhooks met herhaalpogingen, en OpenAPI-documentatie in het Nederlands en Engels met een verkenner om uit te proberen.
 - **Notificaties en rapportages**: een e-mail zodra een hostnaam live is (A-record gevalideerd en SSL geregeld) en een maandrapportage met gasten, registraties, betalingen en piekmomenten.
+- **Monitoring en live dashboard**: consoles worden elke 5 minuten gecontroleerd, met een e-mail (en webhook) als een console of access point te lang offline is en als hij weer werkt. Een live dashboard per klant toont gasten online, vandaag per uur tegenover vorige week, manieren van inloggen, gasten per access point en de laatste aanmeldingen.
 - **Mail-template ontwerper**: elke e-mail, visueel of in HTML, per taal, per klant en platformbreed.
 - **Eigen hostnamen met automatisch SSL**: Caddy op poort 80/443 met Let's Encrypt-certificaten op aanvraag, pas nadat het DNS-record is gecontroleerd. Ook het beheerpaneel kan een eigen HTTPS-hostnaam krijgen.
 - **Klanten (tenants) en gebruikers** met drie rollen: platformbeheerder, klantbeheerder en medewerker. Uitnodigen per e-mail. De platformbeheerder beheert de klanten en de server (publiek IP-adres, hostnaam en SSL van het beheerpaneel, e-mail, SSO); consoles, portals, hostnamen en gasten horen in de eigen omgeving van elke klant.
 - **Microsoft Entra ID single sign-on** (OpenID Connect met PKCE), naast of in plaats van inloggen met wachtwoord.
+- **Tweestapsverificatie** met een authenticator-app (TOTP) en herstelcodes, die de platformbeheerder verplicht kan maken voor platformbeheerders en klanten, en klanten voor hun eigen team.
 - **Eigen mailserver (SMTP)**: STARTTLS of TLS, minimale TLS-versie, gebruikersnaam/wachtwoord of OAuth 2.0 (Microsoft 365), DKIM-ondertekening en een testknop.
 - **Info & updates**: huidige versie, controleren op updates, kiezen tussen het **stable**- en **test**-kanaal, en de **hele installatie bijwerken** (app plus Debian-pakketten) vanuit de webinterface, met automatische databaseback-up en rollback.
 - **Tweetalig**: Nederlands en Engels in de interface, foutmeldingen en e-mails. Elke gebruiker kiest zijn taal; nieuwe talen voeg je toe met één vertaalbestand.
@@ -54,7 +56,8 @@ Open daarna `http://<ip-van-de-server>:8080` en maak het eerste beheerdersaccoun
 - [Hostnamen en SSL](docs/nl/hostnamen-ssl.md): DNS-records, automatische certificaten, HTTPS voor het beheerpaneel
 - [Portal-editor](docs/nl/portaal-editor.md): blokken, templates, afbeeldingen en talen
 - [Gasttoegang](docs/nl/gasttoegang.md): manieren van inloggen, vouchers, Mollie en Stripe, tijd om te betalen, inloggen met Facebook, pre-autorisatie
-- [Notificaties, rapportages en e-mailtemplates](docs/nl/notificaties-mail.md)
+- [Notificaties, monitoring, live dashboard, rapportages en e-mailtemplates](docs/nl/notificaties-mail.md)
+- [Beveiliging en tweestapsverificatie](docs/nl/beveiliging.md): authenticator-app, herstelcodes, verplichte 2FA, telefoon kwijt
 - [Klanten factureren](docs/nl/facturatie.md): plannen, abonnementen, facturen, online betalen, herinneringen en portalen pauzeren
 - [Back-ups en herstel](docs/nl/backups.md): SCP-, FTPS- en FTP-locaties, schema, versleuteling, herstellen en calamiteitenherstel
 - [API en webhooks](docs/nl/api.md): API-sleutels en scopes, klant- en platform-API, rate limits, webhooks en handtekeningen, OpenAPI

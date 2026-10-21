@@ -81,7 +81,7 @@ Het tabblad **Documentatie** toont elke bewerking per onderdeel, met scope, para
 
 Klik op het tabblad **Webhooks** op **Nieuwe webhook**, vul het adres in en kies de gebeurtenissen. Je krijgt een **ondertekeningsgeheim** (`whsec_…`); dat kun je later opnieuw tonen of vervangen door een nieuw geheim.
 
-Gebeurtenissen voor klanten: `guest.authorized`, `payment.paid`, `hostname.active`, `console.offline`, `console.online`, `invoice.issued`, `invoice.paid`.
+Gebeurtenissen voor klanten: `guest.authorized`, `payment.paid`, `hostname.active`, `console.offline`, `console.online`, `device.offline`, `device.online`, `invoice.issued`, `invoice.paid`.
 Gebeurtenissen voor het platform: `tenant.created`, `tenant.updated`, `tenant.deleted`, `invoice.issued`, `invoice.paid`, `backup.succeeded`, `backup.failed`.
 
 Elke gebeurtenis is een `POST` met JSON:

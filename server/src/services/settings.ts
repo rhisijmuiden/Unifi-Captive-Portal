@@ -103,6 +103,14 @@ export const backupSchema = z.object({
   sshPublicKey: z.string().default(''),
 });
 
+/** Two-factor sign-in policy for the whole platform; customers can be stricter for their own team. */
+export const securitySchema = z.object({
+  requirePlatform: z.boolean().default(false),
+  requireCustomers: z.enum(['off', 'admins', 'all']).default('off'),
+  // Users who sign in with Microsoft use Entra's own multi-factor authentication instead
+  trustMicrosoft: z.boolean().default(true),
+});
+
 const definitions = {
   smtp: { schema: smtpSchema, secrets: ['password', 'oauthClientSecret', 'dkimPrivateKey'] },
   sso: { schema: ssoSchema, secrets: ['entraClientSecret'] },
@@ -110,6 +118,7 @@ const definitions = {
   hosting: { schema: hostingSchema, secrets: [] },
   billing: { schema: billingSchema, secrets: ['mollieApiKey', 'stripeSecretKey', 'stripeWebhookSecret'] },
   backup: { schema: backupSchema, secrets: ['passphrase', 'sshPrivateKey'] },
+  security: { schema: securitySchema, secrets: [] },
 } as const;
 
 type Definitions = typeof definitions;

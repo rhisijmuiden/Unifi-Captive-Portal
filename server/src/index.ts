@@ -8,6 +8,7 @@ import { runScheduledBackups } from './services/backups.js';
 import { pollInvoicePayments, runBilling } from './services/billing.js';
 import { syncAllConsoles } from './services/consoles.js';
 import { checkHostnames } from './services/hostnames.js';
+import { runMonitoringAlerts } from './services/monitoring.js';
 import { runMonthlyReports } from './services/notifications.js';
 import { purgeApiRequests } from './services/apiKeys.js';
 import { pollOpenPayments } from './services/payments.js';
@@ -20,8 +21,9 @@ const app = await buildApp();
 const every = (ms: number, job: () => Promise<unknown>) => setInterval(() => job().catch((err) => app.log.error(err)), ms);
 const jobs = [
   every(3600_000, purgeExpiredSessions),
-  // Keeps the access-point list current, so guests on new access points are recognised
-  every(3600_000, syncAllConsoles),
+  // Checks every console: keeps the access-point list current (so guests on new access points are
+  // recognised) and tracks outages; customers are alerted once an outage passes their threshold
+  every(5 * 60_000, () => syncAllConsoles().then(() => runMonitoringAlerts())),
   // Hostnames waiting for DNS or a certificate are retried; active ones are re-verified
   every(5 * 60_000, () => checkHostnames(['pending', 'dns_ok', 'error'])),
   every(6 * 3600_000, () => checkHostnames(['active'])),

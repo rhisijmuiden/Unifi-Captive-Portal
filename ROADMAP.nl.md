@@ -73,17 +73,17 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - ✅ Ondertekende webhooks (HMAC-SHA256) voor gast geautoriseerd, betaling ontvangen, hostname live, console offline/online, facturen, klanten en back-ups, met herhaalpogingen, afleverlogboek, testknop en nieuw geheim
 - ✅ Rate limiting en een audit trail per API-sleutel (elk verzoek 90 dagen, plus de wijzigingen die hij deed)
 
-## Stap 7: Gastbeleving, marketing en groei 📋
+## Stap 7: Gastbeleving, marketing en groei (v0.7) 🚧
 
 - 📋 **SMS-verificatie** voor gasten (bv. via MessageBird of Twilio), naast e-mail en Facebook
 - 📋 **Google-, Apple- en Microsoft-login** voor gasten
 - 📋 **Marketing en AVG**: opt-in voor de nieuwsbrief, export naar Mailchimp en HubSpot, en verwijderverzoeken van gasten afhandelen
-- 📋 **Live dashboard** per klant: actieve gasten, dataverbruik per access point en piekuren
+- ✅ **Live dashboard** per klant: gasten online per locatie en access point, vandaag per uur tegenover vorige week, manieren van inloggen en de laatste aanmeldingen (dataverbruik per access point volgt zodra de UniFi-API dat biedt)
 - 📋 **Enquête na het inloggen** of een reviewverzoek (Google Reviews)
 - 📋 **Advertenties of een splash-video** vóór toegang, met vertoningsstatistieken
 - 📋 **White-label voor resellers**: partners die zelf klanten beheren onder hun eigen merk
-- 📋 **Monitoring**: een melding als een console offline gaat of een koppeling faalt
-- 📋 **Tweestapsverificatie (2FA)** voor beheerders en klanten
+- ✅ **Monitoring**: een e-mail en webhook als een console of access point langer offline is dan de klant instelt, en als hij weer werkt
+- ✅ **Tweestapsverificatie (2FA)** voor beheerders en klanten, met herstelcodes en beleid per platform en per klant
 - 📋 **Hotel/PMS-koppeling**: gasten loggen in met kamernummer en achternaam
 
 ## Later
