@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { KeyRound, MailPlus, Pencil, Plus, Search, Trash2, Users as UsersIcon } from 'lucide-react';
+import { KeyRound, MailPlus, Pencil, Plus, Search, ShieldCheck, ShieldOff, Trash2, Users as UsersIcon } from 'lucide-react';
+import { Segmented } from '../components/controls';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
@@ -93,6 +94,44 @@ function UserForm({ user, tenants, defaultTenant, onClose }: { user: User | null
   );
 }
 
+type Security = { settings: { require2fa: 'off' | 'admins' | 'all' }; platform: { requireCustomers: 'off' | 'admins' | 'all' }; members: number; enrolled: number };
+
+/** The customer's own two-factor policy for their team. */
+function TeamSecurity() {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const { data } = useQuery({ queryKey: ['security-settings'], queryFn: () => api.get<Security>('/security-settings') });
+  const save = useMutation({
+    mutationFn: (require2fa: string) => api.put('/security-settings', { require2fa }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['security-settings'] });
+      toast.success(t('common.saved'));
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  if (!data) return null;
+  const levels = (['off', 'admins', 'all'] as const).map((v) => ({ value: v, label: t(`twoFactor.levels.${v}`) }));
+  return (
+    <Card className="mb-6">
+      <div className="flex flex-wrap items-center gap-4 p-5">
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-koraal/12 text-accent">
+          <ShieldCheck className="size-5" />
+        </span>
+        <div className="min-w-[220px] flex-1">
+          <p className="font-semibold">{t('twoFactor.teamPolicy')}</p>
+          <p className="text-sm text-muted">
+            {t('twoFactor.teamEnrolled', { enrolled: data.enrolled, members: data.members })}
+            {data.platform.requireCustomers !== 'off' && ` · ${t('twoFactor.platformRequires', { level: t(`twoFactor.levels.${data.platform.requireCustomers}`).toLowerCase() })}`}
+          </p>
+        </div>
+        <div className="w-full sm:w-auto">
+          <Segmented value={data.settings.require2fa} options={levels} onChange={(v) => save.mutate(v)} label={t('twoFactor.teamPolicy')} />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export function UsersPage() {
   const { t } = useTranslation();
   const { data: auth } = useAuth();
@@ -103,6 +142,7 @@ export function UsersPage() {
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState<User | null | 'new'>(null);
   const [deleting, setDeleting] = useState<User | null>(null);
+  const [resetting, setResetting] = useState<User | null>(null);
 
   const tenants = useQuery({ queryKey: ['tenants'], queryFn: () => api.get<{ tenants: Tenant[] }>('/tenants'), enabled: me.role === 'superadmin' });
   const users = useQuery({
@@ -126,6 +166,16 @@ export function UsersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const reset2fa = useMutation({
+    mutationFn: (id: string) => api.post(`/users/${id}/reset-2fa`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      toast.success(t('twoFactor.resetDone'));
+      setResetting(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const list = (users.data?.users ?? []).filter((u) => `${u.name} ${u.email}`.toLowerCase().includes(query.toLowerCase()));
 
   return (
@@ -140,6 +190,7 @@ export function UsersPage() {
           </Button>
         }
       />
+      {me.role === 'tenant_admin' && <TeamSecurity />}
       <Card>
         <div className="flex flex-wrap gap-3 border-b border-line p-4">
           <div className="relative min-w-[220px] flex-1 sm:max-w-sm">
@@ -180,6 +231,11 @@ export function UsersPage() {
                         <KeyRound className="size-3" /> SSO
                       </Badge>
                     )}
+                    {u.twoFactorEnabled && (
+                      <Badge tone="online">
+                        <ShieldCheck className="size-3" /> 2FA
+                      </Badge>
+                    )}
                   </p>
                   <p className="text-sm text-muted">{u.email}</p>
                 </div>
@@ -192,6 +248,11 @@ export function UsersPage() {
                   {!u.hasPassword && !u.ssoLinked && (
                     <Button variant="ghost" size="sm" onClick={() => invite.mutate(u.id)} aria-label={t('users.resendInvite')} title={t('users.resendInvite')}>
                       <MailPlus className="size-4" />
+                    </Button>
+                  )}
+                  {u.twoFactorEnabled && u.id !== me.id && (
+                    <Button variant="ghost" size="sm" onClick={() => setResetting(u)} aria-label={t('twoFactor.reset')} title={t('twoFactor.reset')}>
+                      <ShieldOff className="size-4" />
                     </Button>
                   )}
                   <Button variant="ghost" size="sm" onClick={() => setEditing(u)} aria-label={t('common.edit')}>
@@ -210,6 +271,24 @@ export function UsersPage() {
       </Card>
 
       {editing && <UserForm user={editing === 'new' ? null : editing} tenants={tenants.data?.tenants ?? []} defaultTenant={tenantFilter || undefined} onClose={() => setEditing(null)} />}
+      <Modal
+        open={Boolean(resetting)}
+        onClose={() => setResetting(null)}
+        title={t('twoFactor.reset')}
+        description={t('twoFactor.resetText', { name: resetting?.name })}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setResetting(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="danger" loading={reset2fa.isPending} onClick={() => resetting && reset2fa.mutate(resetting.id)}>
+              {t('twoFactor.reset')}
+            </Button>
+          </>
+        }
+      >
+        <span />
+      </Modal>
       <Modal
         open={Boolean(deleting)}
         onClose={() => setDeleting(null)}

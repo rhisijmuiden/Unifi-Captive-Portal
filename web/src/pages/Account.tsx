@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { KeyRound } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { TwoFactorCard } from '../components/TwoFactor';
 import { Badge, Button, Card, CardHeader, Field, Input, PageHeader, Select } from '../components/ui';
 import { useTranslation } from 'react-i18next';
 import { languages, type Locale } from '../i18n';
@@ -94,6 +95,7 @@ export function AccountPage() {
             </Button>
           </form>
         </Card>
+        <TwoFactorCard />
       </div>
     </>
   );

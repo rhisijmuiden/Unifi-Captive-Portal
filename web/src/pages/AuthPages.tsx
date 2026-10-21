@@ -6,11 +6,12 @@ import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import { DesignedBy } from '../components/DesignedBy';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { CodeInput, TwoFactorSetup } from '../components/TwoFactor';
 import { Button, Field, Input } from '../components/ui';
 import { api } from '../lib/api';
 import { useAuth, useRefreshAuth } from '../lib/auth';
 
-function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
+export function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   const { t } = useTranslation();
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
@@ -83,9 +84,11 @@ export function LoginPage() {
   const [params] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [codeStep, setCodeStep] = useState(false);
   const login = useMutation({
-    mutationFn: () => api.post('/auth/login', { email, password }),
-    onSuccess: async () => {
+    mutationFn: () => api.post<{ twoFactor?: boolean }>('/auth/login', { email, password }),
+    onSuccess: async (res) => {
+      if (res.twoFactor) return setCodeStep(true);
       await refresh();
       navigate('/');
     },
@@ -93,6 +96,7 @@ export function LoginPage() {
 
   if (data?.needsSetup) return <Navigate to="/setup" replace />;
   if (data?.user) return <Navigate to="/" replace />;
+  if (codeStep || data?.twoFactorPending) return <TwoFactorLogin onCancel={() => setCodeStep(false)} />;
   const showLocal = data?.sso.allowLocalLogin || params.get('local') === '1';
   const error = params.get('error');
 
@@ -136,6 +140,85 @@ export function LoginPage() {
           )}
         </form>
       )}
+    </AuthShell>
+  );
+}
+
+/** Second step of signing in: the code from the authenticator app, or a recovery code. */
+function TwoFactorLogin({ onCancel }: { onCancel: () => void }) {
+  const { t } = useTranslation();
+  const refresh = useRefreshAuth();
+  const navigate = useNavigate();
+  const [code, setCode] = useState('');
+  const [recovery, setRecovery] = useState(false);
+  const verify = useMutation({
+    mutationFn: () => api.post<{ recoveryCodesLeft: number | null }>('/auth/login/verify', { code }),
+    onSuccess: async (res) => {
+      if (res.recoveryCodesLeft !== null) toast.warning(t('twoFactor.recoveryUsed', { count: res.recoveryCodesLeft }));
+      await refresh();
+      navigate('/');
+    },
+  });
+  const cancel = async () => {
+    await api.post('/auth/login/cancel').catch(() => undefined);
+    await refresh();
+    onCancel();
+  };
+  return (
+    <AuthShell title={t('twoFactor.loginTitle')} subtitle={recovery ? t('twoFactor.loginRecovery') : t('twoFactor.loginSubtitle')}>
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          verify.mutate();
+        }}
+      >
+        <Field label={recovery ? t('twoFactor.recoveryCode') : t('twoFactor.code')} htmlFor="otp">
+          <CodeInput value={code} onChange={setCode} recovery={recovery} />
+        </Field>
+        {verify.error && <p className="text-sm text-offline">{verify.error.message}</p>}
+        <Button type="submit" variant="accent" className="h-11 w-full" loading={verify.isPending} disabled={code.length < 6}>
+          {t('twoFactor.verify')} <ArrowRight className="size-4" />
+        </Button>
+      </form>
+      <div className="mt-6 flex justify-between text-sm">
+        <button type="button" className="text-accent hover:underline" onClick={() => (setRecovery(!recovery), setCode(''))}>
+          {recovery ? t('twoFactor.useApp') : t('twoFactor.useRecovery')}
+        </button>
+        <button type="button" className="text-muted hover:text-ink" onClick={cancel}>
+          {t('auth.backToLogin')}
+        </button>
+      </div>
+    </AuthShell>
+  );
+}
+
+/** Shown after signing in when the policy requires 2FA and the user has not set it up yet. */
+export function TwoFactorRequiredPage() {
+  const { t } = useTranslation();
+  const { data } = useAuth();
+  const refresh = useRefreshAuth();
+  const navigate = useNavigate();
+  if (!data?.user) return <Navigate to="/login" replace />;
+  if (!data.twoFactorSetupRequired) return <Navigate to="/" replace />;
+  const logout = async () => {
+    await api.post('/auth/logout');
+    await refresh();
+    navigate('/login');
+  };
+  return (
+    <AuthShell title={t('twoFactor.requiredTitle')} subtitle={t('twoFactor.requiredSubtitle')}>
+      <TwoFactorSetup
+        onDone={async () => {
+          await refresh();
+          navigate('/');
+        }}
+      />
+      <p className="mt-6 text-center text-sm">
+        <button type="button" className="text-muted hover:text-ink" onClick={logout}>
+          {t('nav.logout')}
+        </button>
+      </p>
     </AuthShell>
   );
 }
@@ -235,11 +318,11 @@ export function ResetPasswordPage() {
   const reset = useMutation({
     mutationFn: () => {
       if (password !== confirm) throw new Error(t('auth.passwordsDiffer'));
-      return api.post('/auth/reset', { token: params.get('token'), password });
+      return api.post<{ twoFactor?: boolean }>('/auth/reset', { token: params.get('token'), password });
     },
-    onSuccess: async () => {
+    onSuccess: async (res) => {
       await refresh();
-      navigate('/');
+      navigate(res.twoFactor ? '/login' : '/');
     },
   });
   return (

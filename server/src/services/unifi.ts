@@ -22,7 +22,7 @@ export class UnifiError extends Error {
 
 type Page<T> = { offset: number; limit: number; count: number; totalCount: number; data: T[] };
 export type UnifiSite = { id: string; internalReference: string; name: string };
-export type UnifiDevice = { id: string; macAddress: string; name?: string; model?: string };
+export type UnifiDevice = { id: string; macAddress: string; name?: string; model?: string; state?: string };
 export type UnifiClient = { id: string; macAddress?: string; name?: string; type?: string; access?: { type?: string; authorized?: boolean } };
 export type UnifiHost = { id: string; hardwareId?: string; type?: string; reportedState?: { hostname?: string; name?: string; hardware?: { name?: string; shortname?: string }; version?: string } };
 

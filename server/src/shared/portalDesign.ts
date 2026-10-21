@@ -43,8 +43,16 @@ export type BlockType = PortalBlock['type'];
 export type NoId<T> = T extends unknown ? Omit<T, 'id'> : never;
 export type PortalDesign = { version: 1; theme: PortalTheme; blocks: PortalBlock[] };
 
-export type LoginMethod = 'free' | 'email' | 'voucher' | 'payment' | 'facebook';
-export const loginMethods: LoginMethod[] = ['free', 'email', 'voucher', 'payment', 'facebook'];
+export type LoginMethod = 'free' | 'email' | 'sms' | 'voucher' | 'room' | 'payment' | 'facebook' | 'google' | 'apple' | 'microsoft';
+export const loginMethods: LoginMethod[] = ['free', 'email', 'sms', 'voucher', 'room', 'payment', 'facebook', 'google', 'apple', 'microsoft'];
+/** Sign-in with an account elsewhere; on the guest page these share one tab with a button each. */
+export type SocialMethod = 'facebook' | 'google' | 'apple' | 'microsoft';
+export const socialMethods: SocialMethod[] = ['google', 'apple', 'microsoft', 'facebook'];
+export const isSocial = (m: string): m is SocialMethod => (socialMethods as string[]).includes(m);
+/** A tab on the guest page: one login method, or all social sign-ins together. */
+type LoginTab = Exclude<LoginMethod, SocialMethod> | 'social';
+const tabOf = (m: LoginMethod): LoginTab => (isSocial(m) ? 'social' : m);
+const loginTabs: LoginTab[] = ['free', 'email', 'sms', 'voucher', 'room', 'payment', 'social'];
 export type FieldMode = 'off' | 'optional' | 'required';
 
 export type LoginContext = {
@@ -57,7 +65,11 @@ export type LoginContext = {
   action: string;
   active?: LoginMethod;
   error?: string;
-  values?: Partial<Record<'name' | 'email' | 'phone' | 'code' | 'package', string>>;
+  values?: Partial<Record<'name' | 'email' | 'phone' | 'code' | 'package' | 'room' | 'surname', string>>;
+  /** SMS: a code was sent to this (masked) number; the form now asks for the code. */
+  smsSent?: { masked: string; canResend: boolean };
+  /** SMS: the country code assumed for numbers without one, shown as a hint. */
+  smsCountry?: string;
 };
 
 export type RenderContext = {
@@ -167,15 +179,20 @@ export const portalCss = `
 .cp-page .cp-placeholder{display:grid;place-items:center;border:2px dashed var(--line);border-radius:var(--radius);color:var(--muted);font-size:.85rem;padding:18px}
 .cp-page .cp-btn{display:block;width:100%;margin-top:16px;padding:14px 18px;border:0;border-radius:var(--radius);background:var(--accent);color:var(--btn-text);font:inherit;font-weight:700;font-size:1.02rem;text-align:center;text-decoration:none;cursor:pointer;line-height:1.3}
 .cp-page .cp-btn:focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 45%,transparent);outline-offset:2px}
-.cp-page .cp-btn-fb{display:flex;align-items:center;justify-content:center;gap:10px;background:#1877F2;color:#fff}
+.cp-page .cp-btn-fb,.cp-page .cp-btn-social{display:flex;align-items:center;justify-content:center;gap:10px;background:#1877F2;color:#fff}
+.cp-page .cp-btn-social+.cp-btn-social{margin-top:10px}
+.cp-page .cp-btn-google,.cp-page .cp-btn-microsoft{background:#fff;color:#1f1f1f;border:1px solid #dadce0}
+.cp-page .cp-btn-apple{background:#000;color:#fff}
+.cp-page .cp-link{display:inline-block;margin-top:12px;padding:0;border:0;background:none;color:var(--accent);font:inherit;font-size:.9rem;font-weight:600;cursor:pointer;text-decoration:underline}
+.cp-page .cp-sent{font-size:.92rem;margin-bottom:12px}
 .cp-page .cp-btn-outline{background:transparent;color:var(--accent);border:2px solid var(--accent);margin-top:0}
 .cp-page .cp-tab-r{position:absolute;opacity:0;pointer-events:none}
-.cp-page .cp-tabs{display:flex;gap:4px;padding:4px;border-radius:calc(var(--radius) * .7 + 4px);background:color-mix(in srgb,var(--text) 6%,transparent);margin-bottom:16px}
-.cp-page .cp-tabs label{flex:1;text-align:center;padding:8px 6px;border-radius:calc(var(--radius) * .7);font-size:.9rem;font-weight:600;color:var(--muted);cursor:pointer}
+.cp-page .cp-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:calc(var(--radius) * .7 + 4px);background:color-mix(in srgb,var(--text) 6%,transparent);margin-bottom:16px}
+.cp-page .cp-tabs label{flex:1 1 auto;text-align:center;padding:8px 6px;border-radius:calc(var(--radius) * .7);font-size:.9rem;font-weight:600;color:var(--muted);cursor:pointer}
 .cp-page .cp-panel{display:none;text-align:left}
 .cp-page .cp-solo{display:block}
-.cp-page #cp-m-free:checked~.cp-p-free,.cp-page #cp-m-email:checked~.cp-p-email,.cp-page #cp-m-voucher:checked~.cp-p-voucher,.cp-page #cp-m-payment:checked~.cp-p-payment,.cp-page #cp-m-facebook:checked~.cp-p-facebook{display:block}
-.cp-page #cp-m-free:checked~.cp-tabs [for=cp-m-free],.cp-page #cp-m-email:checked~.cp-tabs [for=cp-m-email],.cp-page #cp-m-voucher:checked~.cp-tabs [for=cp-m-voucher],.cp-page #cp-m-payment:checked~.cp-tabs [for=cp-m-payment],.cp-page #cp-m-facebook:checked~.cp-tabs [for=cp-m-facebook]{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(20,33,61,.18)}
+${loginTabs.map((m) => `.cp-page #cp-m-${m}:checked~.cp-p-${m}`).join(',')}{display:block}
+${loginTabs.map((m) => `.cp-page #cp-m-${m}:checked~.cp-tabs [for=cp-m-${m}]`).join(',')}{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(20,33,61,.18)}
 .cp-page .cp-field{display:block;margin-bottom:12px}
 .cp-page .cp-field span{display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;color:var(--text)}
 .cp-page .cp-field small{font-weight:400;color:var(--muted)}
@@ -206,8 +223,30 @@ const WIFI = `<svg viewBox="0 0 64 64" width="44" height="44" aria-hidden="true"
 
 const FB = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M24 12a12 12 0 1 0-13.9 11.9v-8.4h-3V12h3V9.4c0-3 1.8-4.7 4.6-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12z"/></svg>`;
 
+const GOOGLE = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.2-2.1 3.5-5.1 3.5-8.8z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3c-1 .7-2.4 1.1-4 1.1-3.1 0-5.7-2.1-6.6-4.9h-4v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.4 14.3a7.2 7.2 0 0 1 0-4.6V6.6h-4a12 12 0 0 0 0 10.8l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.7 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l4 3.1C6.3 6.9 8.9 4.8 12 4.8z"/></svg>`;
+
+const APPLE = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M16.4 12.7c0-2.6 2.1-3.8 2.2-3.9a4.8 4.8 0 0 0-3.8-2c-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9a5 5 0 0 0-4.2 2.6c-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.6-1-2.6-4.1zM13.9 5.1c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.2.1 2.3-.6 3-1.5z"/></svg>`;
+
+const MICROSOFT = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#F25022" d="M1 1h10.5v10.5H1z"/><path fill="#7FBA00" d="M12.5 1H23v10.5H12.5z"/><path fill="#00A4EF" d="M1 12.5h10.5V23H1z"/><path fill="#FFB900" d="M12.5 12.5H23V23H12.5z"/></svg>`;
+
+const socialIcons: Record<SocialMethod, string> = { facebook: FB, google: GOOGLE, apple: APPLE, microsoft: MICROSOFT };
+
 const methodLabel = (s: GuestStrings, m: LoginMethod) =>
-  ({ free: s.methodFree, email: s.methodEmail, voucher: s.methodVoucher, payment: s.methodPayment, facebook: s.methodFacebook })[m];
+  ({
+    free: s.methodFree,
+    email: s.methodEmail,
+    sms: s.methodSms,
+    voucher: s.methodVoucher,
+    room: s.methodRoom,
+    payment: s.methodPayment,
+    facebook: s.methodFacebook,
+    google: s.methodGoogle,
+    apple: s.methodApple,
+    microsoft: s.methodMicrosoft,
+  })[m];
+
+const continueWith = (s: GuestStrings, m: SocialMethod) =>
+  ({ facebook: s.continueFacebook, google: s.continueGoogle, apple: s.continueApple, microsoft: s.continueMicrosoft })[m];
 
 function termsCheck(s: GuestStrings, login: LoginContext) {
   return login.requireTerms
@@ -224,11 +263,25 @@ function input(name: string, type: string, mode: FieldMode, value = '', extra = 
   return `<input class="cp-input" type="${type}" name="${name}" value="${esc(value)}"${mode === 'required' ? ' required' : ''}${extra}>`;
 }
 
-function methodForm(m: LoginMethod, ctx: RenderContext, cls: string) {
+const errorFor = (login: LoginContext, tab: LoginTab) =>
+  login.error && login.active && tabOf(login.active) === tab ? `<p class="cp-alert" role="alert">${esc(login.error)}</p>` : '';
+
+/** All social sign-ins in one form; the button pressed tells which one. */
+function socialForm(methods: SocialMethod[], ctx: RenderContext, cls: string) {
+  const s = guestStrings[ctx.locale];
+  const { login } = ctx;
+  const buttons = methods
+    .map((m) => `<button class="cp-btn cp-btn-social cp-btn-${m}" type="submit" name="method" value="${m}">${socialIcons[m]}<span>${esc(continueWith(s, m))}</span></button>`)
+    .join('');
+  return `<form class="cp-panel ${cls}" method="post" action="${esc(login.action)}">${errorFor(login, 'social')}<input type="hidden" name="lang" value="${ctx.locale}">${termsCheck(s, login)}${buttons}</form>`;
+}
+
+function methodForm(m: Exclude<LoginMethod, SocialMethod>, ctx: RenderContext, cls: string) {
   const s = guestStrings[ctx.locale];
   const { login } = ctx;
   const v = login.active === m ? (login.values ?? {}) : {};
-  const error = login.error && login.active === m ? `<p class="cp-alert" role="alert">${esc(login.error)}</p>` : '';
+  const error = errorFor(login, m);
+  const open = (extra = '') => `<form class="cp-panel ${cls}" method="post" action="${esc(login.action)}">${error}<input type="hidden" name="method" value="${m}"><input type="hidden" name="lang" value="${ctx.locale}">${extra}`;
   let fields = '';
   let button = s.connect;
   if (m === 'email') {
@@ -239,6 +292,17 @@ function methodForm(m: LoginMethod, ctx: RenderContext, cls: string) {
       field(s.phone, f.phone, input('phone', 'tel', f.phone, v.phone, ' autocomplete="tel" maxlength="40"'), s) +
       (f.marketing ? `<label class="cp-check"><input type="checkbox" name="marketing" value="1"> <span>${esc(s.marketing)}</span></label>` : '');
     button = s.register;
+  } else if (m === 'sms') {
+    const sent = login.active === 'sms' ? login.smsSent : undefined;
+    if (sent) {
+      // Step two: the code. The phone number travels along so a resend needs no typing.
+      const code = `<label class="cp-field"><span>${esc(s.smsCode)}</span><input class="cp-input cp-code" type="text" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" required autofocus></label>`;
+      const resend = sent.canResend ? `<button class="cp-link" type="submit" name="resend" value="1" formnovalidate>${esc(s.smsResend)}</button>` : '';
+      return `${open(`<input type="hidden" name="phone" value="${esc(v.phone ?? '')}"><p class="cp-sent">${esc(fill(s.smsSent, { phone: sent.masked }))}</p>`)}${code}<button class="cp-btn" type="submit">${esc(s.smsVerify)}</button>${resend}</form>`;
+    }
+    const hint = login.smsCountry ? ` placeholder="${esc(fill(s.smsPlaceholder, { cc: login.smsCountry }))}"` : '';
+    fields = field(s.phone, 'required', input('phone', 'tel', 'required', v.phone, ` autocomplete="tel" inputmode="tel" maxlength="24"${hint}`), s);
+    button = s.smsSend;
   } else if (m === 'voucher') {
     fields = field(
       s.voucherCode,
@@ -247,6 +311,10 @@ function methodForm(m: LoginMethod, ctx: RenderContext, cls: string) {
       s,
     );
     button = s.redeem;
+  } else if (m === 'room') {
+    fields =
+      field(s.roomNumber, 'required', input('room', 'text', 'required', v.room, ' autocomplete="off" maxlength="20" autocapitalize="characters"'), s) +
+      field(s.surname, 'required', input('surname', 'text', 'required', v.surname, ' autocomplete="family-name" maxlength="80"'), s);
   } else if (m === 'payment') {
     const chosen = v.package ?? login.packages[0]?.id;
     const pkgs = login.packages
@@ -259,10 +327,8 @@ function methodForm(m: LoginMethod, ctx: RenderContext, cls: string) {
       `<p class="cp-field"><span>${esc(s.choosePackage)}</span></p><div class="cp-pkgs">${pkgs}</div>` +
       field(s.emailForReceipt, login.paymentEmail, input('email', 'email', login.paymentEmail, v.email, ' autocomplete="email" maxlength="254"'), s);
     button = s.pay;
-  } else if (m === 'facebook') {
-    return `<form class="cp-panel ${cls}" method="post" action="${esc(login.action)}">${error}<input type="hidden" name="method" value="facebook"><input type="hidden" name="lang" value="${ctx.locale}">${termsCheck(s, login)}<button class="cp-btn cp-btn-fb" type="submit">${FB}<span>${esc(s.continueFacebook)}</span></button></form>`;
   }
-  return `<form class="cp-panel ${cls}" method="post" action="${esc(login.action)}">${error}<input type="hidden" name="method" value="${m}"><input type="hidden" name="lang" value="${ctx.locale}">${fields}${termsCheck(s, login)}<button class="cp-btn" type="submit">${esc(button)}</button></form>`;
+  return `${open()}${fields}${termsCheck(s, login)}<button class="cp-btn" type="submit">${esc(button)}</button></form>`;
 }
 
 export function renderLoginBlock(ctx: RenderContext) {
@@ -273,11 +339,17 @@ export function renderLoginBlock(ctx: RenderContext) {
     ? `<details><summary>${esc(s.showTerms)}</summary><div>${paragraphs(login.terms)}</div></details>`
     : '';
   if (!methods.length) return `<p class="cp-alert">${esc(s.noMethods)}</p>`;
-  if (methods.length === 1) return methodForm(methods[0], ctx, 'cp-solo') + terms;
-  const active = login.active && methods.includes(login.active) ? login.active : methods[0];
-  const radios = methods.map((m) => `<input class="cp-tab-r" type="radio" name="cp-method" id="cp-m-${m}"${m === active ? ' checked' : ''}>`).join('');
-  const tabs = `<div class="cp-tabs" role="tablist" aria-label="${esc(s.chooseMethod)}">${methods.map((m) => `<label for="cp-m-${m}">${esc(methodLabel(s, m))}</label>`).join('')}</div>`;
-  return `<div>${radios}${tabs}${methods.map((m) => methodForm(m, ctx, `cp-p-${m}`)).join('')}</div>${terms}`;
+  const social = socialMethods.filter((m) => methods.includes(m));
+  const tabs = loginTabs.filter((tab) => (tab === 'social' ? social.length > 0 : methods.includes(tab)));
+  const panel = (tab: LoginTab, cls: string) => (tab === 'social' ? socialForm(social, ctx, cls) : methodForm(tab, ctx, cls));
+  if (tabs.length === 1) return panel(tabs[0], 'cp-solo') + terms;
+  const wanted = login.active ? tabOf(login.active) : null;
+  const active = wanted && tabs.includes(wanted) ? wanted : tabs[0];
+  // One social method keeps its own name on the tab ("Facebook"); several share "Account"
+  const tabLabel = (tab: LoginTab) => (tab === 'social' ? (social.length === 1 ? methodLabel(s, social[0]) : s.methodSocial) : methodLabel(s, tab));
+  const radios = tabs.map((m) => `<input class="cp-tab-r" type="radio" name="cp-method" id="cp-m-${m}"${m === active ? ' checked' : ''}>`).join('');
+  const tabList = `<div class="cp-tabs" role="tablist" aria-label="${esc(s.chooseMethod)}">${tabs.map((m) => `<label for="cp-m-${m}">${esc(tabLabel(m))}</label>`).join('')}</div>`;
+  return `<div>${radios}${tabList}${tabs.map((m) => panel(m, `cp-p-${m}`)).join('')}</div>${terms}`;
 }
 
 /** One block as HTML. `placeholders` shows empty images in the editor instead of hiding them. */

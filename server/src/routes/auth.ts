@@ -1,4 +1,4 @@
-import { count, eq, or, sql } from 'drizzle-orm';
+import { and, count, eq, gt, or, sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db, schema } from '../db/index.js';
@@ -7,6 +7,18 @@ import { hashPassword, verifyPassword } from '../lib/crypto.js';
 import { badRequest, unauthorized } from '../lib/errors.js';
 import { buildEntraLogin, completeEntraLogin, entraConfig } from '../services/entra.js';
 import { adminBaseUrl, getSettings } from '../services/settings.js';
+import {
+  beginSetup,
+  clearPendingLogin,
+  disableTwoFactor,
+  finishSetup,
+  needsTwoFactorSetup,
+  newCodes,
+  pendingLoginUser,
+  startPendingLogin,
+  twoFactorRequired,
+  verifyUserCode,
+} from '../services/twoFactor.js';
 import { consumeToken, sendPasswordReset } from '../services/tokens.js';
 import { config } from '../config.js';
 import { isLocale, requestLocale } from '../i18n/index.js';
@@ -23,6 +35,8 @@ export async function authRoutes(app: FastifyInstance) {
     return {
       needsSetup: userCount === 0,
       user: req.user ? publicUser(req.user) : null,
+      twoFactorSetupRequired: req.user ? await needsTwoFactorSetup(req.user, req.sessionMethod ?? 'password') : false,
+      twoFactorPending: !req.user && Boolean(await pendingLoginUser(req)),
       sso: { entraEnabled: sso.entraEnabled, buttonLabel: sso.buttonLabel, allowLocalLogin: sso.allowLocalLogin || !sso.entraEnabled },
       passwordResetAvailable: smtp.enabled,
       version: config.version,
@@ -61,10 +75,81 @@ export async function authRoutes(app: FastifyInstance) {
       const tenant = await db.query.tenants.findFirst({ where: eq(schema.tenants.id, user.tenantId) });
       if (tenant?.status === 'suspended') throw unauthorized('errors.tenantSuspended');
     }
+    // With two-factor sign-in, the session only comes after the code
+    if (user.totpEnabledAt) {
+      startPendingLogin(req, reply, user);
+      return { twoFactor: true };
+    }
     await createSession(req, reply, user);
     req.user = user;
     await audit(req, 'auth.login', { method: 'password' });
     return { user: publicUser(user) };
+  });
+
+  app.post('/api/auth/login/verify', loginLimit, async (req, reply) => {
+    const { code } = z.object({ code: z.string().trim().min(6).max(20) }).parse(req.body);
+    const user = await pendingLoginUser(req);
+    if (!user) throw unauthorized('errors.twoFactorExpired');
+    // Guessing codes is slowed down per account, not only per address
+    const [{ value: recentFailures }] = await db
+      .select({ value: count() })
+      .from(schema.auditLog)
+      .where(and(eq(schema.auditLog.userId, user.id), eq(schema.auditLog.action, 'auth.2fa_failed'), gt(schema.auditLog.createdAt, new Date(Date.now() - 15 * 60_000))));
+    if (recentFailures >= 8) throw unauthorized('errors.twoFactorLocked');
+    const used = await verifyUserCode(user, code);
+    if (!used) {
+      await db.insert(schema.auditLog).values({ userId: user.id, tenantId: user.tenantId, action: 'auth.2fa_failed', ip: req.ip });
+      throw unauthorized('errors.twoFactorCode');
+    }
+    clearPendingLogin(reply);
+    await createSession(req, reply, user);
+    req.user = user;
+    await audit(req, 'auth.login', { method: 'password', twoFactor: used });
+    return { user: publicUser(user), recoveryCodesLeft: used === 'recovery' ? (await db.query.users.findFirst({ where: eq(schema.users.id, user.id) }))!.recoveryCodes.length : null };
+  });
+
+  app.post('/api/auth/login/cancel', async (_req, reply) => {
+    clearPendingLogin(reply);
+    return { ok: true };
+  });
+
+  // ── Two-factor set-up on the user's own account ──
+  app.post('/api/auth/2fa/setup', async (req) => {
+    const user = requireUser(req);
+    if (user.totpEnabledAt) throw badRequest('errors.twoFactorActive');
+    return beginSetup(user);
+  });
+
+  app.post('/api/auth/2fa/enable', async (req) => {
+    const user = requireUser(req);
+    const { code } = z.object({ code: z.string().trim().min(6).max(10) }).parse(req.body);
+    const codes = await finishSetup(user, code);
+    if (!codes) throw badRequest('errors.twoFactorCode');
+    await audit(req, 'auth.2fa_enabled');
+    return { recoveryCodes: codes };
+  });
+
+  app.post('/api/auth/2fa/disable', async (req) => {
+    const user = requireUser(req);
+    const { code } = z.object({ code: z.string().trim().min(6).max(20) }).parse(req.body);
+    if (await twoFactorRequired(user)) throw badRequest('errors.twoFactorRequiredPolicy');
+    if (!(await verifyUserCode(user, code))) throw badRequest('errors.twoFactorCode');
+    await disableTwoFactor(user.id);
+    await audit(req, 'auth.2fa_disabled');
+    return { ok: true };
+  });
+
+  app.post('/api/auth/2fa/recovery-codes', async (req) => {
+    const user = requireUser(req);
+    const { code } = z.object({ code: z.string().trim().min(6).max(20) }).parse(req.body);
+    if (!(await verifyUserCode(user, code))) throw badRequest('errors.twoFactorCode');
+    await audit(req, 'auth.2fa_codes_renewed');
+    return { recoveryCodes: await newCodes(user) };
+  });
+
+  app.get('/api/auth/2fa', async (req) => {
+    const user = requireUser(req);
+    return { enabled: Boolean(user.totpEnabledAt), enabledAt: user.totpEnabledAt, recoveryCodesLeft: user.recoveryCodes.length, required: await twoFactorRequired(user) };
   });
 
   app.post('/api/auth/logout', async (req, reply) => {
@@ -105,6 +190,14 @@ export async function authRoutes(app: FastifyInstance) {
     const user = await consumeToken(body.token);
     if (!user || !user.isActive) throw badRequest('errors.linkInvalid');
     await db.update(schema.users).set({ passwordHash: await hashPassword(body.password) }).where(eq(schema.users.id, user.id));
+    // A reset link proves the mailbox, not the phone: with 2FA the code is still needed
+    if (user.totpEnabledAt) {
+      req.user = user;
+      await audit(req, 'auth.password_reset');
+      req.user = null;
+      startPendingLogin(req, reply, user);
+      return { twoFactor: true };
+    }
     await createSession(req, reply, user);
     req.user = user;
     await audit(req, 'auth.password_reset');
@@ -144,7 +237,7 @@ export async function authRoutes(app: FastifyInstance) {
       }
       if (user.entraOid && user.entraOid !== identity.oid) return reply.redirect('/login?error=sso_mismatch');
       if (!user.entraOid) await db.update(schema.users).set({ entraOid: identity.oid }).where(eq(schema.users.id, user.id));
-      await createSession(req, reply, user);
+      await createSession(req, reply, user, 'entra');
       req.user = user;
       await audit(req, 'auth.login', { method: 'entra' });
       return reply.redirect('/');

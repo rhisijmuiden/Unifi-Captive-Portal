@@ -72,7 +72,7 @@ async function sendToAll(recipients: Recipient[], kind: MailKind, tenantId: stri
   return errors;
 }
 
-async function deliver(tenantId: string, kind: MailKind, ref: string, data: (locale: Locale) => Parameters<typeof sendTemplate>[4]) {
+export async function deliver(tenantId: string, kind: MailKind, ref: string, data: (locale: Locale) => Parameters<typeof sendTemplate>[4]) {
   if (!(await claim(tenantId, kind, ref))) return { status: 'duplicate' as const };
   const smtp = await getSettings('smtp');
   const recipients = await tenantRecipients(tenantId);

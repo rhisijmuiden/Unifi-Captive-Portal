@@ -10,7 +10,10 @@ Bij **Captive portals → Toegang & inloggen** kies je hoe gasten online komen. 
 | **Registreren met e-mail** | Vult een e-mailadres in, en eventueel naam en telefoonnummer. | Contactgegevens bij **Gasten** (CSV-export). |
 | **Vouchercode** | Typt een code die je hebt uitgedeeld. | Controle over wie online komt en hoe lang. |
 | **Betalen voor toegang** | Kiest een pakket en betaalt met Mollie of Stripe. | Het geld, direct op je eigen rekening. |
+| **Sms-code** | Typt een mobiel nummer en de code uit de sms. | Een bevestigd telefoonnummer. Zie [Sms en sociale login](sms-en-sociale-login.md). |
+| **Kamernummer en achternaam** | Typt kamernummer en achternaam. | Hotelgasten online tot vertrek. Zie [Hotellogin](hotellogin.md). |
 | **Doorgaan met Facebook** | Logt in met Facebook. | Naam en e-mailadres van Facebook. |
+| **Doorgaan met Google, Apple of Microsoft** | Logt in met dat account. | Naam en e-mailadres. Zie [Sms en sociale login](sms-en-sociale-login.md). |
 
 Op dezelfde pagina stel je de voorwaarden in (per taal), of akkoord gaan verplicht is, de standaardtijd online, data- en snelheidslimieten en de pagina waar gasten daarna naartoe gaan.
 
@@ -77,6 +80,9 @@ Hosts in de pre-autorisatielijst van je Hotspot zijn bereikbaar voordat een gast
 | Mollie | `mollie.com`, `*.mollie.com`, `*.mollie.nl`, `ideal.nl`, `*.ideal.nl` |
 | Stripe | `stripe.com`, `*.stripe.com`, `*.stripe.network`, `stripecdn.com`, `*.stripecdn.com` |
 | Facebook | `facebook.com`, `*.facebook.com`, `*.fbcdn.net`, `*.facebook.net` |
+| Google | `accounts.google.com`, `*.gstatic.com`, `oauth2.googleapis.com`, `fonts.googleapis.com`, `accounts.youtube.com` |
+| Apple | `appleid.apple.com`, `idmsa.apple.com`, `*.apple.com`, `*.cdn-apple.com` |
+| Microsoft | `login.microsoftonline.com`, `login.live.com`, `account.live.com`, `*.msauth.net`, `*.msftauth.net` |
 
 Dit is optioneel als *tijd om te betalen* en *tijd om in te loggen* aan staan.
 

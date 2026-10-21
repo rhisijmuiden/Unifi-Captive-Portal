@@ -16,14 +16,17 @@ declare module 'fastify' {
     user: User | null;
     /** Set when the request came in through /api/v1 with an API key; req.user then acts for that key */
     apiKey: ApiKey | null;
+    /** How the session's user signed in */
+    sessionMethod: 'password' | 'entra' | null;
   }
 }
 
-export async function createSession(req: FastifyRequest, reply: FastifyReply, user: User) {
+export async function createSession(req: FastifyRequest, reply: FastifyReply, user: User, method: 'password' | 'entra' = 'password') {
   const token = randomToken();
   await db.insert(schema.sessions).values({
     id: sha256(token),
     userId: user.id,
+    method,
     expiresAt: new Date(Date.now() + SESSION_TTL_MS),
     ip: req.ip,
     userAgent: req.headers['user-agent']?.slice(0, 300),
@@ -48,7 +51,7 @@ export async function loadUser(req: FastifyRequest): Promise<User | null> {
   const token = req.cookies[SESSION_COOKIE];
   if (!token) return null;
   const rows = await db
-    .select({ user: schema.users, tenantStatus: schema.tenants.status })
+    .select({ user: schema.users, tenantStatus: schema.tenants.status, method: schema.sessions.method })
     .from(schema.sessions)
     .innerJoin(schema.users, eq(schema.users.id, schema.sessions.userId))
     .leftJoin(schema.tenants, eq(schema.tenants.id, schema.users.tenantId))
@@ -56,6 +59,7 @@ export async function loadUser(req: FastifyRequest): Promise<User | null> {
     .limit(1);
   const row = rows[0];
   if (!row || !row.user.isActive || row.tenantStatus === 'suspended') return null;
+  req.sessionMethod = row.method;
   return row.user;
 }
 
@@ -90,6 +94,7 @@ export function publicUser(u: User) {
     isActive: u.isActive,
     hasPassword: Boolean(u.passwordHash),
     ssoLinked: Boolean(u.entraOid),
+    twoFactorEnabled: Boolean(u.totpEnabledAt),
     lastLoginAt: u.lastLoginAt,
     createdAt: u.createdAt,
     locale: u.locale,

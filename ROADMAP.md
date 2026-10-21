@@ -73,18 +73,18 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - ✅ Signed webhooks (HMAC-SHA256) for guest authorized, payment received, hostname live, console offline/online, invoices, customers and backups, with retries, delivery log, test button and secret rotation
 - ✅ Rate limiting and an audit trail per API key (every request for 90 days, plus the changes it made)
 
-## Step 7: Guest experience, marketing and growth 📋
+## Step 7: Guest experience, marketing and growth (v0.7) 🚧
 
-- 📋 **SMS verification** for guests (e.g. MessageBird or Twilio), next to e-mail and Facebook
-- 📋 **Google, Apple and Microsoft login** for guests
+- ✅ **SMS verification** for guests with the customer's own Twilio or MessageBird account, with limits per guest, number and day
+- ✅ **Google, Apple and Microsoft login** for guests, each with the customer's own app, sharing one tab with Facebook
 - 📋 **Marketing and GDPR**: newsletter opt-in, export to Mailchimp and HubSpot, and handling guests' deletion requests
-- 📋 **Live dashboard** per customer: active guests, data use per access point and peak hours
+- ✅ **Live dashboard** per customer: guests online per location and access point, today by hour against last week, sign-in methods and the latest sign-ins (data use per access point follows once the UniFi API offers it)
 - 📋 **Survey after sign-in** or a review request (Google Reviews)
 - 📋 **Ads or a splash video** before access, with view statistics
 - 📋 **White label for resellers**: partners who manage their own customers under their own brand
-- 📋 **Monitoring**: an alert when a console goes offline or a link fails
-- 📋 **Two-factor authentication (2FA)** for admins and customers
-- 📋 **Hotel/PMS link**: guests sign in with room number and last name
+- ✅ **Monitoring**: an e-mail and webhook when a console or access point stays offline longer than the customer's threshold, and when it is back
+- ✅ **Two-factor authentication (2FA)** for admins and customers, with recovery codes and policies per platform and per customer
+- ✅ **Hotel/PMS link**: guests sign in with room number and surname until departure; stays by hand, CSV, API or synced from Apaleo and Mews
 
 ## Later
 

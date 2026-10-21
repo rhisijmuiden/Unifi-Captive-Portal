@@ -3,12 +3,12 @@ import { BellRing, Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Badge, Button, Card, CardHeader, Input, PageHeader, Spinner, Switch } from '../components/ui';
+import { Badge, Button, Card, CardHeader, Field, Input, PageHeader, Select, Spinner, Switch } from '../components/ui';
 import { api } from '../lib/api';
 import { formatDate } from '../lib/format';
 import { useTenantScope } from '../lib/tenant';
 
-type Settings = { hostnameLive: boolean; monthlyReport: boolean; notifyAdmins: boolean; recipients: string[] };
+type Settings = { hostnameLive: boolean; monthlyReport: boolean; consoleOffline: boolean; deviceOffline: boolean; offlineMinutes: number; notifyAdmins: boolean; recipients: string[] };
 type LogEntry = { id: string; kind: string; ref: string; recipients: string[]; status: 'sent' | 'failed' | 'skipped' | 'sending'; error: string | null; createdAt: string };
 
 const tones = { sent: 'online', failed: 'offline', skipped: 'neutral', sending: 'warning' } as const;
@@ -58,6 +58,22 @@ export function NotificationsPage() {
             </div>
           </Card>
           <Card>
+            <CardHeader title={t('notifications.monitoring')} description={t('notifications.monitoringHint')} />
+            <div className="space-y-5 p-6">
+              <Switch checked={form.consoleOffline} onChange={(v) => update({ consoleOffline: v })} label={t('notifications.consoleOffline')} description={t('notifications.consoleOfflineHint')} />
+              <Switch checked={form.deviceOffline} onChange={(v) => update({ deviceOffline: v })} label={t('notifications.deviceOffline')} description={t('notifications.deviceOfflineHint')} />
+              <Field label={t('notifications.offlineMinutes')} hint={t('notifications.offlineMinutesHint')}>
+                <Select value={form.offlineMinutes} onChange={(e) => update({ offlineMinutes: Number(e.target.value) })} disabled={!scope.canManage}>
+                  {[5, 10, 15, 30, 60, 120].map((m) => (
+                    <option key={m} value={m}>
+                      {t('notifications.minutes', { count: m })}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
+          </Card>
+          <Card>
             <CardHeader title={t('notifications.who')} />
             <div className="space-y-5 p-6">
               <Switch checked={form.notifyAdmins} onChange={(v) => update({ notifyAdmins: v })} label={t('notifications.notifyAdmins')} description={t('notifications.notifyAdminsHint')} />
@@ -103,7 +119,7 @@ export function NotificationsPage() {
                 <li key={l.id} className="flex items-start gap-3 px-6 py-3.5">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium">
-                      {t(`notifications.kinds.${l.kind as 'hostnameLive'}`, { defaultValue: l.kind })} <span className="font-normal text-muted">· {l.kind === 'monthlyReport' ? l.ref : ''}</span>
+                      {t(`notifications.kinds.${l.kind as 'hostnameLive'}`, { defaultValue: l.kind })} {l.kind === 'monthlyReport' && <span className="font-normal text-muted">· {l.ref}</span>}
                     </p>
                     <p className="truncate text-xs text-muted" title={l.error ?? undefined}>
                       {formatDate(l.createdAt)} · {l.recipients.join(', ') || '—'}

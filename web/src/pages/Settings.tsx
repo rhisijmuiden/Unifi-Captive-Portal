@@ -433,3 +433,50 @@ export function HostingSettingsPage() {
     </>
   );
 }
+
+type Security = { requirePlatform: boolean; requireCustomers: 'off' | 'admins' | 'all'; trustMicrosoft: boolean };
+
+/** Two-factor sign-in policy for the platform admins and for all customers. */
+export function SecuritySettingsPage() {
+  const { t } = useTranslation();
+  const { form, set, save, loading } = useSettingsForm<Security>('security');
+  if (loading || !form) return <Spinner />;
+  return (
+    <>
+      <PageHeader
+        eyebrow={t('common.system')}
+        title={t('security.title')}
+        description={t('security.description')}
+        actions={
+          <Button variant="accent" loading={save.isPending} onClick={() => save.mutate(form)}>
+            {t('common.save')}
+          </Button>
+        }
+      />
+      <div className="grid gap-6 xl:grid-cols-3">
+        <div className="space-y-6 xl:col-span-2">
+          <Section title={t('security.twoFactor')} description={t('security.twoFactorHint')}>
+            <Switch checked={form.requirePlatform} onChange={(v) => set('requirePlatform', v)} label={t('security.requirePlatform')} description={t('security.requirePlatformHint')} />
+            <Field label={t('security.requireCustomers')} hint={t('security.requireCustomersHint')}>
+              <Select value={form.requireCustomers} onChange={(e) => set('requireCustomers', e.target.value as Security['requireCustomers'])}>
+                {(['off', 'admins', 'all'] as const).map((v) => (
+                  <option key={v} value={v}>
+                    {t(`twoFactor.levels.${v}`)}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Switch checked={form.trustMicrosoft} onChange={(v) => set('trustMicrosoft', v)} label={t('security.trustMicrosoft')} description={t('security.trustMicrosoftHint')} />
+          </Section>
+        </div>
+        <Card className="h-fit p-6">
+          <span className="grid size-10 place-items-center rounded-xl bg-koraal/12 text-accent">
+            <ShieldCheck className="size-5" />
+          </span>
+          <p className="mt-3 text-sm font-semibold">{t('security.howTitle')}</p>
+          <p className="mt-1 text-sm text-muted">{t('security.howText')}</p>
+        </Card>
+      </div>
+    </>
+  );
+}

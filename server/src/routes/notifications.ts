@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { db, schema } from '../db/index.js';
 import { normalizeLocale, requestLocale } from '../i18n/index.js';
 import { audit, requireUser, tenantScope } from '../lib/auth.js';
+import { sentOnly } from '../lib/patch.js';
 import { badRequest, translateError } from '../lib/errors.js';
 import { sendMonthlyReport, tenantRecipients } from '../services/notifications.js';
 import { monthlyStats, MONTH_RE, previousMonth } from '../services/reports.js';
@@ -21,7 +22,7 @@ export async function notificationRoutes(app: FastifyInstance) {
 
   app.put('/api/notification-settings', async (req) => {
     const tenantId = tenantScope(req, true);
-    const input = notificationSettingsSchema.partial().parse(req.body);
+    const input = sentOnly(notificationSettingsSchema.partial().parse(req.body), req.body);
     await saveTenantSettings(tenantId, 'notifications', input);
     await audit(req, 'notifications.updated', undefined, tenantId);
     return { settings: await getPublicTenantSettings(tenantId, 'notifications') };

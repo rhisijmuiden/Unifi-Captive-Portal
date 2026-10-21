@@ -91,7 +91,7 @@ type AuthorizeOptions = {
   /** Short access while paying: the console lets the guest through, the session stays pending. */
   temporary?: boolean;
   /** Extra fields stored on the session once access is granted (method, e-mail, …). */
-  record?: Partial<Pick<GuestSession, 'method' | 'name' | 'email' | 'phone' | 'marketingOptIn' | 'voucherId' | 'paymentId' | 'locale'>>;
+  record?: Partial<Pick<GuestSession, 'method' | 'name' | 'email' | 'phone' | 'marketingOptIn' | 'voucherId' | 'paymentId' | 'hotelStayId' | 'locale'>>;
 };
 
 /** Asks the console to let the guest through, with the customer's limits. */

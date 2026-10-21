@@ -126,6 +126,39 @@ export function defaultMailTemplate(kind: MailKind, locale: Locale): MailContent
         { type: 'button', label: m('backupFailedButton'), url: '{{actionUrl}}' },
       ],
     },
+    consoleOffline: {
+      subject: m('consoleOfflineSubject'),
+      blocks: [
+        { type: 'heading', text: m('consoleOfflineTitle') },
+        { type: 'text', text: m('consoleOfflineBody') },
+        { type: 'text', text: '{{error}}' },
+        { type: 'button', label: m('monitoringButton'), url: '{{actionUrl}}' },
+      ],
+    },
+    consoleOnline: {
+      subject: m('consoleOnlineSubject'),
+      blocks: [
+        { type: 'heading', text: m('consoleOnlineTitle') },
+        { type: 'text', text: m('consoleOnlineBody') },
+        { type: 'button', label: m('monitoringButton'), url: '{{actionUrl}}' },
+      ],
+    },
+    deviceOffline: {
+      subject: m('deviceOfflineSubject'),
+      blocks: [
+        { type: 'heading', text: m('deviceOfflineTitle') },
+        { type: 'text', text: m('deviceOfflineBody') },
+        { type: 'button', label: m('monitoringButton'), url: '{{actionUrl}}' },
+      ],
+    },
+    deviceOnline: {
+      subject: m('deviceOnlineSubject'),
+      blocks: [
+        { type: 'heading', text: m('deviceOnlineTitle') },
+        { type: 'text', text: m('deviceOnlineBody') },
+        { type: 'button', label: m('monitoringButton'), url: '{{actionUrl}}' },
+      ],
+    },
     guestWelcome: { subject: m('welcomeSubject'), blocks: [{ type: 'heading', text: m('welcomeTitle') }, { type: 'text', text: m('welcomeBody') }] },
     paymentReceipt: {
       subject: m('receiptSubject'),

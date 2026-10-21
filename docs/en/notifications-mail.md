@@ -13,6 +13,26 @@ Under **Insights → Notifications** you choose which e-mails the platform sends
 
 Notifications are sent through the SMTP server of the platform, so the platform admin must have set up **E-mail (SMTP)** first.
 
+## Monitoring: consoles and access points
+
+The platform checks every connected console every 5 minutes. Under **Insights → Notifications → Monitoring** you choose:
+
+- **Console offline**: an e-mail when a UniFi console cannot be reached (for example no internet or no power at that location). Guests there cannot sign in through the portal while it lasts.
+- **Access point offline**: an e-mail when UniFi reports one of your access points as offline. Off by default.
+- **Alert after**: how long an outage must last before you get the e-mail (5 minutes to 2 hours, default 10). Short blips are ignored.
+
+When the console or access point works again you get a second e-mail with how long the outage lasted, but only if the first one was sent. Both e-mails go to the same recipients as the other notifications and are listed in the log. The platform admin can change their look under **E-mail templates** (*Console offline*, *Console back online*, *Access point offline*, *Access point back online*). The same moments are available as webhooks: `console.offline`, `console.online`, `device.offline` and `device.online`.
+
+## Live dashboard
+
+**Insights → Live** shows what is happening on your guest network right now and refreshes every 10 seconds:
+
+- guests online now (per location), connections and unique devices today, compared with the same day last week, and the last hour
+- today by hour as a bar chart, with the same weekday last week as a line for comparison (hover a bar for the numbers)
+- how guests sign in today, and who is online per access point
+- the latest sign-ins
+- the state of every console and its access points, with a red banner as soon as something is offline
+
 ## Reports
 
 **Insights → Reports** shows a month at a glance:

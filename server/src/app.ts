@@ -18,23 +18,29 @@ import { billingRoutes } from './routes/billing.js';
 import { consoleRoutes } from './routes/consoles.js';
 import { editorRoutes } from './routes/editor.js';
 import { guestPortalRoutes } from './routes/guestPortal.js';
+import { liveRoutes } from './routes/live.js';
 import { hostnameRoutes } from './routes/hostnames.js';
 import { mailTemplateRoutes } from './routes/mailTemplates.js';
 import { notificationRoutes } from './routes/notifications.js';
 import { paymentRoutes } from './routes/payments.js';
 import { portalRoutes } from './routes/portal.js';
+import { securityRoutes } from './routes/security.js';
 import { settingsRoutes } from './routes/settings.js';
 import { socialRoutes } from './routes/social.js';
+import { smsRoutes } from './routes/sms.js';
+import { hotelRoutes } from './routes/hotel.js';
 import { systemRoutes } from './routes/system.js';
 import { tenantRoutes } from './routes/tenants.js';
 import { userRoutes } from './routes/users.js';
 import { voucherRoutes } from './routes/vouchers.js';
 import { cachedHosting, hostnameTenant } from './services/hostnames.js';
+import { needsTwoFactorSetup } from './services/twoFactor.js';
 
 const webDist = fileURLToPath(new URL('../../web/dist', import.meta.url));
 const MUTATING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 // The only paths a customer hostname serves; the admin panel stays on the platform's own address
 const PORTAL_PATH = /^\/(portal|guest)\/|^\/api\/health$/;
+const TWO_FACTOR_OPEN = /^\/api\/(auth\/|system\/info$|health$)/;
 
 export async function buildApp() {
   const app = Fastify({
@@ -51,6 +57,7 @@ export async function buildApp() {
 
   app.decorateRequest('user', null);
   app.decorateRequest('apiKey', null);
+  app.decorateRequest('sessionMethod', null);
   app.addHook('onRequest', async (req, reply) => {
     if (req.url.startsWith('/api/caddy/')) return;
     const host = req.hostname;
@@ -75,6 +82,10 @@ export async function buildApp() {
       return reply.code(403).send({ error: t(requestLocale(req), 'errors.invalidRequest') });
     }
     req.user = await loadUser(req);
+    // Someone who must use two-factor sign-in can only set it up (and sign out) until they have
+    if (req.user && !TWO_FACTOR_OPEN.test(req.url) && (await needsTwoFactorSetup(req.user, req.sessionMethod ?? 'password'))) {
+      return reply.code(403).send({ error: t(requestLocale(req), 'errors.twoFactorSetup'), code: 'two_factor_setup' });
+    }
   });
   app.addHook('onResponse', async (req, reply) => {
     if (req.apiKey) await logApiRequest(req, reply).catch((err) => req.log.error(err));
@@ -117,6 +128,10 @@ export async function buildApp() {
   await app.register(billingRoutes);
   await app.register(backupRoutes);
   await app.register(socialRoutes);
+  await app.register(securityRoutes);
+  await app.register(liveRoutes);
+  await app.register(smsRoutes);
+  await app.register(hotelRoutes);
   await app.register(guestPortalRoutes);
   await app.register(apiRoutes);
 

@@ -19,6 +19,8 @@ export const webhookEvents: Record<Audience, Record<string, Text>> = {
     'hostname.active': { en: 'A hostname is live: DNS checked and SSL certificate issued', nl: 'Een hostname is live: DNS gecontroleerd en SSL-certificaat uitgegeven' },
     'console.offline': { en: 'A console can no longer be reached', nl: 'Een console is niet meer bereikbaar' },
     'console.online': { en: 'A console can be reached again', nl: 'Een console is weer bereikbaar' },
+    'device.offline': { en: 'An access point went offline', nl: 'Een access point is offline gegaan' },
+    'device.online': { en: 'An access point is back online', nl: 'Een access point is weer online' },
     'invoice.issued': { en: 'You received an invoice', nl: 'Je hebt een factuur ontvangen' },
     'invoice.paid': { en: 'An invoice of yours was paid', nl: 'Een factuur van jou is betaald' },
   },

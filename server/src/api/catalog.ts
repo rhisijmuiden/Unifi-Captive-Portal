@@ -5,11 +5,12 @@ import { planInput, profileInput, invoiceInput } from '../routes/billing.js';
 import { portalInput } from '../routes/portal.js';
 import { adminInput, tenantInput } from '../routes/tenants.js';
 import { userInput } from '../routes/users.js';
+import { stayInput, staysImport } from '../routes/hotel.js';
 import { voucherInput } from '../routes/vouchers.js';
 import { targetSchema } from '../services/backups.js';
 import { mailContentSchema } from '../services/mailTemplates.js';
 import { portalDesignSchema } from '../services/portalDesign.js';
-import { notificationSettingsSchema, paymentSettingsSchema, socialSettingsSchema } from '../services/tenantSettings.js';
+import { hotelSettingsSchema, notificationSettingsSchema, paymentSettingsSchema, securitySettingsSchema, smsSettingsSchema, socialSettingsSchema } from '../services/tenantSettings.js';
 
 /**
  * The public REST API (/api/v1/…). Every operation is one of the routes the admin interface
@@ -27,6 +28,7 @@ export const scopes: Record<Audience, Record<string, Text>> = {
     portal: { en: 'Portal settings, design and images', nl: 'Portalinstellingen, ontwerp en afbeeldingen' },
     guests: { en: 'Guests', nl: 'Gasten' },
     vouchers: { en: 'Vouchers', nl: 'Vouchers' },
+    hotel: { en: 'Hotel stays for the room login', nl: 'Hotelverblijven voor de kamerlogin' },
     payments: { en: 'Payments and packages', nl: 'Betalingen en pakketten' },
     notifications: { en: 'Notifications and guest e-mails', nl: 'Meldingen en gastmails' },
     reports: { en: 'Overview and reports', nl: 'Overzicht en rapporten' },
@@ -76,6 +78,7 @@ const settingsBody = z.record(z.string(), z.unknown());
 export const operations: Operation[] = [
   // ── Customer API ────────────────────────────────────────────────────────────
   { method: 'GET', route: '/api/dashboard', tenant: 'reports', platform: 'system', summary: { en: 'Overview figures and recent activity', nl: 'Overzichtscijfers en recente activiteit' } },
+  { method: 'GET', route: '/api/live', tenant: 'reports', summary: { en: 'Live figures: guests online, today per hour, latest sign-ins, console status', nl: 'Live cijfers: gasten online, vandaag per uur, laatste aanmeldingen, status consoles' } },
   { method: 'GET', route: '/api/reports/monthly', tenant: 'reports', params: [month], summary: { en: 'Monthly report: guests, registrations, payments and peak times', nl: 'Maandrapport: gasten, registraties, betalingen en piekmomenten' } },
 
   { method: 'GET', route: '/api/consoles', tenant: 'consoles', summary: { en: 'List consoles with their sites', nl: 'Consoles met hun sites' } },
@@ -96,8 +99,31 @@ export const operations: Operation[] = [
   { method: 'GET', route: '/api/portal-design', tenant: 'portal', summary: { en: 'Portal design (editor blocks and theme)', nl: 'Portalontwerp (editorblokken en thema)' } },
   { method: 'PUT', route: '/api/portal-design', tenant: 'portal', body: z.object({ design: portalDesignSchema }), summary: { en: 'Save the portal design', nl: 'Portalontwerp opslaan' } },
   { method: 'POST', route: '/api/media', tenant: 'portal', platform: 'settings', body: z.object({ dataUrl: z.string() }), summary: { en: 'Upload an image (data URL, max. 2 MB)', nl: 'Afbeelding uploaden (data-URL, max. 2 MB)' } },
-  { method: 'GET', route: '/api/social-settings', tenant: 'portal', summary: { en: 'Facebook login settings', nl: 'Instellingen Facebook-login' } },
-  { method: 'PUT', route: '/api/social-settings', tenant: 'portal', body: socialSettingsSchema.partial(), summary: { en: 'Change Facebook login settings', nl: 'Facebook-login wijzigen' } },
+  { method: 'GET', route: '/api/social-settings', tenant: 'portal', summary: { en: 'Facebook, Google, Apple and Microsoft login settings', nl: 'Instellingen login met Facebook, Google, Apple en Microsoft' } },
+  { method: 'PUT', route: '/api/social-settings', tenant: 'portal', body: socialSettingsSchema.partial(), summary: { en: 'Change the social login settings', nl: 'Sociale logins wijzigen' } },
+  { method: 'GET', route: '/api/sms-settings', tenant: 'portal', summary: { en: 'SMS login settings and usage', nl: 'Instellingen en verbruik sms-login' } },
+  { method: 'PUT', route: '/api/sms-settings', tenant: 'portal', body: smsSettingsSchema.partial(), summary: { en: 'Change the SMS login settings', nl: 'Sms-login wijzigen' } },
+
+  { method: 'GET', route: '/api/hotel-settings', tenant: 'hotel', summary: { en: 'Hotel login settings and PMS sync status', nl: 'Instellingen hotellogin en PMS-synchronisatie' } },
+  { method: 'PUT', route: '/api/hotel-settings', tenant: 'hotel', body: hotelSettingsSchema.partial(), summary: { en: 'Change the hotel login settings', nl: 'Hotellogin wijzigen' } },
+  { method: 'POST', route: '/api/hotel/sync', tenant: 'hotel', summary: { en: 'Sync stays from the PMS now', nl: 'Verblijven nu ophalen uit het PMS' } },
+  {
+    method: 'GET',
+    route: '/api/hotel/stays',
+    tenant: 'hotel',
+    params: [{ name: 'scope', in: 'query', type: 'string', text: { en: 'current, upcoming or all (default: all that have not left)', nl: 'current, upcoming of all (standaard: alles wat nog niet vertrokken is)' } }],
+    summary: { en: 'Hotel stays with devices online', nl: 'Hotelverblijven met apparaten online' },
+  },
+  { method: 'POST', route: '/api/hotel/stays', tenant: 'hotel', body: stayInput, summary: { en: 'Add a stay (room, surname, arrival, departure)', nl: 'Verblijf toevoegen (kamer, achternaam, aankomst, vertrek)' } },
+  { method: 'PUT', route: '/api/hotel/stays/:id', tenant: 'hotel', params: [id], body: stayInput, summary: { en: 'Change a stay', nl: 'Verblijf wijzigen' } },
+  { method: 'DELETE', route: '/api/hotel/stays/:id', tenant: 'hotel', params: [id], summary: { en: 'Delete a stay; devices already online keep access', nl: 'Verblijf verwijderen; apparaten die online zijn houden toegang' } },
+  {
+    method: 'POST',
+    route: '/api/hotel/stays/import',
+    tenant: 'hotel',
+    body: staysImport,
+    summary: { en: 'Import many stays (CSV text or JSON list); stays with an externalId are updated when sent again', nl: 'Veel verblijven importeren (CSV-tekst of JSON-lijst); verblijven met een externalId worden bijgewerkt' },
+  },
 
   { method: 'GET', route: '/api/guests', tenant: 'guests', params: [{ name: 'limit', in: 'query', type: 'integer', text: { en: 'Maximum number (default 100, max. 500)', nl: 'Maximum aantal (standaard 100, max. 500)' } }], summary: { en: 'Latest guest sessions with statistics', nl: 'Laatste gastsessies met statistieken' } },
   { method: 'DELETE', route: '/api/guests/:id', tenant: 'guests', params: [id], summary: { en: "Delete a guest's personal data (GDPR)", nl: 'Persoonsgegevens van een gast verwijderen (AVG)' } },
@@ -129,6 +155,9 @@ export const operations: Operation[] = [
   { method: 'PUT', route: '/api/users/:id', tenant: 'users', platform: 'users', params: [id], body: userInput.omit({ sendInvite: true }).partial(), summary: { en: 'Change a user', nl: 'Gebruiker wijzigen' } },
   { method: 'POST', route: '/api/users/:id/invite', tenant: 'users', platform: 'users', params: [id], summary: { en: 'Send the invitation again', nl: 'Uitnodiging opnieuw sturen' } },
   { method: 'DELETE', route: '/api/users/:id', tenant: 'users', platform: 'users', params: [id], summary: { en: 'Delete a user', nl: 'Gebruiker verwijderen' } },
+  { method: 'POST', route: '/api/users/:id/reset-2fa', tenant: 'users', platform: 'users', params: [id], summary: { en: "Reset a user's two-factor authentication (lost phone)", nl: 'Tweestapsverificatie van een gebruiker resetten (telefoon kwijt)' } },
+  { method: 'GET', route: '/api/security-settings', tenant: 'users', summary: { en: 'Two-factor policy for your team', nl: 'Beleid voor tweestapsverificatie van je team' } },
+  { method: 'PUT', route: '/api/security-settings', tenant: 'users', body: securitySettingsSchema.partial(), summary: { en: 'Change the two-factor policy for your team', nl: 'Beleid voor tweestapsverificatie wijzigen' } },
 
   { method: 'GET', route: '/api/invoices', tenant: 'invoices', summary: { en: 'Your invoices and subscription', nl: 'Je facturen en abonnement' } },
   { method: 'GET', route: '/api/billing/invoices/:id/pdf', tenant: 'invoices', platform: 'billing', params: [id], produces: 'application/pdf', summary: { en: 'Download an invoice as PDF', nl: 'Factuur als pdf downloaden' } },
@@ -151,14 +180,14 @@ export const operations: Operation[] = [
     method: 'GET',
     route: '/api/settings/:key',
     platform: 'settings',
-    params: [{ name: 'key', in: 'path', required: true, enum: ['smtp', 'sso', 'system', 'hosting', 'billing'], text: { en: 'Settings group', nl: 'Instellingengroep' } }],
+    params: [{ name: 'key', in: 'path', required: true, enum: ['smtp', 'sso', 'system', 'hosting', 'billing', 'security'], text: { en: 'Settings group', nl: 'Instellingengroep' } }],
     summary: { en: 'Get server settings (secrets are never returned)', nl: 'Serverinstellingen ophalen (geheimen komen nooit terug)' },
   },
   {
     method: 'PUT',
     route: '/api/settings/:key',
     platform: 'settings',
-    params: [{ name: 'key', in: 'path', required: true, enum: ['smtp', 'sso', 'system', 'hosting', 'billing'], text: { en: 'Settings group', nl: 'Instellingengroep' } }],
+    params: [{ name: 'key', in: 'path', required: true, enum: ['smtp', 'sso', 'system', 'hosting', 'billing', 'security'], text: { en: 'Settings group', nl: 'Instellingengroep' } }],
     body: settingsBody,
     summary: { en: 'Change server settings', nl: 'Serverinstellingen wijzigen' },
     description: { en: 'Fields that are left out keep their value; an empty secret keeps the stored one.', nl: 'Weggelaten velden houden hun waarde; een leeg geheim houdt het opgeslagen geheim.' },

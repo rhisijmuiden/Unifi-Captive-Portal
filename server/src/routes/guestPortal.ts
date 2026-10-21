@@ -11,12 +11,15 @@ import { adminBaseUrl } from '../services/settings.js';
 import { getTenantSettings } from '../services/tenantSettings.js';
 import { claimVoucher, releaseVoucher } from '../services/vouchers.js';
 import { facebookConfigured, facebookLoginUrl, facebookProfile } from '../services/facebook.js';
+import { devicesOnStay, findStay, normalizeRoom, roomFailed, roomLocked, syncIfStale } from '../services/hotel.js';
+import { maskPhone, pendingCode, sendGuestCode, smsConfigured, verifyGuestCode } from '../services/sms.js';
+import { oidcConfigured, oidcLoginUrl, oidcProfile, oidcProviders, type OidcProvider } from '../services/socialLogin.js';
 import { guestStrings, moneyLabel, type GuestStrings } from '../shared/guestStrings.js';
 import { pickText, type LoginContext, type LoginMethod } from '../shared/portalDesign.js';
 import { esc, renderGuestPage, renderMessage } from '../views/portal.js';
 
 type GuestQuery = { id?: string; ap?: string; ssid?: string; url?: string; t?: string; lang?: string };
-type ConnectBody = Partial<Record<'method' | 'terms' | 'lang' | 'name' | 'email' | 'phone' | 'marketing' | 'code' | 'package', string>>;
+type ConnectBody = Partial<Record<'method' | 'terms' | 'lang' | 'name' | 'email' | 'phone' | 'marketing' | 'code' | 'package' | 'room' | 'surname' | 'resend', string>>;
 
 const MAC_RE = /^([0-9a-f]{2}[:-]?){5}[0-9a-f]{2}$/i;
 const EMAIL_RE = /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[a-z]{2,}$/i;
@@ -63,8 +66,18 @@ async function loginContext(p: PortalSettings, locale: Locale, action: string): 
     }
     if (!packages.length) methods = methods.filter((m) => m !== 'payment');
   }
-  if (methods.includes('facebook') && !facebookConfigured(await getTenantSettings(p.tenantId, 'social'))) methods = methods.filter((m) => m !== 'facebook');
+  if (methods.some((m) => m === 'facebook' || (oidcProviders as string[]).includes(m))) {
+    const social = await getTenantSettings(p.tenantId, 'social');
+    methods = methods.filter((m) => (m === 'facebook' ? facebookConfigured(social) : (oidcProviders as string[]).includes(m) ? oidcConfigured(social, m as OidcProvider) : true));
+  }
+  let smsCountry: string | undefined;
+  if (methods.includes('sms')) {
+    const sms = await getTenantSettings(p.tenantId, 'sms');
+    if (smsConfigured(sms)) smsCountry = sms.defaultCountry;
+    else methods = methods.filter((m) => m !== 'sms');
+  }
   return {
+    smsCountry,
     methods,
     requireTerms: p.requireTerms,
     terms: pickText(p.terms, locale, p.languages[0] ?? DEFAULT_LOCALE),
@@ -127,7 +140,12 @@ export async function guestPortalRoutes(app: FastifyInstance) {
       .send(row.data);
   });
 
-  const render = async (req: FastifyRequest, reply: FastifyReply, p: PortalSettings, opts: { locale: Locale; path: string; action: string; error?: string; active?: LoginMethod; values?: LoginContext['values']; status?: number }) => {
+  const render = async (
+    req: FastifyRequest,
+    reply: FastifyReply,
+    p: PortalSettings,
+    opts: { locale: Locale; path: string; action: string; error?: string; active?: LoginMethod; values?: LoginContext['values']; status?: number; smsSent?: LoginContext['smsSent'] },
+  ) => {
     const login = await loginContext(p, opts.locale, opts.action);
     const s = guestStrings[opts.locale];
     return html(
@@ -138,7 +156,7 @@ export async function guestPortalRoutes(app: FastifyInstance) {
         languages: p.languages,
         path: opts.path,
         title: pickText(p.title, opts.locale, p.languages[0]) || s.defaultTitle,
-        login: { ...login, error: opts.error, active: opts.active, values: opts.values },
+        login: { ...login, error: opts.error, active: opts.active, values: opts.values, smsSent: opts.smsSent },
       }),
       opts.status,
     );
@@ -168,7 +186,14 @@ export async function guestPortalRoutes(app: FastifyInstance) {
     if (s.status === 'authorized' && s.accessUntil && s.accessUntil > new Date()) return reply.redirect(`/portal/${s.token}/done`);
     const p = await getPortalSettings(s.tenantId);
     const locale = guestLocale(req, req.query.lang ?? s.locale, p.languages);
-    return render(req, reply, p, { locale, path: `/portal/${s.token}`, action: `/portal/${s.token}/connect` });
+    // A code was sent but not entered yet (e.g. after switching language): ask for it again
+    const pending = p.auth.methods.includes('sms') ? await pendingCode(s.id) : null;
+    return render(req, reply, p, {
+      locale,
+      path: `/portal/${s.token}`,
+      action: `/portal/${s.token}/connect`,
+      ...(pending && { active: 'sms' as const, values: { phone: pending.phone }, smsSent: { masked: maskPhone(pending.phone), canResend: pending.canResend } }),
+    });
   });
 
   /** Connects the guest with the chosen method: free (click-through), e-mail, voucher or payment. */
@@ -186,11 +211,21 @@ export async function guestPortalRoutes(app: FastifyInstance) {
       const path = `/portal/${s.token}`;
       const login = await loginContext(p, locale, `${path}/connect`);
       const method = (login.methods.includes(body.method as LoginMethod) ? body.method : login.methods.length === 1 ? login.methods[0] : null) as LoginMethod | null;
-      const values = { name: clean(body.name, 120), email: clean(body.email, 254).toLowerCase(), phone: clean(body.phone, 40), code: clean(body.code, 32), package: clean(body.package, 40) };
-      const fail = (error: string, status = 400) => render(req, reply, p, { locale, path, action: `${path}/connect`, error, active: method ?? undefined, values, status });
+      const values = {
+        name: clean(body.name, 120),
+        email: clean(body.email, 254).toLowerCase(),
+        phone: clean(body.phone, 40),
+        code: clean(body.code, 32),
+        package: clean(body.package, 40),
+        room: clean(body.room, 20),
+        surname: clean(body.surname, 80),
+      };
+      const fail = (error: string, status = 400, smsSent?: LoginContext['smsSent']) => render(req, reply, p, { locale, path, action: `${path}/connect`, error, active: method ?? undefined, values, status, smsSent });
 
       if (!method) return fail(g.noMethods);
-      if (p.requireTerms && body.terms !== '1') return fail(g.mustAccept);
+      // The SMS code step comes after the terms were accepted with the phone number
+      const smsCodeStep = method === 'sms' && Boolean(values.code) && body.resend !== '1';
+      if (p.requireTerms && body.terms !== '1' && !smsCodeStep && !(method === 'sms' && body.resend === '1')) return fail(g.mustAccept);
       await db.update(schema.guestSessions).set({ locale }).where(eq(schema.guestSessions.id, s.id));
 
       const failed = (error: string) => {
@@ -221,6 +256,66 @@ export async function guestPortalRoutes(app: FastifyInstance) {
         if (!result.ok) return failed(result.error);
         if (p.auth.welcomeMail) void sendGuestMail('guestWelcome', s.tenantId, values.email, locale, { name: values.name, email: values.email, validUntil: result.session.accessUntil });
         return reply.redirect(`${path}/done`, 303);
+      }
+
+      if (method === 'sms') {
+        if (smsCodeStep) {
+          const checked = await verifyGuestCode(s, values.code);
+          if (!checked.ok) {
+            const pending = await pendingCode(s.id);
+            values.code = '';
+            return fail(g[checked.reason], 400, pending ? { masked: maskPhone(pending.phone), canResend: pending.canResend } : undefined);
+          }
+          const result = await authorizeSession(s, { record: { method, locale, phone: checked.phone } });
+          return result.ok ? reply.redirect(`${path}/done`, 303) : failed(result.error);
+        }
+        try {
+          const sent = await sendGuestCode(s, values.phone, g.smsText);
+          if (!sent.ok) {
+            const pending = sent.reason === 'smsWait' ? await pendingCode(s.id) : null;
+            return fail(g[sent.reason], sent.reason === 'phoneInvalid' ? 400 : 429, pending ? { masked: maskPhone(pending.phone), canResend: pending.canResend } : undefined);
+          }
+          values.phone = sent.phone;
+          return render(req, reply, p, { locale, path, action: `${path}/connect`, active: 'sms', values, smsSent: { masked: maskPhone(sent.phone), canResend: sent.canResend } });
+        } catch (err) {
+          req.log.error({ err, session: s.id }, 'sending SMS code failed');
+          return fail(g.smsUnavailable, 502);
+        }
+      }
+
+      if (method === 'room') {
+        if (!values.room || !values.surname) return fail(g.roomInvalid);
+        if (roomLocked(s.tenantId, values.room)) return fail(g.roomLocked, 429);
+        let stay = await findStay(s.tenantId, values.room, values.surname);
+        // Just checked in and the PMS has not been synced since: look again
+        if (!stay && (await syncIfStale(s.tenantId))) stay = await findStay(s.tenantId, values.room, values.surname);
+        if (!stay) {
+          roomFailed(s.tenantId, values.room);
+          return fail(g.roomInvalid);
+        }
+        const hotel = await getTenantSettings(s.tenantId, 'hotel');
+        if ((await devicesOnStay(stay.id, s.clientMac)) >= hotel.devicesPerRoom) return fail(g.roomFull, 403);
+        const minutes = Math.max(5, Math.ceil((stay.departure.getTime() - Date.now()) / 60_000));
+        const result = await authorizeSession(s, {
+          limits: { timeLimitMinutes: minutes, dataLimitMb: p.dataLimitMb, downKbps: p.downKbps, upKbps: p.upKbps },
+          record: { method, locale, name: stay.surname, hotelStayId: stay.id },
+        });
+        req.log.info({ session: s.id, room: normalizeRoom(values.room) }, 'hotel guest signed in');
+        return result.ok ? reply.redirect(`${path}/done`, 303) : failed(result.error);
+      }
+
+      if ((oidcProviders as string[]).includes(method)) {
+        try {
+          const started = await oidcLoginUrl(s.tenantId, method as OidcProvider, s.token, locale);
+          if (started.graceMinutes > 0) {
+            const grace = await authorizeSession(s, { temporary: true, retries: 1, limits: { timeLimitMinutes: started.graceMinutes, downKbps: 2048, upKbps: 1024 } });
+            if (!grace.ok) req.log.warn({ session: s.id, error: grace.error }, `short access for ${method} failed; relying on pre-authorization`);
+          }
+          return reply.header('cache-control', 'no-store').redirect(started.url, 303);
+        } catch (err) {
+          req.log.error({ err, session: s.id }, `starting ${method} login failed`);
+          return fail(g.socialFailed);
+        }
       }
 
       if (method === 'voucher') {
@@ -299,6 +394,35 @@ export async function guestPortalRoutes(app: FastifyInstance) {
     }
     return reply.redirect(`${path}/done`, 303);
   });
+
+  /** Google and Microsoft send the guest back with a code (GET); Apple posts a form (form_post). */
+  const oidcCallback = async (req: FastifyRequest, reply: FastifyReply, provider: OidcProvider, q: { code?: string; state?: string; error?: string; user?: string }) => {
+    const s = q.state ? await loadSession(String(q.state).slice(0, 100)) : null;
+    if (!s || isExpired(s)) return expired(reply, guestLocale(req, null, Object.keys(guestStrings)));
+    if (s.status === 'authorized' && s.accessUntil && s.accessUntil > new Date()) return reply.redirect(`/portal/${s.token}/done`, 303);
+    const p = await getPortalSettings(s.tenantId);
+    const locale = guestLocale(req, s.locale, p.languages);
+    const g = guestStrings[locale];
+    const path = `/portal/${s.token}`;
+    const again = () => render(req, reply, p, { locale, path, action: `${path}/connect`, error: g.socialFailed, active: provider, status: 400 });
+    if (!q.code || q.error) return again();
+    let profile: { id: string; name?: string; email?: string };
+    try {
+      profile = await oidcProfile(s.tenantId, provider, String(q.code).slice(0, 2000), typeof q.user === 'string' ? q.user.slice(0, 2000) : undefined);
+    } catch (err) {
+      req.log.warn({ err, session: s.id }, `${provider} login failed`);
+      return again();
+    }
+    const result = await authorizeSession(s, { record: { method: provider, locale, name: profile.name?.slice(0, 120) ?? null, email: profile.email?.toLowerCase().slice(0, 254) ?? null } });
+    if (!result.ok) {
+      const retry = `<a class="cp-btn" href="${esc(path)}?lang=${locale}">${esc(g.retry)}</a>`;
+      return html(reply, renderMessage(locale, g.failedTitle, g.failedBody, { extra: retry, design: designFor(p), languages: p.languages, path }), 502);
+    }
+    return reply.redirect(`${path}/done`, 303);
+  };
+  app.get<{ Querystring: { code?: string; state?: string; error?: string } }>('/portal/oauth/google', (req, reply) => oidcCallback(req, reply, 'google', req.query));
+  app.get<{ Querystring: { code?: string; state?: string; error?: string } }>('/portal/oauth/microsoft', (req, reply) => oidcCallback(req, reply, 'microsoft', req.query));
+  app.post<{ Body: { code?: string; state?: string; error?: string; user?: string } }>('/portal/oauth/apple', (req, reply) => oidcCallback(req, reply, 'apple', req.body ?? {}));
 
   /** The guest comes back from the payment page; the status is checked with the provider. */
   app.get<{ Params: { token: string }; Querystring: { p?: string; cancel?: string; lang?: string } }>('/portal/:token/pay/return', async (req, reply) => {

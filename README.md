@@ -19,19 +19,21 @@ Captive Portal is a multi-tenant web application. You (the platform admin) host 
 
 See the [roadmap](ROADMAP.md) for what works today and what is coming.
 
-## What's included (v0.6)
+## What's included (v0.7)
 
 - **UniFi integration**: connect UniFi OS consoles (UDM, UCG, Dream Router, Cloud Key, self-hosted Network) through the UniFi Site Manager cloud or directly, using the official UniFi Network API. Guests are recognised by access point and let through with time, data and speed limits.
 - **Guest portal** as external portal server, designed in a **drag-and-drop portal editor** with templates, images, colours and fonts, in English and Dutch (the customer picks the languages, the guest picks one).
-- **Ways to connect**: free with one tap, registration by e-mail (with marketing opt-in), **vouchers** with a print sheet, **paid access** through Mollie or Stripe with packages and an adjustable time to pay, and **Continue with Facebook**.
+- **Ways to connect**: free with one tap, registration by e-mail (with marketing opt-in), **vouchers** with a print sheet, **paid access** through Mollie or Stripe with packages and an adjustable time to pay, **SMS code** (Twilio or MessageBird), **hotel login** with room number and surname (by hand, CSV, API, Apaleo or Mews), and **Continue with Facebook, Google, Apple or Microsoft**.
 - **Billing customers** from the main admin panel: plans and subscriptions per customer, invoices with gapless numbers, VAT and your logo as PDF and e-mail, online payment through your own Mollie or Stripe account, reminders, and optionally pausing a customer's guest portal while invoices stay unpaid. Customers see and pay their invoices in their own environment.
 - **Backups and restore**: encrypted (AES-256) full and incremental backups of the database and data folder to **SCP**, **FTPS**, FTP or a local folder, on a schedule per location with retention, and restoring from the remote location in the web interface with a safety copy and automatic rollback.
 - **Full REST API and webhooks**: a customer API for everything in a customer's environment and a platform API for customers, users, server settings, billing, backups and updates. API keys with read/write scopes, expiry and rate limit, an audit trail per key, signed webhooks with retries, and OpenAPI documentation in English and Dutch with an explorer to try it out.
 - **Notifications and reports**: an e-mail as soon as a hostname is live (A record validated and SSL in place) and a monthly report with guests, registrations, payments and peak times.
+- **Monitoring and live dashboard**: consoles are checked every 5 minutes, with an e-mail (and webhook) when a console or access point stays offline and when it is back. A live dashboard per customer shows guests online, today by hour against last week, sign-in methods, guests per access point and the latest sign-ins.
 - **E-mail template designer**: every e-mail, visual or in HTML, per language, per customer and platform-wide.
 - **Own hostnames with automatic SSL**: Caddy on ports 80/443 with on-demand Let's Encrypt certificates, only after the DNS record has been verified. The admin panel can get its own HTTPS hostname too.
 - **Customers (tenants) and users** with three roles: platform admin, customer admin and staff member. Invitations by e-mail. The platform admin manages customers and the server (public IP, admin hostname and SSL, e-mail, SSO); consoles, portals, hostnames and guests live in each customer's own environment.
 - **Microsoft Entra ID single sign-on** (OpenID Connect with PKCE), next to or instead of password sign-in.
+- **Two-factor authentication** with an authenticator app (TOTP) and recovery codes, which the platform admin can require for platform admins and customers, and customers for their own team.
 - **Your own mail server (SMTP)**: STARTTLS or TLS, minimum TLS version, username/password or OAuth 2.0 (Microsoft 365), DKIM signing and a test button.
 - **Info & updates**: current version, check for updates, choose between the **stable** and **test** channel, and **update the whole installation** (app plus Debian packages) from the web interface, with an automatic database backup and rollback.
 - **Bilingual**: English and Dutch in the interface, error messages and e-mails. Every user picks a language; new languages are added with one translation file.
@@ -54,7 +56,10 @@ Then open `http://<server-ip>:8080` and create the first administrator account. 
 - [Hostnames and SSL](docs/en/hostnames-ssl.md): DNS records, automatic certificates, HTTPS for the admin panel
 - [Portal editor](docs/en/portal-editor.md): blocks, templates, images and languages
 - [Guest access](docs/en/guest-access.md): sign-in methods, vouchers, Mollie and Stripe, time to pay, Facebook login, pre-authorization
-- [Notifications, reports and e-mail templates](docs/en/notifications-mail.md)
+- [SMS and Google, Apple and Microsoft login](docs/en/sms-social-login.md): Twilio, MessageBird, your own Google, Entra and Apple apps
+- [Hotel login](docs/en/hotel-login.md): room number and surname, CSV import, Apaleo and Mews
+- [Notifications, monitoring, live dashboard, reports and e-mail templates](docs/en/notifications-mail.md)
+- [Security and two-factor authentication](docs/en/security.md): authenticator app, recovery codes, required 2FA, lost phone
 - [Billing customers](docs/en/billing.md): plans, subscriptions, invoices, online payment, reminders and pausing portals
 - [Backups and restore](docs/en/backups.md): SCP, FTPS and FTP locations, schedule, encryption, restore and disaster recovery
 - [API and webhooks](docs/en/api.md): API keys and scopes, customer and platform API, rate limits, webhooks and signatures, OpenAPI

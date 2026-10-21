@@ -11,7 +11,7 @@ import { AccountPage } from './pages/Account';
 import { BackupsPage } from './pages/Backups';
 import { BillingPage } from './pages/Billing';
 import { InvoicesPage } from './pages/Invoices';
-import { ForgotPasswordPage, LoginPage, ResetPasswordPage, SetupPage } from './pages/AuthPages';
+import { ForgotPasswordPage, LoginPage, ResetPasswordPage, SetupPage, TwoFactorRequiredPage } from './pages/AuthPages';
 import { DashboardPage } from './pages/Dashboard';
 import { ConsolesPage } from './pages/Consoles';
 import { GuestsPage } from './pages/Guests';
@@ -21,7 +21,9 @@ import { PaymentsPage } from './pages/Payments';
 import { PortalSettingsPage } from './pages/PortalSettings';
 import { ReportsPage } from './pages/Reports';
 import { VoucherPrintPage, VouchersPage } from './pages/Vouchers';
-import { HostingSettingsPage, SmtpSettingsPage, SsoSettingsPage } from './pages/Settings';
+import { HostingSettingsPage, SecuritySettingsPage, SmtpSettingsPage, SsoSettingsPage } from './pages/Settings';
+import { LivePage } from './pages/Live';
+import { HotelPage } from './pages/Hotel';
 import { TenantsPage } from './pages/Tenants';
 import { UsersPage } from './pages/Users';
 import './i18n';
@@ -49,6 +51,7 @@ function RequireAuth({ children, roles }: { children: ReactNode; roles?: string[
     );
   if (data?.needsSetup) return <Navigate to="/setup" replace />;
   if (!data?.user) return <Navigate to="/login" replace />;
+  if (data.twoFactorSetupRequired) return <Navigate to="/two-factor" replace />;
   if (roles && !roles.includes(data.user.role)) return <Navigate to="/" replace />;
   return <Suspense fallback={<Spinner />}>{children}</Suspense>;
 }
@@ -61,6 +64,7 @@ const router = createBrowserRouter([
   { path: '/setup', element: <SetupPage /> },
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
+  { path: '/two-factor', element: <TwoFactorRequiredPage /> },
   { path: '/vouchers/print', element: <RequireAuth roles={TENANT}><VoucherPrintPage /></RequireAuth> },
   {
     path: '/',
@@ -76,6 +80,9 @@ const router = createBrowserRouter([
       { path: 'invoices', element: <RequireAuth roles={['tenant_admin']}><InvoicesPage /></RequireAuth> },
       { path: 'users', element: <RequireAuth roles={['superadmin', 'tenant_admin']}><UsersPage /></RequireAuth> },
       { path: 'settings/smtp', element: <RequireAuth roles={['superadmin']}><SmtpSettingsPage /></RequireAuth> },
+      { path: 'settings/security', element: <RequireAuth roles={['superadmin']}><SecuritySettingsPage /></RequireAuth> },
+      { path: 'live', element: <RequireAuth roles={TENANT}><LivePage /></RequireAuth> },
+      { path: 'hotel', element: <RequireAuth roles={TENANT}><HotelPage /></RequireAuth> },
       { path: 'settings/sso', element: <RequireAuth roles={['superadmin']}><SsoSettingsPage /></RequireAuth> },
       { path: 'api', element: <RequireAuth roles={['superadmin', 'tenant_admin']}><ApiPage /></RequireAuth> },
       { path: 'backups', element: <RequireAuth roles={['superadmin']}><BackupsPage /></RequireAuth> },

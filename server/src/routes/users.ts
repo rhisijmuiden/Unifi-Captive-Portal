@@ -3,9 +3,11 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db, schema } from '../db/index.js';
 import { audit, publicUser, requireTenantAdmin, requireUser } from '../lib/auth.js';
+import { sentOnly } from '../lib/patch.js';
 import { badRequest, forbidden, notFound, translateError } from '../lib/errors.js';
 import { requestLocale } from '../i18n/index.js';
 import { sendInvite } from '../services/tokens.js';
+import { disableTwoFactor } from '../services/twoFactor.js';
 
 export const userInput = z.object({
   name: z.string().trim().min(1).max(120),
@@ -58,7 +60,7 @@ export async function userRoutes(app: FastifyInstance) {
     const target = await db.query.users.findFirst({ where: eq(schema.users.id, req.params.id) });
     if (!target) throw notFound();
     requireTenantAdmin(req, target.tenantId);
-    const body = userInput.omit({ sendInvite: true }).partial().parse(req.body);
+    const body = sentOnly(userInput.omit({ sendInvite: true }).partial().parse(req.body), req.body);
     if (me.role !== 'superadmin') {
       if (body.role === 'superadmin' || target.role === 'superadmin') throw forbidden();
       delete body.tenantId;
@@ -83,6 +85,20 @@ export async function userRoutes(app: FastifyInstance) {
     requireTenantAdmin(req, target.tenantId);
     await sendInvite(target);
     await audit(req, 'user.invited', { email: target.email }, target.tenantId);
+    return { ok: true };
+  });
+
+  // For a team member who lost their phone and their recovery codes; they set it up again at the next sign-in
+  app.post<{ Params: { id: string } }>('/api/users/:id/reset-2fa', async (req) => {
+    const me = requireUser(req);
+    const target = await db.query.users.findFirst({ where: eq(schema.users.id, req.params.id) });
+    if (!target) throw notFound();
+    requireTenantAdmin(req, target.tenantId);
+    if (target.role === 'superadmin' && me.role !== 'superadmin') throw forbidden();
+    if (target.id === me.id) throw badRequest('errors.ownTwoFactor');
+    await disableTwoFactor(target.id);
+    await db.delete(schema.sessions).where(eq(schema.sessions.userId, target.id));
+    await audit(req, 'user.2fa_reset', { email: target.email }, target.tenantId);
     return { ok: true };
   });
 

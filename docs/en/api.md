@@ -6,7 +6,7 @@ Everything you can do in the web interface can also be done through the REST API
 
 | | Who | What |
 | --- | --- | --- |
-| **Customer API** | customer admins, under **API** in their own environment | consoles, hostnames, portal settings and design, guests, vouchers, payments and packages, notifications and guest e-mails, reports, team members and their own invoices |
+| **Customer API** | customer admins, under **API** in their own environment | consoles, hostnames, portal settings and design, guests, vouchers, hotel stays, SMS and social login settings, payments and packages, notifications and guest e-mails, reports, team members and their own invoices |
 | **Platform API** | the platform admin, under **System → API** | customers (create, change, suspend, delete, with a first admin), users, server settings (SMTP, SSO, hosting, billing settings), platform e-mail templates, billing, backups and updates |
 
 The two never overlap: a customer key cannot see other customers or server settings, and a platform key cannot reach the portals of customers. That follows the same split as the web interface.
@@ -81,7 +81,7 @@ The **Documentation** tab lists every operation per part, with its scope, parame
 
 On the **Webhooks** tab, click **New webhook**, enter the address and choose the events. You get a **signing secret** (`whsec_…`); you can show it again later or replace it with a new one.
 
-Customer events: `guest.authorized`, `payment.paid`, `hostname.active`, `console.offline`, `console.online`, `invoice.issued`, `invoice.paid`.
+Customer events: `guest.authorized`, `payment.paid`, `hostname.active`, `console.offline`, `console.online`, `device.offline`, `device.online`, `invoice.issued`, `invoice.paid`.
 Platform events: `tenant.created`, `tenant.updated`, `tenant.deleted`, `invoice.issued`, `invoice.paid`, `backup.succeeded`, `backup.failed`.
 
 Every event is a `POST` with JSON:
