@@ -57,6 +57,13 @@
       "when": 1792559648186,
       "tag": "0007_step7_security_monitoring",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792561064829,
+      "tag": "0008_step7_sms_hotel",
+      "breakpoints": true
     }
   ]
 }

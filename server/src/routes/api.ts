@@ -6,6 +6,7 @@ import { buildOpenApi } from '../api/openapi.js';
 import { db, schema } from '../db/index.js';
 import { normalizeLocale, requestLocale } from '../i18n/index.js';
 import { audit, requireUser } from '../lib/auth.js';
+import { sentOnly } from '../lib/patch.js';
 import { encrypt } from '../lib/crypto.js';
 import { badRequest, forbidden, notFound } from '../lib/errors.js';
 import { uuidParam } from '../lib/ids.js';
@@ -94,7 +95,7 @@ export async function apiRoutes(app: FastifyInstance) {
     const { tenantId, audience } = owner(req);
     const key = await ownKey(uuidParam(req.params.id), tenantId);
     if (!key) throw notFound();
-    const body = keyInput.partial().parse(req.body);
+    const body = sentOnly(keyInput.partial().parse(req.body), req.body);
     const patch: Partial<typeof key> = {};
     if (body.name !== undefined) patch.name = body.name;
     if (body.rateLimit !== undefined) patch.rateLimit = body.rateLimit;
@@ -176,7 +177,7 @@ export async function apiRoutes(app: FastifyInstance) {
   app.put<{ Params: { id: string } }>('/api/webhooks/:id', async (req) => {
     const { tenantId, audience } = owner(req);
     const hook = await ownWebhook(req.params.id, tenantId);
-    const body = webhookInput.partial().parse(req.body);
+    const body = sentOnly(webhookInput.partial().parse(req.body), req.body);
     checkWebhook(audience, body);
     // Switching a webhook back on gives it a clean slate
     const reactivated = body.active === true && !hook.active;

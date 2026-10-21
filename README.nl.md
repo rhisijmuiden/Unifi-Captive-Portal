@@ -23,7 +23,7 @@ Zie de [roadmap](ROADMAP.nl.md) voor wat er al werkt en wat eraan komt.
 
 - **UniFi-koppeling**: UniFi OS consoles koppelen (UDM, UCG, Dream Router, Cloud Key, zelf gehoste Network) via de UniFi Site Manager-cloud of rechtstreeks, met de officiële UniFi Network API. Gasten worden herkend aan het access point en doorgelaten met limieten voor tijd, data en snelheid.
 - **Gastportal** als external portal server, ontworpen in een **drag-and-drop portal-editor** met templates, afbeeldingen, kleuren en lettertypen, in het Nederlands en Engels (de klant kiest de talen, de gast kiest er één).
-- **Manieren van verbinden**: gratis met één tik, registreren met e-mail (met toestemming voor marketing), **vouchers** met printvel, **betaalde toegang** via Mollie of Stripe met pakketten en een instelbare tijd om te betalen, en **Doorgaan met Facebook**.
+- **Manieren van verbinden**: gratis met één tik, registreren met e-mail (met toestemming voor marketing), **vouchers** met printvel, **betaalde toegang** via Mollie of Stripe met pakketten en een instelbare tijd om te betalen, een **sms-code** (Twilio of MessageBird), **hotellogin** met kamernummer en achternaam (handmatig, CSV, API, Apaleo of Mews), en **Doorgaan met Facebook, Google, Apple of Microsoft**.
 - **Klanten factureren** vanuit het hoofdbeheerpaneel: plannen en abonnementen per klant, facturen met nummers zonder gaten, btw en je logo als pdf en per e-mail, online betalen via je eigen Mollie- of Stripe-account, herinneringen, en optioneel het gastportaal van een klant pauzeren zolang facturen onbetaald blijven. Klanten zien en betalen hun facturen in hun eigen omgeving.
 - **Back-ups en herstel**: versleutelde (AES-256) volledige en incrementele back-ups van de database en datamap naar **SCP**, **FTPS**, FTP of een lokale map, met een schema per locatie en bewaartermijn, en herstellen vanaf de remote locatie in de webinterface met een veiligheidskopie en automatische rollback.
 - **Volledige REST API en webhooks**: een klant-API voor alles in de omgeving van een klant en een platform-API voor klanten, gebruikers, serverinstellingen, facturatie, back-ups en updates. API-sleutels met lees/schrijfrechten, vervaldatum en rate limit, een audit trail per sleutel, ondertekende webhooks met herhaalpogingen, en OpenAPI-documentatie in het Nederlands en Engels met een verkenner om uit te proberen.
@@ -56,6 +56,8 @@ Open daarna `http://<ip-van-de-server>:8080` en maak het eerste beheerdersaccoun
 - [Hostnamen en SSL](docs/nl/hostnamen-ssl.md): DNS-records, automatische certificaten, HTTPS voor het beheerpaneel
 - [Portal-editor](docs/nl/portaal-editor.md): blokken, templates, afbeeldingen en talen
 - [Gasttoegang](docs/nl/gasttoegang.md): manieren van inloggen, vouchers, Mollie en Stripe, tijd om te betalen, inloggen met Facebook, pre-autorisatie
+- [Sms en inloggen met Google, Apple en Microsoft](docs/nl/sms-en-sociale-login.md): Twilio, MessageBird, je eigen Google-, Entra- en Apple-apps
+- [Hotellogin](docs/nl/hotellogin.md): kamernummer en achternaam, CSV-import, Apaleo en Mews
 - [Notificaties, monitoring, live dashboard, rapportages en e-mailtemplates](docs/nl/notificaties-mail.md)
 - [Beveiliging en tweestapsverificatie](docs/nl/beveiliging.md): authenticator-app, herstelcodes, verplichte 2FA, telefoon kwijt
 - [Klanten factureren](docs/nl/facturatie.md): plannen, abonnementen, facturen, online betalen, herinneringen en portalen pauzeren

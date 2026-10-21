@@ -1,18 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Clock, CreditCard, Gauge, HardDrive, Mail, MousePointerClick, Palette, PlugZap, Ticket } from 'lucide-react';
+import { BedDouble, Clock, CreditCard, Gauge, HardDrive, Mail, MessageSquareText, MousePointerClick, Palette, PlugZap, Ticket } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
-import { Copyable, Segmented, Slider } from '../components/controls';
-import { Button, Card, CardHeader, Field, Input, PageHeader, Spinner, Switch, Textarea, cx } from '../components/ui';
+import { Copyable, Segmented } from '../components/controls';
+import { AppleIcon, GoogleIcon, MicrosoftIcon, ProviderSettings, RoomLoginCard, Section, SmsSettings, SocialCommon } from '../components/SignInSettings';
+import { Button, Card, Field, Input, PageHeader, Spinner, Switch, Textarea, cx } from '../components/ui';
 import i18n, { languages, type Locale } from '../i18n';
 import { api } from '../lib/api';
 import { useTenantScope } from '../lib/tenant';
 
 type Texts = Record<string, string>;
 type FieldMode = 'off' | 'optional' | 'required';
-type Method = 'free' | 'email' | 'voucher' | 'payment' | 'facebook';
+type Method = 'free' | 'email' | 'sms' | 'voucher' | 'room' | 'payment' | 'facebook' | 'google' | 'apple' | 'microsoft';
+const allMethods: Method[] = ['free', 'email', 'sms', 'voucher', 'room', 'payment', 'facebook', 'google', 'apple', 'microsoft'];
+const social = ['facebook', 'google', 'apple', 'microsoft'] as const;
 type PortalSettings = {
   title: Texts;
   welcome: Texts;
@@ -32,8 +35,13 @@ const durations = [60, 240, 480, 1440, 10080];
 const methodIcons: Record<Method, ReactNode> = {
   free: <MousePointerClick className="size-5" />,
   email: <Mail className="size-5" />,
+  sms: <MessageSquareText className="size-5" />,
   voucher: <Ticket className="size-5" />,
+  room: <BedDouble className="size-5" />,
   payment: <CreditCard className="size-5" />,
+  google: <GoogleIcon />,
+  apple: <AppleIcon />,
+  microsoft: <MicrosoftIcon />,
   facebook: (
     <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true">
       <path d="M24 12a12 12 0 1 0-13.9 11.9v-8.4H7.1V12h3V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12Z" />
@@ -41,7 +49,7 @@ const methodIcons: Record<Method, ReactNode> = {
   ),
 };
 
-type Social = { facebookAppId: string; facebookAppSecretSet: boolean; facebookGraceMinutes: number };
+type Social = { facebookAppId: string; facebookAppSecretSet: boolean };
 
 /** The customer's own Facebook app for "Continue with Facebook". Saved separately from the portal settings. */
 function FacebookSettings({ canManage }: { canManage: boolean }) {
@@ -54,7 +62,7 @@ function FacebookSettings({ canManage }: { canManage: boolean }) {
     if (data) setForm(data.settings);
   }, [data]);
   const save = useMutation({
-    mutationFn: () => api.put('/social-settings', { facebookAppId: form!.facebookAppId, facebookGraceMinutes: form!.facebookGraceMinutes, facebookAppSecret: secret }),
+    mutationFn: () => api.put('/social-settings', { facebookAppId: form!.facebookAppId, facebookAppSecret: secret }),
     onSuccess: () => {
       setSecret('');
       qc.invalidateQueries({ queryKey: ['social-settings'] });
@@ -63,7 +71,7 @@ function FacebookSettings({ canManage }: { canManage: boolean }) {
     onError: (e: Error) => toast.error(e.message),
   });
   const test = useMutation({
-    mutationFn: () => api.post('/social-settings/test', { facebookAppId: form!.facebookAppId, facebookAppSecret: secret }),
+    mutationFn: () => api.post('/social-settings/test', { provider: 'facebook', facebookAppId: form!.facebookAppId, facebookAppSecret: secret }),
     onSuccess: () => toast.success(t('portalSettings.facebook.testOk')),
     onError: (e: Error) => toast.error(e.message),
   });
@@ -103,25 +111,7 @@ function FacebookSettings({ canManage }: { canManage: boolean }) {
           <Input id="fb-secret" type="password" autoComplete="off" placeholder={data.settings.facebookAppSecretSet ? `•••••• (${t('payments.keySet')})` : ''} value={secret} onChange={(e) => setSecret(e.target.value)} disabled={!canManage} />
         </Field>
       </div>
-      <div>
-        <Slider label={t('portalSettings.facebook.grace')} value={form.facebookGraceMinutes} min={0} max={15} unit=" min" onChange={(v) => setForm({ ...form, facebookGraceMinutes: v })} />
-        <p className="mt-1 text-xs text-muted">{t('portalSettings.facebook.graceHint')}</p>
-      </div>
-      <div className="rounded-xl bg-sunken p-4 text-xs text-muted">
-        <p className="font-semibold text-ink">{t('portalSettings.facebook.walledGarden')}</p>
-        <p className="mt-1">{t('portalSettings.facebook.walledGardenHint')}</p>
-        <code className="mt-2 block font-mono">facebook.com, *.facebook.com, *.fbcdn.net, *.facebook.net</code>
-      </div>
     </Section>
-  );
-}
-
-function Section({ title, description, children, action }: { title: string; description?: string; children: ReactNode; action?: ReactNode }) {
-  return (
-    <Card>
-      <CardHeader title={title} description={description} action={action} />
-      <div className="space-y-5 p-6">{children}</div>
-    </Card>
   );
 }
 
@@ -188,7 +178,7 @@ export function PortalSettingsPage() {
           <div className="space-y-6">
             <Section title={t('portalSettings.methods')} description={t('portalSettings.methodsHint')}>
               <div className="grid gap-3 sm:grid-cols-2">
-                {(['free', 'email', 'voucher', 'payment', 'facebook'] as const).map((m) => {
+                {allMethods.map((m) => {
                   const on = form.auth.methods.includes(m);
                   return (
                     <div key={m} className={cx('rounded-2xl border p-4 transition', on ? 'border-koraal bg-koraal/5' : 'border-line')}>
@@ -241,7 +231,11 @@ export function PortalSettingsPage() {
               </Section>
             )}
 
+            {form.auth.methods.includes('sms') && <SmsSettings canManage={scope.canManage} />}
+            {form.auth.methods.includes('room') && <RoomLoginCard />}
             {form.auth.methods.includes('facebook') && <FacebookSettings canManage={scope.canManage} />}
+            {(['google', 'microsoft', 'apple'] as const).map((p) => form.auth.methods.includes(p) && <ProviderSettings key={p} provider={p} canManage={scope.canManage} />)}
+            {social.some((p) => form.auth.methods.includes(p)) && <SocialCommon providers={social.filter((p) => form.auth.methods.includes(p))} canManage={scope.canManage} />}
 
             {form.auth.methods.includes('payment') && (
               <Section title={t('portalSettings.paymentOptions')}>

@@ -8,6 +8,7 @@ import { uuidParam } from '../lib/ids.js';
 import { getPortalSettings } from '../services/guests.js';
 import { formatCode } from '../services/vouchers.js';
 import { guestLocales } from '../shared/guestStrings.js';
+import { loginMethods, type LoginMethod } from '../shared/portalDesign.js';
 
 const texts = z.record(z.string().regex(/^[a-z]{2}$/), z.string().max(5000));
 
@@ -30,7 +31,7 @@ export const portalInput = z.object({
     .nullable()
     .or(z.literal('').transform(() => null)),
   auth: z.object({
-    methods: z.array(z.enum(['free', 'email', 'voucher', 'payment', 'facebook'])).max(5),
+    methods: z.array(z.enum(loginMethods as [LoginMethod, ...LoginMethod[]])).max(loginMethods.length),
     emailName: fieldMode,
     emailPhone: fieldMode,
     marketingOptIn: z.boolean(),

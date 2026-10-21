@@ -1,3 +1,4 @@
+import type { LoginMethod } from '@shared/portalDesign';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarCheck, Download, Trash2, UserCheck, Wifi } from 'lucide-react';
 import { toast } from 'sonner';
@@ -21,7 +22,7 @@ type Guest = {
   createdAt: string;
   authorizedAt: string | null;
   accessUntil: string | null;
-  method: 'free' | 'email' | 'voucher' | 'payment' | 'facebook' | null;
+  method: LoginMethod | null;
   name: string | null;
   email: string | null;
   phone: string | null;

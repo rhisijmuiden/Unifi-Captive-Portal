@@ -4,6 +4,17 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.7.0-beta.2] - 2026-10-21 (testkanaal)
+
+Stap 7, deel 2: meer manieren voor gasten om in te loggen.
+
+- **Sms-verificatie**: gasten typen een mobiel nummer en de code van zes cijfers uit de sms. Verstuurd met het eigen **Twilio**- of **MessageBird**-account van de klant; standaard landcode voor nummers als `06 12345678`, een knop voor een testbericht en het aantal sms'jes deze maand. Codes zijn 10 minuten geldig met 5 pogingen; maximaal 3 codes per gast, 5 per nummer per uur en een dagmaximum per klant.
+- **Inloggen met Google, Apple en Microsoft**, elk met een eigen app van de klant (Google OAuth-client, Microsoft Entra-app-registratie, Apple Services ID met een `.p8`-sleutel), met het redirect-adres om te kopiëren, stap-voor-stap-uitleg en een knop **Koppeling testen**. Op het gastportaal delen alle sociale logins één tabblad **Account** met een knop per provider. De korte toegang om in te loggen en de walled-garden-domeinen gelden nu voor alle providers.
+- **Hotellogin**: gasten loggen in met kamernummer en achternaam en blijven online tot vertrek, met een maximum aantal apparaten per kamer en een blokkade na 5 verkeerde achternamen. Nieuwe pagina **Hotel** met verblijven in huis, verwacht en alle, handmatig toevoegen en wijzigen, **CSV-import** uit elk PMS, de API (`/api/v1/hotel/…`, nieuwe scope `hotel`) en een **PMS-koppeling** met **Apaleo** en **Mews** die elke 10 minuten synchroniseert (en meteen als de kamer van een gast nog niet bekend is).
+- Live dashboard, gastenlijst en rapportages kennen de nieuwe manieren van inloggen.
+- Opgelost: een deel van de instellingen wijzigen via de API (of een instellingenkaart) zet de overige velden van die groep niet meer terug naar de standaardwaarden.
+- Nieuwe handleidingen: [Sms en sociale login](docs/nl/sms-en-sociale-login.md) en [Hotellogin](docs/nl/hotellogin.md).
+
 ## [0.7.0-beta.1] - 2026-10-21 (testkanaal)
 
 Stap 7, deel 1: beveiliging, monitoring en een live dashboard.

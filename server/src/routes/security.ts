@@ -2,6 +2,7 @@ import { and, count, eq, isNotNull } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { db, schema } from '../db/index.js';
 import { audit, tenantScope } from '../lib/auth.js';
+import { sentOnly } from '../lib/patch.js';
 import { getSettings } from '../services/settings.js';
 import { getPublicTenantSettings, saveTenantSettings, securitySettingsSchema } from '../services/tenantSettings.js';
 import { clearSecurityCache } from '../services/twoFactor.js';
@@ -21,7 +22,7 @@ export async function securityRoutes(app: FastifyInstance) {
 
   app.put('/api/security-settings', async (req) => {
     const tenantId = tenantScope(req, true);
-    const input = securitySettingsSchema.partial().parse(req.body);
+    const input = sentOnly(securitySettingsSchema.partial().parse(req.body), req.body);
     await saveTenantSettings(tenantId, 'security', input);
     clearSecurityCache();
     await audit(req, 'security.updated', input, tenantId);

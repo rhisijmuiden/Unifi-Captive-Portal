@@ -75,8 +75,8 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 
 ## Step 7: Guest experience, marketing and growth (v0.7) 🚧
 
-- 📋 **SMS verification** for guests (e.g. MessageBird or Twilio), next to e-mail and Facebook
-- 📋 **Google, Apple and Microsoft login** for guests
+- ✅ **SMS verification** for guests with the customer's own Twilio or MessageBird account, with limits per guest, number and day
+- ✅ **Google, Apple and Microsoft login** for guests, each with the customer's own app, sharing one tab with Facebook
 - 📋 **Marketing and GDPR**: newsletter opt-in, export to Mailchimp and HubSpot, and handling guests' deletion requests
 - ✅ **Live dashboard** per customer: guests online per location and access point, today by hour against last week, sign-in methods and the latest sign-ins (data use per access point follows once the UniFi API offers it)
 - 📋 **Survey after sign-in** or a review request (Google Reviews)
@@ -84,7 +84,7 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - 📋 **White label for resellers**: partners who manage their own customers under their own brand
 - ✅ **Monitoring**: an e-mail and webhook when a console or access point stays offline longer than the customer's threshold, and when it is back
 - ✅ **Two-factor authentication (2FA)** for admins and customers, with recovery codes and policies per platform and per customer
-- 📋 **Hotel/PMS link**: guests sign in with room number and last name
+- ✅ **Hotel/PMS link**: guests sign in with room number and surname until departure; stays by hand, CSV, API or synced from Apaleo and Mews
 
 ## Later
 

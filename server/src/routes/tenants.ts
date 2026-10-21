@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db, schema } from '../db/index.js';
 import { audit, requireSuperadmin, requireTenantAdmin } from '../lib/auth.js';
+import { sentOnly } from '../lib/patch.js';
 import { badRequest, notFound, translateError } from '../lib/errors.js';
 import { requestLocale } from '../i18n/index.js';
 import { sendInvite } from '../services/tokens.js';
@@ -71,7 +72,7 @@ export async function tenantRoutes(app: FastifyInstance) {
 
   app.put<{ Params: { id: string } }>('/api/tenants/:id', async (req) => {
     requireSuperadmin(req);
-    const body = tenantInput.partial().parse(req.body);
+    const body = sentOnly(tenantInput.partial().parse(req.body), req.body);
     const [tenant] = await db.update(schema.tenants).set(body).where(eq(schema.tenants.id, req.params.id)).returning();
     if (!tenant) throw notFound();
     await audit(req, 'tenant.updated', body, tenant.id);

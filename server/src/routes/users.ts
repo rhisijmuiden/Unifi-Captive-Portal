@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db, schema } from '../db/index.js';
 import { audit, publicUser, requireTenantAdmin, requireUser } from '../lib/auth.js';
+import { sentOnly } from '../lib/patch.js';
 import { badRequest, forbidden, notFound, translateError } from '../lib/errors.js';
 import { requestLocale } from '../i18n/index.js';
 import { sendInvite } from '../services/tokens.js';
@@ -59,7 +60,7 @@ export async function userRoutes(app: FastifyInstance) {
     const target = await db.query.users.findFirst({ where: eq(schema.users.id, req.params.id) });
     if (!target) throw notFound();
     requireTenantAdmin(req, target.tenantId);
-    const body = userInput.omit({ sendInvite: true }).partial().parse(req.body);
+    const body = sentOnly(userInput.omit({ sendInvite: true }).partial().parse(req.body), req.body);
     if (me.role !== 'superadmin') {
       if (body.role === 'superadmin' || target.role === 'superadmin') throw forbidden();
       delete body.tenantId;

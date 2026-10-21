@@ -10,7 +10,10 @@ Under **Captive portals → Access & sign-in** you choose how guests get online.
 | **Register with e-mail** | Fills in an e-mail address, and optionally name and phone number. | Contact details in **Guests** (CSV export). |
 | **Voucher code** | Types a code you handed out. | Control over who gets online and for how long. |
 | **Pay for access** | Chooses a package and pays with Mollie or Stripe. | The money, straight into your own account. |
+| **Text message code** | Types a mobile number and the code from the text. | A confirmed phone number. See [SMS and social login](sms-social-login.md). |
+| **Room number and surname** | Types the room number and surname. | Hotel guests online until departure. See [Hotel login](hotel-login.md). |
 | **Continue with Facebook** | Signs in with Facebook. | Name and e-mail address from Facebook. |
+| **Continue with Google, Apple or Microsoft** | Signs in with that account. | Name and e-mail address. See [SMS and social login](sms-social-login.md). |
 
 On the same page you set the terms (per language), whether accepting them is required, the default time online, data and speed limits, and the page guests go to afterwards.
 
@@ -77,6 +80,9 @@ Hosts in the pre-authorization list of your Hotspot are reachable before a guest
 | Mollie | `mollie.com`, `*.mollie.com`, `*.mollie.nl`, `ideal.nl`, `*.ideal.nl` |
 | Stripe | `stripe.com`, `*.stripe.com`, `*.stripe.network`, `stripecdn.com`, `*.stripecdn.com` |
 | Facebook | `facebook.com`, `*.facebook.com`, `*.fbcdn.net`, `*.facebook.net` |
+| Google | `accounts.google.com`, `*.gstatic.com`, `oauth2.googleapis.com`, `fonts.googleapis.com`, `accounts.youtube.com` |
+| Apple | `appleid.apple.com`, `idmsa.apple.com`, `*.apple.com`, `*.cdn-apple.com` |
+| Microsoft | `login.microsoftonline.com`, `login.live.com`, `account.live.com`, `*.msauth.net`, `*.msftauth.net` |
 
 This is optional when *time to pay* and *time to log in* are switched on.
 

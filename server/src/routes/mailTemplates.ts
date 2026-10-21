@@ -34,7 +34,7 @@ function sample(kind: MailKind, locale: Locale): { vars: Record<string, string>;
     const byDay = Array.from({ length: 30 }, (_, i) => 20 + Math.round(25 * Math.abs(Math.sin(i / 3))));
     const stats = {
       month: '2026-09', guests: 1284, uniqueDevices: 973, registrations: 412, marketingOptIns: 120, vouchersUsed: 57, payments: 23,
-      revenue: [{ currency: 'EUR', cents: 11450 }], byDay, byHour: Array(24).fill(0), byMethod: { free: 700, email: 412, voucher: 57, payment: 23, facebook: 0, other: 0 },
+      revenue: [{ currency: 'EUR', cents: 11450 }], byDay, byHour: Array(24).fill(0), byMethod: { free: 700, email: 412, sms: 0, voucher: 57, room: 0, payment: 23, facebook: 0, google: 0, apple: 0, microsoft: 0, other: 0 },
       bySite: [{ name: 'Lobby', count: 812 }, { name: 'Terrace', count: 472 }], peakDay: { day: 12, count: 45 }, peakHour: { hour: 14, count: 160 },
       previous: { guests: 1150, uniqueDevices: 901, registrations: 380, payments: 19 },
     };

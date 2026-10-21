@@ -75,8 +75,8 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 
 ## Stap 7: Gastbeleving, marketing en groei (v0.7) 🚧
 
-- 📋 **SMS-verificatie** voor gasten (bv. via MessageBird of Twilio), naast e-mail en Facebook
-- 📋 **Google-, Apple- en Microsoft-login** voor gasten
+- ✅ **SMS-verificatie** voor gasten met het eigen Twilio- of MessageBird-account van de klant, met limieten per gast, nummer en dag
+- ✅ **Google-, Apple- en Microsoft-login** voor gasten, elk met een eigen app van de klant, samen met Facebook in één tabblad
 - 📋 **Marketing en AVG**: opt-in voor de nieuwsbrief, export naar Mailchimp en HubSpot, en verwijderverzoeken van gasten afhandelen
 - ✅ **Live dashboard** per klant: gasten online per locatie en access point, vandaag per uur tegenover vorige week, manieren van inloggen en de laatste aanmeldingen (dataverbruik per access point volgt zodra de UniFi-API dat biedt)
 - 📋 **Enquête na het inloggen** of een reviewverzoek (Google Reviews)
@@ -84,7 +84,7 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - 📋 **White-label voor resellers**: partners die zelf klanten beheren onder hun eigen merk
 - ✅ **Monitoring**: een e-mail en webhook als een console of access point langer offline is dan de klant instelt, en als hij weer werkt
 - ✅ **Tweestapsverificatie (2FA)** voor beheerders en klanten, met herstelcodes en beleid per platform en per klant
-- 📋 **Hotel/PMS-koppeling**: gasten loggen in met kamernummer en achternaam
+- ✅ **Hotel/PMS-koppeling**: gasten loggen in met kamernummer en achternaam tot vertrek; verblijven handmatig, via CSV, API of gesynchroniseerd uit Apaleo en Mews
 
 ## Later
 

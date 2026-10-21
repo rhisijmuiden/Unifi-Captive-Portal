@@ -4,6 +4,17 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.7.0-beta.2] - 2026-10-21 (test channel)
+
+Step 7, part 2: more ways for guests to sign in.
+
+- **SMS verification**: guests type a mobile number and the six-digit code from the text. Sent with the customer's own **Twilio** or **MessageBird** account; default country code for numbers like `06 12345678`, a test message button and the number of texts this month. Codes are valid 10 minutes with 5 tries; at most 3 codes per guest, 5 per number per hour and a daily maximum per customer.
+- **Google, Apple and Microsoft login**, each with the customer's own app (Google OAuth client, Microsoft Entra app registration, Apple Services ID with a `.p8` key), with the redirect address to copy, step-by-step instructions and a **Test connection** button. On the guest portal all social sign-ins share one **Account** tab with a button each. The short access to sign in and the walled-garden domains are now shared by all providers.
+- **Hotel login**: guests sign in with room number and surname and stay online until departure, with a limit of devices per room and a lock after 5 wrong surnames. New **Hotel** page with the stays in house, expected and all, add and edit by hand, **CSV import** from any PMS, the API (`/api/v1/hotel/…`, new scope `hotel`) and a **PMS connection** with **Apaleo** and **Mews** that syncs every 10 minutes (and right away when a guest's room is not found yet).
+- Live dashboard, guest list and reports know the new sign-in methods.
+- Fix: changing only some settings through the API (or a settings card) no longer resets the other fields of that group to their defaults.
+- New guides: [SMS and social login](docs/en/sms-social-login.md) and [Hotel login](docs/en/hotel-login.md).
+
 ## [0.7.0-beta.1] - 2026-10-21 (test channel)
 
 Step 7, part 1: security, monitoring and a live dashboard.

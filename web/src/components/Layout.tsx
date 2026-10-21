@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import {
   BarChart3,
+  BedDouble,
   BellRing,
   Building2,
   Code,
@@ -52,6 +53,7 @@ function navFor(user: User, t: TFunction): Section[] {
       { to: '/portal-editor', label: t('nav.editor'), icon: Palette },
       { to: '/portal-settings', label: t('nav.portalSettings'), icon: SlidersHorizontal },
       { to: '/vouchers', label: t('nav.vouchers'), icon: Ticket },
+      { to: '/hotel', label: t('nav.hotel'), icon: BedDouble },
       { to: '/payments', label: t('nav.payments'), icon: CreditCard },
       { to: '/hostnames', label: t('nav.hostnames'), icon: Globe },
     ],

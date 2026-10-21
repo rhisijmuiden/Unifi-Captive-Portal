@@ -23,7 +23,7 @@ See the [roadmap](ROADMAP.md) for what works today and what is coming.
 
 - **UniFi integration**: connect UniFi OS consoles (UDM, UCG, Dream Router, Cloud Key, self-hosted Network) through the UniFi Site Manager cloud or directly, using the official UniFi Network API. Guests are recognised by access point and let through with time, data and speed limits.
 - **Guest portal** as external portal server, designed in a **drag-and-drop portal editor** with templates, images, colours and fonts, in English and Dutch (the customer picks the languages, the guest picks one).
-- **Ways to connect**: free with one tap, registration by e-mail (with marketing opt-in), **vouchers** with a print sheet, **paid access** through Mollie or Stripe with packages and an adjustable time to pay, and **Continue with Facebook**.
+- **Ways to connect**: free with one tap, registration by e-mail (with marketing opt-in), **vouchers** with a print sheet, **paid access** through Mollie or Stripe with packages and an adjustable time to pay, **SMS code** (Twilio or MessageBird), **hotel login** with room number and surname (by hand, CSV, API, Apaleo or Mews), and **Continue with Facebook, Google, Apple or Microsoft**.
 - **Billing customers** from the main admin panel: plans and subscriptions per customer, invoices with gapless numbers, VAT and your logo as PDF and e-mail, online payment through your own Mollie or Stripe account, reminders, and optionally pausing a customer's guest portal while invoices stay unpaid. Customers see and pay their invoices in their own environment.
 - **Backups and restore**: encrypted (AES-256) full and incremental backups of the database and data folder to **SCP**, **FTPS**, FTP or a local folder, on a schedule per location with retention, and restoring from the remote location in the web interface with a safety copy and automatic rollback.
 - **Full REST API and webhooks**: a customer API for everything in a customer's environment and a platform API for customers, users, server settings, billing, backups and updates. API keys with read/write scopes, expiry and rate limit, an audit trail per key, signed webhooks with retries, and OpenAPI documentation in English and Dutch with an explorer to try it out.
@@ -56,6 +56,8 @@ Then open `http://<server-ip>:8080` and create the first administrator account. 
 - [Hostnames and SSL](docs/en/hostnames-ssl.md): DNS records, automatic certificates, HTTPS for the admin panel
 - [Portal editor](docs/en/portal-editor.md): blocks, templates, images and languages
 - [Guest access](docs/en/guest-access.md): sign-in methods, vouchers, Mollie and Stripe, time to pay, Facebook login, pre-authorization
+- [SMS and Google, Apple and Microsoft login](docs/en/sms-social-login.md): Twilio, MessageBird, your own Google, Entra and Apple apps
+- [Hotel login](docs/en/hotel-login.md): room number and surname, CSV import, Apaleo and Mews
 - [Notifications, monitoring, live dashboard, reports and e-mail templates](docs/en/notifications-mail.md)
 - [Security and two-factor authentication](docs/en/security.md): authenticator app, recovery codes, required 2FA, lost phone
 - [Billing customers](docs/en/billing.md): plans, subscriptions, invoices, online payment, reminders and pausing portals

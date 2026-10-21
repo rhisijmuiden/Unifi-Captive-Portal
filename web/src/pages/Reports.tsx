@@ -1,3 +1,4 @@
+import type { LoginMethod } from '@shared/portalDesign';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { BarChart3, ChevronLeft, ChevronRight, CreditCard, Mail, Smartphone, Ticket, UserCheck, Wallet } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -20,7 +21,7 @@ type Report = {
   revenue: { currency: string; cents: number }[];
   byDay: number[];
   byHour: number[];
-  byMethod: Record<'free' | 'email' | 'voucher' | 'payment' | 'facebook' | 'other', number>;
+  byMethod: Record<LoginMethod | 'other', number>;
   bySite: { name: string; count: number }[];
   peakDay: { day: number; count: number } | null;
   peakHour: { hour: number; count: number } | null;

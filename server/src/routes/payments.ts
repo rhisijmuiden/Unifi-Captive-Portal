@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db, schema } from '../db/index.js';
 import { audit, tenantScope } from '../lib/auth.js';
+import { sentOnly } from '../lib/patch.js';
 import { notFound } from '../lib/errors.js';
 import { uuidParam } from '../lib/ids.js';
 import { testProvider } from '../services/payments.js';
@@ -37,7 +38,7 @@ export async function paymentRoutes(app: FastifyInstance) {
 
   app.put('/api/payment-settings', async (req) => {
     const tenantId = tenantScope(req, true);
-    const input = paymentSettingsSchema.partial().passthrough().parse(req.body) as Record<string, unknown>;
+    const input = sentOnly(paymentSettingsSchema.partial().passthrough().parse(req.body), req.body) as Record<string, unknown>;
     await saveTenantSettings(tenantId, 'payments', input);
     await audit(req, 'payments.settings.updated', { provider: input.provider }, tenantId);
     return { settings: await getPublicTenantSettings(tenantId, 'payments') };
