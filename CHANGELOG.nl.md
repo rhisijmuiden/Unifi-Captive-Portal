@@ -4,6 +4,10 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.7.1] - 2026-10-21
+
+Stabiele release van de Caddy-oplossingen, gelijk aan 0.7.1-beta.2: de statuskaart SSL-dienst (Caddy) onder Hosting & SSL, en `install/caddy.sh` dat het voorbeeld-Caddyfile van het Caddy-pakket vervangt zodat Caddy HTTPS op poort 443 aanbiedt.
+
 ## [0.7.1-beta.2] - 2026-10-21 (testkanaal)
 
 - Oplossing: op een nieuwe server luisterde Caddy alleen op poort 80, waardoor er nooit certificaten werden uitgegeven (*De SSL-dienst (Caddy) op de server reageert niet*). `install/caddy.sh` liet het voorbeeld-Caddyfile van het Caddy-pakket staan omdat het dacht dat dat met de hand was gemaakt. Het vervangt dat voorbeeld nu door de configuratie van het platform. Bestaande servers worden met de update hersteld.

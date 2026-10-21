@@ -4,6 +4,10 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.7.1] - 2026-10-21
+
+Stable release of the Caddy fixes, identical to 0.7.1-beta.2: the SSL service (Caddy) status card under Hosting & SSL, and `install/caddy.sh` replacing the Caddy package's sample Caddyfile so Caddy serves HTTPS on port 443.
+
 ## [0.7.1-beta.2] - 2026-10-21 (test channel)
 
 - Fix: on a new server Caddy only listened on port 80, so certificates were never issued (*The SSL service (Caddy) on the server does not respond*). `install/caddy.sh` kept the sample Caddyfile that the Caddy package installs, because it took it for a hand-made one. It now replaces that sample with the platform's configuration. Existing servers are repaired by the update.
