@@ -86,11 +86,15 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - ✅ **Two-factor authentication (2FA)** for admins and customers, with recovery codes and policies per platform and per customer
 - ✅ **Hotel/PMS link**: guests sign in with room number and surname until departure; stays by hand, CSV, API or synced from Apaleo and Mews
 
-## Improvements after v0.7 🚧
+## Improvements after v0.7 ✅
 
 - ✅ Better mail delivery: EHLO name, DKIM key generation and a deliverability check (0.7.2-beta.1)
-- 🚧 **Generate login details** when creating a customer, reseller or user, shown once with a ready-made message for WhatsApp, and choosing an own password at first sign-in (0.7.2-beta.2, test channel)
-- 🚧 **Platform statistics** for the platform admin: guests per reseller and customer, trend against the previous period, weekday × hour heatmap, active customers and devices, filters and CSV/PDF export, also in the platform API (0.7.3-beta.1, test channel)
+- ✅ **Generate login details** when creating a customer, reseller or user, shown once with a ready-made message for WhatsApp, and choosing an own password at first sign-in (0.7.2-beta.2)
+- ✅ **Platform statistics** for the platform admin: guests per reseller and customer, trend against the previous period, weekday × hour heatmap, active customers and devices, filters and CSV/PDF export, also in the platform API (0.7.3-beta.1)
+
+## Version 1.0 ✅
+
+- ✅ **First official release (1.0.0, 22 October 2026)**: steps 1 to 7 and the improvements above, on both the stable and the test channel. New work continues as 1.0.x and 1.x test versions.
 
 ## Later
 

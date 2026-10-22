@@ -86,11 +86,15 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - ✅ **Tweestapsverificatie (2FA)** voor beheerders en klanten, met herstelcodes en beleid per platform en per klant
 - ✅ **Hotel/PMS-koppeling**: gasten loggen in met kamernummer en achternaam tot vertrek; verblijven handmatig, via CSV, API of gesynchroniseerd uit Apaleo en Mews
 
-## Verbeteringen na v0.7 🚧
+## Verbeteringen na v0.7 ✅
 
 - ✅ Betere bezorging van mail: EHLO-naam, DKIM-sleutel genereren en een afleverbaarheidscontrole (0.7.2-beta.1)
-- 🚧 **Inloggegevens genereren** bij het aanmaken van een klant, reseller of gebruiker, één keer getoond met een kant-en-klaar bericht voor WhatsApp, en een eigen wachtwoord kiezen bij de eerste keer inloggen (0.7.2-beta.2, testkanaal)
-- 🚧 **Platformstatistieken** voor de platformbeheerder: gasten per reseller en klant, verloop tegenover de vorige periode, heatmap weekdag × uur, actieve klanten en apparaten, filters en export als CSV/pdf, ook in de platform-API (0.7.3-beta.1, testkanaal)
+- ✅ **Inloggegevens genereren** bij het aanmaken van een klant, reseller of gebruiker, één keer getoond met een kant-en-klaar bericht voor WhatsApp, en een eigen wachtwoord kiezen bij de eerste keer inloggen (0.7.2-beta.2)
+- ✅ **Platformstatistieken** voor de platformbeheerder: gasten per reseller en klant, verloop tegenover de vorige periode, heatmap weekdag × uur, actieve klanten en apparaten, filters en export als CSV/pdf, ook in de platform-API (0.7.3-beta.1)
+
+## Versie 1.0 ✅
+
+- ✅ **Eerste officiële release (1.0.0, 22 oktober 2026)**: stap 1 tot en met 7 en de verbeteringen hierboven, op zowel het stable- als het testkanaal. Nieuw werk gaat verder als 1.0.x- en 1.x-testversies.
 
 ## Later
 

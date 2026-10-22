@@ -19,7 +19,7 @@ Captive Portal is a multi-tenant web application. You (the platform admin) host 
 
 See the [roadmap](ROADMAP.md) for what works today and what is coming.
 
-## What's included (v0.7)
+## What's included (v1.0)
 
 - **UniFi integration**: connect UniFi OS consoles (UDM, UCG, Dream Router, Cloud Key, self-hosted Network) through the UniFi Site Manager cloud or directly, using the official UniFi Network API. Guests are recognised by access point and let through with time, data and speed limits.
 - **Guest portal** as external portal server, designed in a **drag-and-drop portal editor** with templates, images, colours and fonts, in English and Dutch (the customer picks the languages, the guest picks one).
