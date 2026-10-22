@@ -95,6 +95,7 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 ## Versie 1.0 ✅
 
 - ✅ **Eerste officiële release (1.0.0, 22 oktober 2026)**: stap 1 tot en met 7 en de verbeteringen hierboven, op zowel het stable- als het testkanaal. Nieuw werk gaat verder als 1.0.x- en 1.x-testversies.
+- 🧪 **Eenvoudig wachtwoord resetten (1.0.1-beta.1)**: reset-e-mail of nieuwe inloggegevens voor gebruikers, klanten en resellers, vanuit Gebruikers, Klanten en Resellers.
 
 ## Later
 

@@ -1,7 +1,11 @@
-import { Copy, KeyRound, MailPlus, MailX, TriangleAlert } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Copy, KeyRound, Mail, MailPlus, MailX, TriangleAlert } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { Button, Modal, Switch, cx } from './ui';
+import { Button, Field, Modal, Select, Spinner, Switch, cx } from './ui';
+import { api, type User } from '../lib/api';
+import { useAuth } from '../lib/auth';
 
 export type CredentialsMode = 'invite' | 'generate' | 'none';
 export type GeneratedCredentials = { loginUrl: string; email: string; password: string; mustChangePassword: boolean };
@@ -111,6 +115,120 @@ export function CredentialsDialog({ credentials, name, onClose }: { credentials:
           {t('credentials.onceWarning')}
         </p>
       </div>
+    </Modal>
+  );
+}
+
+type ResetMethod = 'mail' | 'generate';
+const roleOrder: Record<string, number> = { reseller_admin: 0, tenant_admin: 1, tenant_user: 2, superadmin: 3 };
+
+/**
+ * Resets someone's password: a reset e-mail, or new login details to pass on yourself.
+ * Pass a user directly (Users page), or a customer or reseller to pick one of its people.
+ */
+export function PasswordResetDialog({ user, scope, onClose }: { user?: User; scope?: { tenantId: string } | { resellerId: string }; onClose: () => void }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const { data: auth } = useAuth();
+  const me = auth?.user;
+  const mailAvailable = auth?.passwordResetAvailable ?? false;
+  const query = scope ? ('tenantId' in scope ? `tenantId=${scope.tenantId}` : `resellerId=${scope.resellerId}`) : '';
+  const people = useQuery({ queryKey: ['users', 'reset', query], queryFn: () => api.get<{ users: User[] }>(`/users?${query}`), enabled: !user });
+  const candidates = user
+    ? [user]
+    : (people.data?.users ?? []).filter((u) => u.id !== me?.id && u.isActive).sort((a, b) => (roleOrder[a.role] ?? 9) - (roleOrder[b.role] ?? 9) || a.name.localeCompare(b.name));
+  const [pickedId, setPickedId] = useState('');
+  const target = candidates.find((u) => u.id === pickedId) ?? candidates[0];
+  const [method, setMethod] = useState<ResetMethod>(mailAvailable ? 'mail' : 'generate');
+  const [mustChange, setMustChange] = useState(true);
+  const [issued, setIssued] = useState<GeneratedCredentials | null>(null);
+
+  const reset = useMutation({
+    mutationFn: async (u: User) =>
+      method === 'mail'
+        ? { mail: await api.post<{ kind: 'reset' | 'invite' }>(`/users/${u.id}/reset-mail`) }
+        : { credentials: (await api.post<{ credentials: GeneratedCredentials }>(`/users/${u.id}/password`, { mustChangePassword: mustChange })).credentials },
+    onSuccess: (res, u) => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      if (res.credentials) return setIssued(res.credentials);
+      toast.success(t(res.mail?.kind === 'invite' ? 'passwordReset.inviteSent' : 'passwordReset.mailSent', { email: u.email }));
+      onClose();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (issued && target) return <CredentialsDialog credentials={issued} name={target.name} onClose={onClose} />;
+  const methods = [
+    { value: 'mail' as const, icon: <Mail className="size-4" />, label: t('passwordReset.mail'), disabled: !mailAvailable },
+    { value: 'generate' as const, icon: <KeyRound className="size-4" />, label: t('passwordReset.generate'), disabled: false },
+  ];
+  const hint =
+    method === 'mail'
+      ? target && !target.hasPassword
+        ? t('passwordReset.mailInviteHint')
+        : t('passwordReset.mailHint')
+      : t('passwordReset.generateHint', { name: target?.name ?? '' });
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={t('passwordReset.title')}
+      description={target ? t('passwordReset.description', { name: target.name, email: target.email }) : undefined}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            {t('common.cancel')}
+          </Button>
+          <Button variant="accent" disabled={!target} loading={reset.isPending} onClick={() => target && reset.mutate(target)}>
+            {method === 'mail' ? t('passwordReset.sendMail') : t('passwordReset.generateConfirm')}
+          </Button>
+        </>
+      }
+    >
+      {!user && people.isLoading ? (
+        <Spinner />
+      ) : !target ? (
+        <p className="text-sm text-muted">{t('passwordReset.nobody')}</p>
+      ) : (
+        <div className="space-y-4">
+          {candidates.length > 1 && (
+            <Field label={t('passwordReset.who')} htmlFor="pr-user">
+              <Select id="pr-user" value={target.id} onChange={(e) => setPickedId(e.target.value)}>
+                {candidates.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name} · {u.email} ({t(`roles.${u.role}`)})
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          )}
+          <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label={t('passwordReset.how')}>
+            {methods.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                role="radio"
+                aria-checked={method === o.value}
+                disabled={o.disabled}
+                onClick={() => setMethod(o.value)}
+                className={cx(
+                  'flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50',
+                  method === o.value ? 'border-koraal bg-koraal/8 text-ink ring-1 ring-koraal' : 'border-line text-muted hover:border-ink/30 hover:text-ink',
+                )}
+              >
+                <span className={method === o.value ? 'text-accent' : ''}>{o.icon}</span>
+                {o.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted">{hint}</p>
+          {!mailAvailable && <p className="text-xs text-muted">{t('passwordReset.noMail')}</p>}
+          {method === 'generate' && <Switch checked={mustChange} onChange={setMustChange} label={t('credentials.mustChange')} description={t('credentials.mustChangeHint')} />}
+          {target.ssoLinked && <p className="text-xs text-muted">{t('passwordReset.ssoNote')}</p>}
+          {target.twoFactorEnabled && <p className="text-xs text-muted">{t('passwordReset.twoFactorNote')}</p>}
+        </div>
+      )}
     </Modal>
   );
 }

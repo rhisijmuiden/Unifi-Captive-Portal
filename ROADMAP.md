@@ -95,6 +95,7 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 ## Version 1.0 ✅
 
 - ✅ **First official release (1.0.0, 22 October 2026)**: steps 1 to 7 and the improvements above, on both the stable and the test channel. New work continues as 1.0.x and 1.x test versions.
+- 🧪 **Easy password reset (1.0.1-beta.1)**: reset e-mail or new login details for users, customers and resellers, from Users, Customers and Resellers.
 
 ## Later
 

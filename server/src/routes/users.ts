@@ -8,7 +8,7 @@ import { audit, publicUser, requireTenantAdmin, requireTenantManager, requireUse
 import { sentOnly } from '../lib/patch.js';
 import { badRequest, forbidden, notFound, translateError } from '../lib/errors.js';
 import { requestLocale } from '../i18n/index.js';
-import { sendInvite, setGeneratedPassword } from '../services/tokens.js';
+import { sendInvite, sendPasswordReset, setGeneratedPassword } from '../services/tokens.js';
 import { disableTwoFactor } from '../services/twoFactor.js';
 
 export const userInput = z.object({
@@ -48,10 +48,12 @@ async function requireUserManager(req: FastifyRequest, target: User) {
 }
 
 export async function userRoutes(app: FastifyInstance) {
-  app.get<{ Querystring: { tenantId?: string } }>('/api/users', async (req) => {
+  app.get<{ Querystring: { tenantId?: string; resellerId?: string } }>('/api/users', async (req) => {
     const me = requireUser(req);
     let where;
-    if (me.role === 'superadmin') where = req.query.tenantId ? eq(schema.users.tenantId, req.query.tenantId) : undefined;
+    if (me.role === 'superadmin') {
+      where = req.query.tenantId ? eq(schema.users.tenantId, req.query.tenantId) : req.query.resellerId ? eq(schema.users.resellerId, req.query.resellerId) : undefined;
+    }
     else if (me.role === 'reseller_admin') {
       // The reseller's own team, or the team of one of its customers
       if (req.query.tenantId) {
@@ -148,6 +150,20 @@ export async function userRoutes(app: FastifyInstance) {
     await sendInvite(target);
     await audit(req, 'user.invited', { email: target.email }, target.tenantId);
     return { ok: true };
+  });
+
+  // Password reset by e-mail; someone who never chose a password gets a fresh invitation instead
+  app.post<{ Params: { id: string } }>('/api/users/:id/reset-mail', async (req) => {
+    const target = await db.query.users.findFirst({ where: eq(schema.users.id, req.params.id) });
+    if (!target) throw notFound();
+    const me = await requireUserManager(req, target);
+    if (target.id === me.id) throw badRequest('errors.ownPassword');
+    if (!target.isActive) throw badRequest('errors.userInactive');
+    const kind = target.passwordHash ? 'reset' : 'invite';
+    if (kind === 'reset') await sendPasswordReset(target);
+    else await sendInvite(target);
+    await audit(req, kind === 'reset' ? 'user.password_reset_sent' : 'user.invited', { email: target.email }, target.tenantId);
+    return { ok: true, kind };
   });
 
   // New login details to pass on when someone cannot use the e-mail link; signs them out everywhere

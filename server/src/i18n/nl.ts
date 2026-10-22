@@ -124,6 +124,7 @@ const nl = {
     passwordChange: 'Kies eerst je eigen wachtwoord',
     samePassword: 'Kies een ander wachtwoord dan het huidige',
     ownPassword: 'Wijzig je eigen wachtwoord via Mijn account',
+    userInactive: 'Dit account staat uit. Zet het eerst aan.',
     ownTwoFactor: 'Zet je eigen tweestapsverificatie uit via Mijn account',
     resellerHasTenants: 'Deze reseller heeft nog {{count}} klant(en). Verplaats of verwijder die eerst.',
     resellerLimit: 'Je hebt je limiet van {{max}} klanten bereikt. Vraag de platformbeheerder om die te verhogen.',

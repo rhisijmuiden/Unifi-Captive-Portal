@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Building2, Pencil, Plus, Receipt, Search, Trash2 } from 'lucide-react';
+import { Building2, KeyRound, Pencil, Plus, Receipt, Search, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { Badge, Button, Card, EmptyState, Field, Input, Modal, PageHeader, Select, Spinner, Textarea } from '../components/ui';
-import { CredentialsChoice, CredentialsDialog, type CredentialsMode, type GeneratedCredentials } from '../components/Credentials';
+import { CredentialsChoice, CredentialsDialog, PasswordResetDialog, type CredentialsMode, type GeneratedCredentials } from '../components/Credentials';
 import { api, type Tenant } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { formatDate } from '../lib/format';
@@ -150,6 +150,7 @@ export function TenantsPage() {
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState<Tenant | null | 'new'>(null);
   const [deleting, setDeleting] = useState<Tenant | null>(null);
+  const [resetting, setResetting] = useState<Tenant | null>(null);
   const { data, isLoading } = useQuery({ queryKey: ['tenants'], queryFn: () => api.get<{ tenants: Tenant[] }>('/tenants') });
   const isPlatform = useAuth().data?.user?.role === 'superadmin';
   const resellers = useQuery({ queryKey: ['resellers'], queryFn: () => api.get<{ resellers: { id: string; name: string }[] }>('/resellers'), enabled: isPlatform });
@@ -242,6 +243,9 @@ export function TenantsPage() {
                             <Receipt className="size-4" />
                           </Button>
                         )}
+                        <Button variant="ghost" size="sm" onClick={() => setResetting(tenant)} aria-label={t('passwordReset.title')} title={t('passwordReset.title')}>
+                          <KeyRound className="size-4" />
+                        </Button>
                         <Button variant="ghost" size="sm" onClick={() => setEditing(tenant)} aria-label={t('common.edit')}>
                           <Pencil className="size-4" />
                         </Button>
@@ -259,6 +263,7 @@ export function TenantsPage() {
       </Card>
 
       {editing && <TenantForm tenant={editing === 'new' ? null : editing} resellers={isPlatform ? (resellers.data?.resellers ?? []) : undefined} onClose={() => setEditing(null)} />}
+      {resetting && <PasswordResetDialog scope={{ tenantId: resetting.id }} onClose={() => setResetting(null)} />}
       <Modal
         open={Boolean(deleting)}
         onClose={() => setDeleting(null)}

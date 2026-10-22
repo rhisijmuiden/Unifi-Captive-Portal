@@ -4,6 +4,15 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [1.0.1-beta.1] - 2026-10-23 (test channel)
+
+Easy password reset for users, customers and resellers, without deleting and re-adding the account.
+
+- New **Reset password** dialog with two choices: **Send reset e-mail** (a link to choose a new password, valid for 1 hour; someone who never chose a password gets a fresh invitation) or **Generate new login details** (shown once with a ready-made WhatsApp message, optionally with choosing an own password at first sign-in).
+- Available everywhere: the key button on **Users** (or **Team**), a **Reset password** button in the edit dialog of a user, and a key button on **Customers** and **Resellers** that lets you pick which person of that customer or reseller to reset (admins first).
+- The e-mail option is greyed out until the mail server is set up under **E-mail (SMTP)**.
+- New endpoint `POST /api/users/:id/reset-mail`; `GET /api/users` takes `resellerId` for the platform admin.
+
 ## [1.0.0] - 2026-10-22
 
 **First official release.** Version 1.0.0 is published on both the stable and the test channel, so every installation lands on the same version; new test versions continue as 1.0.1-beta.N / 1.1.0-beta.N from here.

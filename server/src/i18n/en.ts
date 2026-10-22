@@ -125,6 +125,7 @@ const en: Messages = {
     passwordChange: 'Choose your own password first',
     samePassword: 'Choose a password that differs from the current one',
     ownPassword: 'Change your own password under My account',
+    userInactive: 'This account is switched off. Switch it on first.',
     ownTwoFactor: 'Turn off your own two-factor authentication under My account',
     resellerHasTenants: 'This reseller still has {{count}} customer(s). Move or delete them first.',
     resellerLimit: 'You have reached your limit of {{max}} customers. Contact the platform admin to raise it.',

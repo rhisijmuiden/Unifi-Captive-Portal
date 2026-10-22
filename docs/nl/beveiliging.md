@@ -53,7 +53,19 @@ Gegenereerde wachtwoorden zijn 20 willekeurige tekens in vier groepjes (zoals `Q
 
 Met **Eigen wachtwoord kiezen bij eerste keer inloggen** (standaard aan) moet de persoon direct na het inloggen het gegenereerde wachtwoord vervangen, voordat er iets anders kan; het oude wachtwoord werkt daarna niet meer. Wie met Microsoft inlogt krijgt deze vraag niet.
 
-Gegevens kwijt, of kan iemand geen e-mail ontvangen? Onder **Gebruikers** (of **Team**) geeft de sleutelknop **Nieuwe inloggegevens genereren** die persoon een nieuw wachtwoord en meldt hem overal af. Dit werkt niet op je eigen account: je eigen wachtwoord wijzig je via **Mijn account**.
+## Wachtwoord resetten
+
+Wachtwoord vergeten, gegevens kwijt, of kan iemand geen e-mail ontvangen? Je hoeft een account nooit te verwijderen en opnieuw aan te maken. Open **Wachtwoord resetten** op een van deze plekken:
+
+- **Gebruikers** (of **Team**): de sleutelknop bij de persoon, of de knop **Wachtwoord resetten** in het bewerkvenster.
+- **Klanten** en **Resellers**: de sleutelknop op de regel. Kies welke persoon van die klant of reseller (beheerders staan bovenaan).
+
+Kies daarna hoe:
+
+- **Reset-e-mail sturen**: de persoon krijgt een link om een nieuw wachtwoord te kiezen (1 uur geldig). Tot die tijd blijft het huidige wachtwoord werken. Wie nog nooit een wachtwoord koos, krijgt in plaats daarvan een nieuwe uitnodiging (7 dagen geldig). Alleen mogelijk als de mailserver is ingesteld via **E-mail (SMTP)**.
+- **Nieuwe inloggegevens genereren**: er wordt direct een nieuw wachtwoord gemaakt en één keer getoond, met een kant-en-klaar bericht om in WhatsApp te plakken. Het oude wachtwoord werkt niet meer en de persoon wordt overal afgemeld. Met **Eigen wachtwoord kiezen bij eerste keer inloggen** vervangt de persoon het meteen.
+
+Tweestapsverificatie blijft na een reset aan; is de telefoon ook kwijt, gebruik dan ook **Tweestapsverificatie resetten**. Resetten werkt niet op je eigen account: je eigen wachtwoord wijzig je via **Mijn account**.
 
 ## Overige beveiliging
 

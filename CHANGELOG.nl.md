@@ -4,6 +4,15 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [1.0.1-beta.1] - 2026-10-23 (testkanaal)
+
+Eenvoudig wachtwoord resetten voor gebruikers, klanten en resellers, zonder het account te verwijderen en opnieuw aan te maken.
+
+- Nieuw venster **Wachtwoord resetten** met twee keuzes: **Reset-e-mail sturen** (een link om een nieuw wachtwoord te kiezen, 1 uur geldig; wie nog nooit een wachtwoord koos krijgt een nieuwe uitnodiging) of **Nieuwe inloggegevens genereren** (één keer getoond met een kant-en-klaar WhatsApp-bericht, eventueel met eigen wachtwoord kiezen bij de eerste keer inloggen).
+- Overal beschikbaar: de sleutelknop bij **Gebruikers** (of **Team**), een knop **Wachtwoord resetten** in het bewerkvenster van een gebruiker, en een sleutelknop bij **Klanten** en **Resellers** waarmee je kiest welke persoon van die klant of reseller je reset (beheerders eerst).
+- De e-mailkeuze is grijs zolang de mailserver niet is ingesteld via **E-mail (SMTP)**.
+- Nieuw endpoint `POST /api/users/:id/reset-mail`; `GET /api/users` accepteert `resellerId` voor de platformbeheerder.
+
 ## [1.0.0] - 2026-10-22
 
 **Eerste officiële release.** Versie 1.0.0 staat op zowel het stable- als het testkanaal, zodat elke installatie op dezelfde versie uitkomt; nieuwe testversies gaan vanaf hier verder als 1.0.1-beta.N / 1.1.0-beta.N.
