@@ -4,6 +4,18 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [1.0.0] - 2026-10-22
+
+**First official release.** Version 1.0.0 is published on both the stable and the test channel, so every installation lands on the same version; new test versions continue as 1.0.1-beta.N / 1.1.0-beta.N from here.
+
+Everything from 0.7.2-beta.1 to 0.7.3-beta.1 now becomes stable:
+
+- Better mail delivery: EHLO name, DKIM key generation and a deliverability check (0.7.2-beta.1).
+- Generated login details for new customers, resellers and users, with a ready-made WhatsApp message and choosing an own password at first sign-in (0.7.2-beta.2).
+- Platform statistics across all resellers and customers, with CSV and PDF export (0.7.3-beta.1).
+
+No code changes compared to 0.7.3-beta.1.
+
 ## [0.7.3-beta.1] - 2026-10-22 (test channel)
 
 Platform statistics: advanced reporting across all resellers and customers for the platform admin.

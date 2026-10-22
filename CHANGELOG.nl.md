@@ -4,6 +4,18 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [1.0.0] - 2026-10-22
+
+**Eerste officiële release.** Versie 1.0.0 staat op zowel het stable- als het testkanaal, zodat elke installatie op dezelfde versie uitkomt; nieuwe testversies gaan vanaf hier verder als 1.0.1-beta.N / 1.1.0-beta.N.
+
+Alles van 0.7.2-beta.1 tot en met 0.7.3-beta.1 wordt nu stabiel:
+
+- Betere bezorging van mail: EHLO-naam, DKIM-sleutel genereren en een afleverbaarheidscontrole (0.7.2-beta.1).
+- Gegenereerde inloggegevens voor nieuwe klanten, resellers en gebruikers, met een kant-en-klaar WhatsApp-bericht en een eigen wachtwoord kiezen bij de eerste keer inloggen (0.7.2-beta.2).
+- Platformstatistieken over alle resellers en klanten, met export als CSV en pdf (0.7.3-beta.1).
+
+Geen codewijzigingen ten opzichte van 0.7.3-beta.1.
+
 ## [0.7.3-beta.1] - 2026-10-22 (testkanaal)
 
 Platformstatistieken: uitgebreide rapportage over alle resellers en klanten voor de platformbeheerder.

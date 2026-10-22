@@ -19,7 +19,7 @@ Captive Portal is een multi-tenant webapplicatie. Jij (de platformbeheerder) hos
 
 Zie de [roadmap](ROADMAP.nl.md) voor wat er al werkt en wat eraan komt.
 
-## Wat zit er nu in (v0.7)
+## Wat zit er nu in (v1.0)
 
 - **UniFi-koppeling**: UniFi OS consoles koppelen (UDM, UCG, Dream Router, Cloud Key, zelf gehoste Network) via de UniFi Site Manager-cloud of rechtstreeks, met de officiële UniFi Network API. Gasten worden herkend aan het access point en doorgelaten met limieten voor tijd, data en snelheid.
 - **Gastportal** als external portal server, ontworpen in een **drag-and-drop portal-editor** met templates, afbeeldingen, kleuren en lettertypen, in het Nederlands en Engels (de klant kiest de talen, de gast kiest er één).
