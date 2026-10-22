@@ -90,6 +90,7 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 
 - ✅ Better mail delivery: EHLO name, DKIM key generation and a deliverability check (0.7.2-beta.1)
 - 🚧 **Generate login details** when creating a customer, reseller or user, shown once with a ready-made message for WhatsApp, and choosing an own password at first sign-in (0.7.2-beta.2, test channel)
+- 🚧 **Platform statistics** for the platform admin: guests per reseller and customer, trend against the previous period, weekday × hour heatmap, active customers and devices, filters and CSV/PDF export, also in the platform API (0.7.3-beta.1, test channel)
 
 ## Later
 

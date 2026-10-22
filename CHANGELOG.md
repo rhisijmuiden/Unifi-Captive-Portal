@@ -4,6 +4,20 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.7.3-beta.1] - 2026-10-22 (test channel)
+
+Platform statistics: advanced reporting across all resellers and customers for the platform admin.
+
+- New **Statistics** page in the platform admin menu. Headline figures with the change against the previous period: guest sign-ins, unique devices, active customers and guests online now, plus registrations, new and returning devices, new customers, admins signed in, vouchers, paid sign-ins and guest payments.
+- **Over time**: guest sign-ins, devices or active customers per day, week or month, with the previous period as a dashed line and exact numbers on hover.
+- **Busy moments**: a heatmap of sign-ins per weekday and hour, with totals per hour and per weekday and the busiest hour.
+- **Per reseller** (including direct customers) and **per customer** (sortable, searchable table), and the sign-in methods. Clicking a reseller or customer zooms in.
+- Filters for period (7/30/90 days, 12 months, this year or custom), reseller, customer and bar size; the view is kept in the address.
+- **Export** as CSV (semicolons in Dutch for Excel) or as an A4 **PDF report**, in English or Dutch.
+- Platform API: `GET /api/v1/platform/stats` and `/api/v1/platform/stats/export` with the new `statistics` scope.
+- Database: an index on the sign-in time of guests for fast reporting across customers.
+- Guide: [Platform statistics](docs/en/statistics.md).
+
 ## [0.7.2-beta.2] - 2026-10-22 (test channel)
 
 Generated login details, so a new customer or reseller can be sent ready-to-use login details by WhatsApp instead of an e-mail invitation.

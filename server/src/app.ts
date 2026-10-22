@@ -23,6 +23,7 @@ import { hostnameRoutes } from './routes/hostnames.js';
 import { mailTemplateRoutes } from './routes/mailTemplates.js';
 import { notificationRoutes } from './routes/notifications.js';
 import { paymentRoutes } from './routes/payments.js';
+import { platformStatsRoutes } from './routes/platformStats.js';
 import { portalRoutes } from './routes/portal.js';
 import { securityRoutes } from './routes/security.js';
 import { settingsRoutes } from './routes/settings.js';
@@ -134,6 +135,7 @@ export async function buildApp() {
   await app.register(notificationRoutes);
   await app.register(mailTemplateRoutes);
   await app.register(billingRoutes);
+  await app.register(platformStatsRoutes);
   await app.register(backupRoutes);
   await app.register(socialRoutes);
   await app.register(securityRoutes);

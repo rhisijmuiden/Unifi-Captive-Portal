@@ -3,6 +3,7 @@ import {
   BarChart3,
   BedDouble,
   BellRing,
+  ChartLine,
   Building2,
   Clapperboard,
   Code,
@@ -89,6 +90,7 @@ function navFor(user: User, t: TFunction): Section[] {
       {
         items: [
           { to: '/', label: t('nav.dashboard'), icon: LayoutDashboard, end: true },
+          { to: '/statistics', label: t('nav.statistics'), icon: ChartLine },
           { to: '/tenants', label: t('nav.tenants'), icon: Building2 },
           { to: '/resellers', label: t('nav.resellers'), icon: Handshake },
           { to: '/billing', label: t('nav.billing'), icon: Receipt },

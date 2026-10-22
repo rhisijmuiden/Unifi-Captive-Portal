@@ -85,6 +85,13 @@
       "when": 1792653064428,
       "tag": "0011_generated_credentials",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792654350609,
+      "tag": "0012_platform_stats",
+      "breakpoints": true
     }
   ]
 }

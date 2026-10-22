@@ -4,6 +4,20 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.7.3-beta.1] - 2026-10-22 (testkanaal)
+
+Platformstatistieken: uitgebreide rapportage over alle resellers en klanten voor de platformbeheerder.
+
+- Nieuwe pagina **Statistieken** in het menu van de platformbeheerder. Hoofdcijfers met het verschil tegenover de vorige periode: gastaanmeldingen, unieke apparaten, actieve klanten en gasten nu online, plus registraties, nieuwe en terugkerende apparaten, nieuwe klanten, ingelogde beheerders, vouchers, betaalde aanmeldingen en betalingen van gasten.
+- **Verloop**: gastaanmeldingen, apparaten of actieve klanten per dag, week of maand, met de vorige periode als stippellijn en precieze aantallen bij aanwijzen.
+- **Drukke momenten**: een heatmap van aanmeldingen per weekdag en uur, met totalen per uur en per weekdag en het drukste uur.
+- **Per reseller** (inclusief directe klanten) en **per klant** (sorteerbare, doorzoekbare tabel), en de inlogmethodes. Klikken op een reseller of klant zoomt in.
+- Filters op periode (7/30/90 dagen, 12 maanden, dit jaar of aangepast), reseller, klant en staafgrootte; de weergave blijft in het adres bewaard.
+- **Exporteren** als CSV (puntkomma's in het Nederlands voor Excel) of als A4-**pdf-rapport**, in het Nederlands of Engels.
+- Platform-API: `GET /api/v1/platform/stats` en `/api/v1/platform/stats/export` met de nieuwe rechten `statistics`.
+- Database: een index op het aanmeldmoment van gasten voor snelle rapportage over klanten heen.
+- Handleiding: [Platformstatistieken](docs/nl/statistieken.md).
+
 ## [0.7.2-beta.2] - 2026-10-22 (testkanaal)
 
 Gegenereerde inloggegevens, zodat je een nieuwe klant of reseller kant-en-klare inloggegevens via WhatsApp kunt sturen in plaats van een uitnodiging per e-mail.

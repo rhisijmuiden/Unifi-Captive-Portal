@@ -90,6 +90,7 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 
 - ✅ Betere bezorging van mail: EHLO-naam, DKIM-sleutel genereren en een afleverbaarheidscontrole (0.7.2-beta.1)
 - 🚧 **Inloggegevens genereren** bij het aanmaken van een klant, reseller of gebruiker, één keer getoond met een kant-en-klaar bericht voor WhatsApp, en een eigen wachtwoord kiezen bij de eerste keer inloggen (0.7.2-beta.2, testkanaal)
+- 🚧 **Platformstatistieken** voor de platformbeheerder: gasten per reseller en klant, verloop tegenover de vorige periode, heatmap weekdag × uur, actieve klanten en apparaten, filters en export als CSV/pdf, ook in de platform-API (0.7.3-beta.1, testkanaal)
 
 ## Later
 
