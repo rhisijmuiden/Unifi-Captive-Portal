@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { Badge, Button, Card, EmptyState, Field, Input, Modal, PageHeader, Select, Spinner, Switch } from '../components/ui';
-import { CredentialsChoice, CredentialsDialog, type CredentialsMode, type GeneratedCredentials } from '../components/Credentials';
+import { CredentialsChoice, CredentialsDialog, PasswordResetDialog, type CredentialsMode, type GeneratedCredentials } from '../components/Credentials';
 import { api, type Role, type Tenant, type User } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { timeAgo } from '../lib/format';
@@ -28,6 +28,7 @@ function UserForm({ user, tenants, resellers, defaultTenant, onClose }: { user: 
     mustChangePassword: true,
   });
   const [issued, setIssued] = useState<GeneratedCredentials | null>(null);
+  const [resetting, setResetting] = useState(false);
   const save = useMutation({
     mutationFn: () => {
       const { resellerId, ...rest } = form;
@@ -63,6 +64,7 @@ function UserForm({ user, tenants, resellers, defaultTenant, onClose }: { user: 
           : ['reseller_admin', ...customerRoles]
         : customerRoles;
   if (issued) return <CredentialsDialog credentials={issued} name={form.name} onClose={onClose} />;
+  if (resetting && user) return <PasswordResetDialog user={user} onClose={onClose} />;
   const picksTenant = (me.role === 'superadmin' || (me.role === 'reseller_admin' && !user)) && customerRoles.includes(form.role);
 
   return (
@@ -72,6 +74,11 @@ function UserForm({ user, tenants, resellers, defaultTenant, onClose }: { user: 
       title={user ? t('users.editTitle') : t('users.inviteTitle')}
       footer={
         <>
+          {user && user.id !== me.id && (
+            <Button variant="secondary" className="sm:mr-auto" icon={<KeyRound className="size-4" />} onClick={() => setResetting(true)}>
+              {t('passwordReset.title')}
+            </Button>
+          )}
           <Button variant="ghost" onClick={onClose}>
             {t('common.cancel')}
           </Button>
@@ -194,7 +201,6 @@ export function UsersPage() {
   const [deleting, setDeleting] = useState<User | null>(null);
   const [resetting, setResetting] = useState<User | null>(null);
   const [renewing, setRenewing] = useState<User | null>(null);
-  const [issued, setIssued] = useState<{ credentials: GeneratedCredentials; name: string } | null>(null);
 
   const manager = me.role === 'superadmin' || me.role === 'reseller_admin';
   const tenants = useQuery({ queryKey: ['tenants'], queryFn: () => api.get<{ tenants: Tenant[] }>('/tenants'), enabled: manager });
@@ -232,16 +238,6 @@ export function UsersPage() {
       qc.invalidateQueries({ queryKey: ['users'] });
       toast.success(t('twoFactor.resetDone'));
       setResetting(null);
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const renew = useMutation({
-    mutationFn: (u: User) => api.post<{ credentials: GeneratedCredentials }>(`/users/${u.id}/password`, { mustChangePassword: true }),
-    onSuccess: (res, u) => {
-      qc.invalidateQueries({ queryKey: ['users'] });
-      setRenewing(null);
-      setIssued({ credentials: res.credentials, name: u.name });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -322,7 +318,7 @@ export function UsersPage() {
                     </Button>
                   )}
                   {u.id !== me.id && (
-                    <Button variant="ghost" size="sm" onClick={() => setRenewing(u)} aria-label={t('credentials.newPassword')} title={t('credentials.newPassword')}>
+                    <Button variant="ghost" size="sm" onClick={() => setRenewing(u)} aria-label={t('passwordReset.title')} title={t('passwordReset.title')}>
                       <KeyRound className="size-4" />
                     </Button>
                   )}
@@ -347,25 +343,7 @@ export function UsersPage() {
       </Card>
 
       {editing && <UserForm user={editing === 'new' ? null : editing} tenants={tenants.data?.tenants ?? []} resellers={resellers.data?.resellers ?? []} defaultTenant={tenantFilter || undefined} onClose={() => setEditing(null)} />}
-      <Modal
-        open={Boolean(renewing)}
-        onClose={() => setRenewing(null)}
-        title={t('credentials.newPasswordTitle')}
-        description={t('credentials.newPasswordText', { name: renewing?.name })}
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setRenewing(null)}>
-              {t('common.cancel')}
-            </Button>
-            <Button variant="accent" loading={renew.isPending} onClick={() => renewing && renew.mutate(renewing)}>
-              {t('credentials.newPasswordConfirm')}
-            </Button>
-          </>
-        }
-      >
-        <p className="text-sm text-muted">{t('credentials.generateHint')}</p>
-      </Modal>
-      {issued && <CredentialsDialog credentials={issued.credentials} name={issued.name} onClose={() => setIssued(null)} />}
+      {renewing && <PasswordResetDialog user={renewing} onClose={() => setRenewing(null)} />}
       <Modal
         open={Boolean(resetting)}
         onClose={() => setResetting(null)}

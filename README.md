@@ -64,7 +64,7 @@ Then open `http://<server-ip>:8080` and create the first administrator account. 
 - [Hotel login](docs/en/hotel-login.md): room number and surname, CSV import, Apaleo and Mews
 - [Newsletter, GDPR, feedback and ads](docs/en/marketing-feedback-ads.md): Mailchimp, HubSpot, deletion requests, survey, Google review, splash video
 - [Notifications, monitoring, live dashboard, reports and e-mail templates](docs/en/notifications-mail.md)
-- [Security, login details and two-factor authentication](docs/en/security.md): generated login details, authenticator app, recovery codes, required 2FA, lost phone
+- [Security, login details and two-factor authentication](docs/en/security.md): generated login details, resetting a password, authenticator app, recovery codes, required 2FA, lost phone
 - [White-label resellers](docs/en/resellers.md): partners with their own brand, customer limit, own admin address and RHIS mentions per reseller
 - [Platform statistics](docs/en/statistics.md): guests per reseller and customer, busy moments, trends, CSV and PDF export
 - [Billing customers](docs/en/billing.md): plans, subscriptions, invoices, online payment, reminders and pausing portals

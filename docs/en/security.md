@@ -53,7 +53,19 @@ Generated passwords are 20 random characters in four groups (such as `Q4fWB-Vv98
 
 With **Choose own password at first sign-in** (on by default) the person must replace the generated password straight after signing in, before they can do anything else; the old password then stops working. Someone who signs in with Microsoft is not asked.
 
-Lost the details, or a user cannot receive e-mail? Under **Users** (or **Team**), the key button **Generate new login details** gives that person a new password and signs them out everywhere. It does not work on your own account: change your own password under **My account**.
+## Resetting a password
+
+Forgot their password, lost the details, or cannot receive e-mail? You never need to delete and re-add an account. Open **Reset password** in one of these places:
+
+- **Users** (or **Team**): the key button on the person, or the **Reset password** button in their edit dialog.
+- **Customers** and **Resellers**: the key button on the row. Choose which person of that customer or reseller (admins are listed first).
+
+Then pick how:
+
+- **Send reset e-mail**: the person gets a link to choose a new password (valid for 1 hour). Until then the current password keeps working. Someone who never chose a password gets a fresh invitation instead (valid for 7 days). Only available once the mail server is set up under **E-mail (SMTP)**.
+- **Generate new login details**: a new password is created right away and shown once, with a ready-made message to paste into WhatsApp. The old password stops working and the person is signed out everywhere. With **Choose own password at first sign-in** they replace it straight away.
+
+Two-factor authentication stays on after a reset; if the phone is lost too, also use **Reset two-factor authentication**. Resetting does not work on your own account: change your own password under **My account**.
 
 ## Other protections
 

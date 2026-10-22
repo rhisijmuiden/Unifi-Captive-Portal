@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Handshake, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
+import { Handshake, KeyRound, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { BrandLogo } from '../components/BrandLogo';
 import { ColorField, ImageUpload, useConfirm } from '../components/controls';
 import { Badge, Button, Card, CardHeader, EmptyState, Field, Input, Modal, PageHeader, Select, Spinner, Switch, Textarea } from '../components/ui';
-import { CredentialsChoice, CredentialsDialog, type CredentialsMode, type GeneratedCredentials } from '../components/Credentials';
+import { CredentialsChoice, CredentialsDialog, PasswordResetDialog, type CredentialsMode, type GeneratedCredentials } from '../components/Credentials';
 import { api, type Brand } from '../lib/api';
 import { readableOn } from '../lib/brand';
 import { formatDate } from '../lib/format';
@@ -279,6 +279,7 @@ export function ResellersPage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Reseller | null | 'new'>(null);
+  const [resetting, setResetting] = useState<Reseller | null>(null);
   const [confirmDialog, confirm] = useConfirm();
   const { data, isLoading } = useQuery({ queryKey: ['resellers'], queryFn: () => api.get<{ resellers: Reseller[] }>('/resellers') });
   const remove = useMutation({
@@ -354,6 +355,9 @@ export function ResellersPage() {
                     <td className="hidden px-6 py-3 text-muted md:table-cell">{formatDate(r.createdAt)}</td>
                     <td className="px-6 py-3">
                       <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => setResetting(r)} aria-label={t('passwordReset.title')} title={t('passwordReset.title')}>
+                          <KeyRound className="size-4" />
+                        </Button>
                         <Button variant="ghost" size="sm" onClick={() => setEditing(r)} aria-label={t('common.edit')}>
                           <Pencil className="size-4" />
                         </Button>
@@ -375,6 +379,7 @@ export function ResellersPage() {
         )}
       </Card>
       {editing && <ResellerForm reseller={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
+      {resetting && <PasswordResetDialog scope={{ resellerId: resetting.id }} onClose={() => setResetting(null)} />}
       {confirmDialog}
     </>
   );

@@ -64,7 +64,7 @@ Open daarna `http://<ip-van-de-server>:8080` en maak het eerste beheerdersaccoun
 - [Hotellogin](docs/nl/hotellogin.md): kamernummer en achternaam, CSV-import, Apaleo en Mews
 - [Nieuwsbrief, AVG, feedback en advertenties](docs/nl/marketing-feedback-advertenties.md): Mailchimp, HubSpot, verwijderverzoeken, enquête, Google-review, splashvideo
 - [Notificaties, monitoring, live dashboard, rapportages en e-mailtemplates](docs/nl/notificaties-mail.md)
-- [Beveiliging, inloggegevens en tweestapsverificatie](docs/nl/beveiliging.md): gegenereerde inloggegevens, authenticator-app, herstelcodes, verplichte 2FA, telefoon kwijt
+- [Beveiliging, inloggegevens en tweestapsverificatie](docs/nl/beveiliging.md): gegenereerde inloggegevens, wachtwoord resetten, authenticator-app, herstelcodes, verplichte 2FA, telefoon kwijt
 - [White-label resellers](docs/nl/resellers.md): partners met hun eigen merk, klantlimiet, eigen beheeradres en RHIS-vermeldingen per reseller
 - [Platformstatistieken](docs/nl/statistieken.md): gasten per reseller en klant, drukke momenten, verloop, export als CSV en pdf
 - [Klanten factureren](docs/nl/facturatie.md): plannen, abonnementen, facturen, online betalen, herinneringen en portalen pauzeren
