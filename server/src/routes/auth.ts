@@ -2,7 +2,7 @@ import { and, count, eq, gt, or, sql } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db, schema } from '../db/index.js';
-import { accountSuspended, audit, createSession, destroySession, publicUser, requireUser, secureCookies } from '../lib/auth.js';
+import { accountSuspended, audit, createSession, destroySession, passwordChangeRequired, publicUser, requireUser, secureCookies } from '../lib/auth.js';
 import { hashPassword, verifyPassword } from '../lib/crypto.js';
 import { badRequest, unauthorized } from '../lib/errors.js';
 import { buildEntraLogin, completeEntraLogin, entraConfig } from '../services/entra.js';
@@ -36,6 +36,7 @@ export async function authRoutes(app: FastifyInstance) {
     return {
       needsSetup: userCount === 0,
       user: req.user ? publicUser(req.user) : null,
+      passwordChangeRequired: req.user ? passwordChangeRequired(req.user, req.sessionMethod ?? 'password') : false,
       twoFactorSetupRequired: req.user ? await needsTwoFactorSetup(req.user, req.sessionMethod ?? 'password') : false,
       twoFactorPending: !req.user && Boolean(await pendingLoginUser(req)),
       sso: { entraEnabled: sso.entraEnabled, buttonLabel: sso.buttonLabel, allowLocalLogin: sso.allowLocalLogin || !sso.entraEnabled },
@@ -172,10 +173,13 @@ export async function authRoutes(app: FastifyInstance) {
   app.post('/api/auth/password', async (req) => {
     const user = requireUser(req);
     const body = z.object({ current: z.string().optional(), password }).parse(req.body);
-    if (user.passwordHash && !(await verifyPassword(user.passwordHash, body.current ?? ''))) {
+    // Right after signing in with a generated password, that password does not need to be typed again
+    const forced = passwordChangeRequired(user, req.sessionMethod ?? 'password');
+    if (user.passwordHash && !forced && !(await verifyPassword(user.passwordHash, body.current ?? ''))) {
       throw badRequest('errors.wrongPassword');
     }
-    await db.update(schema.users).set({ passwordHash: await hashPassword(body.password) }).where(eq(schema.users.id, user.id));
+    if (user.passwordHash && (await verifyPassword(user.passwordHash, body.password))) throw badRequest('errors.samePassword');
+    await db.update(schema.users).set({ passwordHash: await hashPassword(body.password), mustChangePassword: false }).where(eq(schema.users.id, user.id));
     await audit(req, 'auth.password_changed');
     return { ok: true };
   });
@@ -192,7 +196,7 @@ export async function authRoutes(app: FastifyInstance) {
     const body = z.object({ token: z.string().min(10), password }).parse(req.body);
     const user = await consumeToken(body.token);
     if (!user || !user.isActive) throw badRequest('errors.linkInvalid');
-    await db.update(schema.users).set({ passwordHash: await hashPassword(body.password) }).where(eq(schema.users.id, user.id));
+    await db.update(schema.users).set({ passwordHash: await hashPassword(body.password), mustChangePassword: false }).where(eq(schema.users.id, user.id));
     // A reset link proves the mailbox, not the phone: with 2FA the code is still needed
     if (user.totpEnabledAt) {
       req.user = user;

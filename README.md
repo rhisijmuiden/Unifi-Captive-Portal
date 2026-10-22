@@ -34,7 +34,7 @@ See the [roadmap](ROADMAP.md) for what works today and what is coming.
 - **Monitoring and live dashboard**: consoles are checked every 5 minutes, with an e-mail (and webhook) when a console or access point stays offline and when it is back. A live dashboard per customer shows guests online, today by hour against last week, sign-in methods, guests per access point and the latest sign-ins.
 - **E-mail template designer**: every e-mail, visual or in HTML, per language, per customer and platform-wide.
 - **Own hostnames with automatic SSL**: Caddy on ports 80/443 with on-demand Let's Encrypt certificates, only after the DNS record has been verified. The admin panel can get its own HTTPS hostname too.
-- **Customers (tenants) and users** with four roles: platform admin, reseller admin, customer admin and staff member. Invitations by e-mail. The platform admin manages customers and the server (public IP, admin hostname and SSL, e-mail, SSO); consoles, portals, hostnames and guests live in each customer's own environment.
+- **Customers (tenants) and users** with four roles: platform admin, reseller admin, customer admin and staff member. Invite by e-mail, or generate login details (shown once, with a ready-made message to paste into WhatsApp) and have the user choose their own password at first sign-in. The platform admin manages customers and the server (public IP, admin hostname and SSL, e-mail, SSO); consoles, portals, hostnames and guests live in each customer's own environment.
 - **Microsoft Entra ID single sign-on** (OpenID Connect with PKCE), next to or instead of password sign-in.
 - **Two-factor authentication** with an authenticator app (TOTP) and recovery codes, which the platform admin can require for platform admins and customers, and customers for their own team.
 - **Your own mail server (SMTP)**: STARTTLS or TLS, minimum TLS version, username/password or OAuth 2.0 (Microsoft 365), DKIM signing and a test button.
@@ -63,7 +63,7 @@ Then open `http://<server-ip>:8080` and create the first administrator account. 
 - [Hotel login](docs/en/hotel-login.md): room number and surname, CSV import, Apaleo and Mews
 - [Newsletter, GDPR, feedback and ads](docs/en/marketing-feedback-ads.md): Mailchimp, HubSpot, deletion requests, survey, Google review, splash video
 - [Notifications, monitoring, live dashboard, reports and e-mail templates](docs/en/notifications-mail.md)
-- [Security and two-factor authentication](docs/en/security.md): authenticator app, recovery codes, required 2FA, lost phone
+- [Security, login details and two-factor authentication](docs/en/security.md): generated login details, authenticator app, recovery codes, required 2FA, lost phone
 - [White-label resellers](docs/en/resellers.md): partners with their own brand, customer limit, own admin address and RHIS mentions per reseller
 - [Billing customers](docs/en/billing.md): plans, subscriptions, invoices, online payment, reminders and pausing portals
 - [Backups and restore](docs/en/backups.md): SCP, FTPS and FTP locations, schedule, encryption, restore and disaster recovery

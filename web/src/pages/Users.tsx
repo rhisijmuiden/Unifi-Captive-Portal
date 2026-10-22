@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { Badge, Button, Card, EmptyState, Field, Input, Modal, PageHeader, Select, Spinner, Switch } from '../components/ui';
+import { CredentialsChoice, CredentialsDialog, type CredentialsMode, type GeneratedCredentials } from '../components/Credentials';
 import { api, type Role, type Tenant, type User } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { timeAgo } from '../lib/format';
@@ -23,8 +24,10 @@ function UserForm({ user, tenants, resellers, defaultTenant, onClose }: { user: 
     tenantId: user?.tenantId ?? defaultTenant ?? tenants[0]?.id ?? '',
     resellerId: user?.resellerId ?? resellers[0]?.id ?? '',
     isActive: user?.isActive ?? true,
-    sendInvite: true,
+    credentials: 'invite' as CredentialsMode,
+    mustChangePassword: true,
   });
+  const [issued, setIssued] = useState<GeneratedCredentials | null>(null);
   const save = useMutation({
     mutationFn: () => {
       const { resellerId, ...rest } = form;
@@ -35,14 +38,16 @@ function UserForm({ user, tenants, resellers, defaultTenant, onClose }: { user: 
         // Only the platform admin chooses the reseller; a reseller's colleagues join its own team
         ...(me.role === 'superadmin' ? { resellerId: form.role === 'reseller_admin' ? resellerId || null : null } : {}),
       };
-      return user ? api.put(`/users/${user.id}`, body) : api.post<{ inviteError: string | null }>('/users', body);
+      if (user) return api.put(`/users/${user.id}`, body);
+      return api.post<{ inviteError: string | null; credentials: GeneratedCredentials | null }>('/users', body);
     },
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['users'] });
-      const inviteError = (res as { inviteError?: string | null })?.inviteError;
+      const { inviteError, credentials } = (res ?? {}) as { inviteError?: string | null; credentials?: GeneratedCredentials | null };
       if (inviteError) toast.warning(t('users.inviteFailed', { error: inviteError }));
-      else toast.success(user ? t('users.updated') : form.sendInvite ? t('users.inviteSent') : t('users.created'));
-      onClose();
+      else toast.success(user ? t('users.updated') : form.credentials === 'invite' ? t('users.inviteSent') : t('users.created'));
+      if (credentials) setIssued(credentials);
+      else onClose();
     },
   });
   const customerRoles: Role[] = ['tenant_admin', 'tenant_user'];
@@ -57,6 +62,7 @@ function UserForm({ user, tenants, resellers, defaultTenant, onClose }: { user: 
             : customerRoles
           : ['reseller_admin', ...customerRoles]
         : customerRoles;
+  if (issued) return <CredentialsDialog credentials={issued} name={form.name} onClose={onClose} />;
   const picksTenant = (me.role === 'superadmin' || (me.role === 'reseller_admin' && !user)) && customerRoles.includes(form.role);
 
   return (
@@ -70,7 +76,7 @@ function UserForm({ user, tenants, resellers, defaultTenant, onClose }: { user: 
             {t('common.cancel')}
           </Button>
           <Button variant="accent" loading={save.isPending} onClick={() => save.mutate()}>
-            {user ? t('common.save') : form.sendInvite ? t('users.invite') : t('users.create')}
+            {user ? t('common.save') : form.credentials === 'invite' ? t('users.invite') : t('users.create')}
           </Button>
         </>
       }
@@ -120,7 +126,18 @@ function UserForm({ user, tenants, resellers, defaultTenant, onClose }: { user: 
           )}
         </div>
         {user && user.id !== me.id && <Switch checked={form.isActive} onChange={(v) => setForm({ ...form, isActive: v })} label={t('users.accountActive')} description={t('users.accountActiveHint')} />}
-        {!user && <Switch checked={form.sendInvite} onChange={(v) => setForm({ ...form, sendInvite: v })} label={t('users.sendInvite')} description={t('users.sendInviteHint')} />}
+        {!user && (
+          <div>
+            <p className="mb-1.5 text-sm font-medium">{t('credentials.how')}</p>
+            <CredentialsChoice
+              allowNone
+              value={form.credentials}
+              onChange={(credentials) => setForm({ ...form, credentials })}
+              mustChange={form.mustChangePassword}
+              onMustChange={(mustChangePassword) => setForm({ ...form, mustChangePassword })}
+            />
+          </div>
+        )}
         {save.error && <p className="text-sm text-offline">{save.error.message}</p>}
       </div>
     </Modal>
@@ -176,6 +193,8 @@ export function UsersPage() {
   const [editing, setEditing] = useState<User | null | 'new'>(null);
   const [deleting, setDeleting] = useState<User | null>(null);
   const [resetting, setResetting] = useState<User | null>(null);
+  const [renewing, setRenewing] = useState<User | null>(null);
+  const [issued, setIssued] = useState<{ credentials: GeneratedCredentials; name: string } | null>(null);
 
   const manager = me.role === 'superadmin' || me.role === 'reseller_admin';
   const tenants = useQuery({ queryKey: ['tenants'], queryFn: () => api.get<{ tenants: Tenant[] }>('/tenants'), enabled: manager });
@@ -213,6 +232,16 @@ export function UsersPage() {
       qc.invalidateQueries({ queryKey: ['users'] });
       toast.success(t('twoFactor.resetDone'));
       setResetting(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const renew = useMutation({
+    mutationFn: (u: User) => api.post<{ credentials: GeneratedCredentials }>(`/users/${u.id}/password`, { mustChangePassword: true }),
+    onSuccess: (res, u) => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      setRenewing(null);
+      setIssued({ credentials: res.credentials, name: u.name });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -267,6 +296,7 @@ export function UsersPage() {
                     {u.name}
                     {u.id === me.id && <Badge>{t('common.you')}</Badge>}
                     {!u.isActive && <Badge tone="offline">{t('common.inactive')}</Badge>}
+                    {u.mustChangePassword && <Badge tone="warning">{t('credentials.mustChangeBadge')}</Badge>}
                     {u.ssoLinked && (
                       <Badge tone="info">
                         <KeyRound className="size-3" /> SSO
@@ -291,6 +321,11 @@ export function UsersPage() {
                       <MailPlus className="size-4" />
                     </Button>
                   )}
+                  {u.id !== me.id && (
+                    <Button variant="ghost" size="sm" onClick={() => setRenewing(u)} aria-label={t('credentials.newPassword')} title={t('credentials.newPassword')}>
+                      <KeyRound className="size-4" />
+                    </Button>
+                  )}
                   {u.twoFactorEnabled && u.id !== me.id && (
                     <Button variant="ghost" size="sm" onClick={() => setResetting(u)} aria-label={t('twoFactor.reset')} title={t('twoFactor.reset')}>
                       <ShieldOff className="size-4" />
@@ -312,6 +347,25 @@ export function UsersPage() {
       </Card>
 
       {editing && <UserForm user={editing === 'new' ? null : editing} tenants={tenants.data?.tenants ?? []} resellers={resellers.data?.resellers ?? []} defaultTenant={tenantFilter || undefined} onClose={() => setEditing(null)} />}
+      <Modal
+        open={Boolean(renewing)}
+        onClose={() => setRenewing(null)}
+        title={t('credentials.newPasswordTitle')}
+        description={t('credentials.newPasswordText', { name: renewing?.name })}
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setRenewing(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="accent" loading={renew.isPending} onClick={() => renewing && renew.mutate(renewing)}>
+              {t('credentials.newPasswordConfirm')}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-muted">{t('credentials.generateHint')}</p>
+      </Modal>
+      {issued && <CredentialsDialog credentials={issued.credentials} name={issued.name} onClose={() => setIssued(null)} />}
       <Modal
         open={Boolean(resetting)}
         onClose={() => setResetting(null)}

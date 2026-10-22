@@ -4,6 +4,17 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [0.7.2-beta.2] - 2026-10-22 (test channel)
+
+Generated login details, so a new customer or reseller can be sent ready-to-use login details by WhatsApp instead of an e-mail invitation.
+
+- When creating a **customer**, **reseller** or **user** you choose **Let them set a password** (the e-mail invitation, as before) or **Generate login details**. The latter creates a strong 20-character password and shows the sign-in address, username and password once, each with a copy button, plus **Copy message** for a ready-made message to paste into WhatsApp. No e-mail is sent and only a hash of the password is stored.
+- **Choose own password at first sign-in** (on by default): after signing in with a generated password the user first chooses their own; until then every other request is refused. Not asked after Microsoft sign-in.
+- **Generate new login details** (key button under **Users** / **Team**) for someone who lost their password or cannot receive e-mail; it signs them out everywhere and invalidates open invitation links.
+- Changing your password to the same password is refused.
+- API: `credentials: "generate"` on `admin` (customers, resellers) and on `POST /api/v1/users`, and the new `POST /api/v1/users/{id}/password`.
+- Guide: [Login details for new users](docs/en/security.md#login-details-for-new-users).
+
 ## [0.7.2-beta.1] - 2026-10-21 (test channel)
 
 Fix for outgoing mail being marked as spam (`HELO_MISC_IP`, `KAM_DMARC_QUARANTINE`, `SPF_NONE`).

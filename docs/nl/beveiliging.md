@@ -1,4 +1,4 @@
-# Beveiliging en tweestapsverificatie
+# Beveiliging, inloggegevens en tweestapsverificatie
 
 [English](../en/security.md) · **Nederlands**
 
@@ -38,6 +38,22 @@ Wie inlogt met **Microsoft (Entra ID)** doet de extra verificatie bij Microsoft,
 ### API-sleutels
 
 API-sleutels staan los van 2FA: het zijn aparte inloggegevens met eigen scopes, vervaldatum en audittrail (zie [API en webhooks](api.md)).
+
+## Inloggegevens voor nieuwe gebruikers
+
+Als je een klant, reseller of gebruiker toevoegt, kies je hoe die persoon binnenkomt:
+
+| Optie | Wat er gebeurt |
+| --- | --- |
+| **Zelf wachtwoord laten instellen** | Een e-mail met een link om een wachtwoord te kiezen, 7 dagen geldig. Werkt alleen met een ingestelde mailserver (SMTP). |
+| **Inloggegevens genereren** | Er wordt direct een sterk wachtwoord aangemaakt. Je krijgt het inlogadres, de gebruikersnaam en het wachtwoord op het scherm, met een knop **Bericht kopiëren** voor een kant-en-klaar bericht om in WhatsApp of een andere chatapp te plakken. Er gaat geen e-mail uit. |
+| **Geen e-mail** (alleen bij gebruikers) | Geen uitnodiging en geen wachtwoord, voor iemand die met Microsoft inlogt. |
+
+Gegenereerde wachtwoorden zijn 20 willekeurige tekens in vier groepjes (zoals `Q4fWB-Vv98h-b4nse-wRPCK`), zonder tekens die op elkaar lijken zoals `0`/`O` en `1`/`l`. Alleen een hash wordt bewaard: het wachtwoord wordt één keer getoond en is later niet meer op te vragen. Het inlogadres is het eigen beheeradres van de reseller als die er een heeft.
+
+Met **Eigen wachtwoord kiezen bij eerste keer inloggen** (standaard aan) moet de persoon direct na het inloggen het gegenereerde wachtwoord vervangen, voordat er iets anders kan; het oude wachtwoord werkt daarna niet meer. Wie met Microsoft inlogt krijgt deze vraag niet.
+
+Gegevens kwijt, of kan iemand geen e-mail ontvangen? Onder **Gebruikers** (of **Team**) geeft de sleutelknop **Nieuwe inloggegevens genereren** die persoon een nieuw wachtwoord en meldt hem overal af. Dit werkt niet op je eigen account: je eigen wachtwoord wijzig je via **Mijn account**.
 
 ## Overige beveiliging
 

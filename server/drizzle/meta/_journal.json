@@ -78,6 +78,13 @@
       "when": 1792563973918,
       "tag": "0010_step7_resellers",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792653064428,
+      "tag": "0011_generated_credentials",
+      "breakpoints": true
     }
   ]
 }

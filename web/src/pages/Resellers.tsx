@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { BrandLogo } from '../components/BrandLogo';
 import { ColorField, ImageUpload, useConfirm } from '../components/controls';
 import { Badge, Button, Card, CardHeader, EmptyState, Field, Input, Modal, PageHeader, Select, Spinner, Switch, Textarea } from '../components/ui';
+import { CredentialsChoice, CredentialsDialog, type CredentialsMode, type GeneratedCredentials } from '../components/Credentials';
 import { api, type Brand } from '../lib/api';
 import { readableOn } from '../lib/brand';
 import { formatDate } from '../lib/format';
@@ -137,22 +138,26 @@ function ResellerForm({ reseller, onClose }: { reseller: Reseller | null; onClos
   const [brand, setBrand] = useState<BrandForm>(brandForm(reseller));
   const [brandTouched, setBrandTouched] = useState(Boolean(reseller));
   const [slugTouched, setSlugTouched] = useState(Boolean(reseller));
-  const [admin, setAdmin] = useState({ name: '', email: '' });
+  const [admin, setAdmin] = useState({ name: '', email: '', credentials: 'invite' as CredentialsMode, mustChangePassword: true });
+  const [issued, setIssued] = useState<{ credentials: GeneratedCredentials; name: string } | null>(null);
   const body = () => ({ ...form, ...brand, brandName: brand.brandName || form.name, maxTenants: form.maxTenants ? Number(form.maxTenants) : null });
   const save = useMutation({
     mutationFn: () =>
       reseller
-        ? api.put<{ invited?: string | null; inviteError?: string | null }>(`/resellers/${reseller.id}`, body())
-        : api.post<{ invited?: string | null; inviteError?: string | null }>('/resellers', { ...body(), admin: admin.email.trim() ? admin : null }),
+        ? api.put<{ invited?: string | null; inviteError?: string | null; credentials?: GeneratedCredentials | null }>(`/resellers/${reseller.id}`, body())
+        : api.post<{ invited?: string | null; inviteError?: string | null; credentials?: GeneratedCredentials | null }>('/resellers', { ...body(), admin: admin.email.trim() ? admin : null }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['resellers'] });
       qc.invalidateQueries({ queryKey: ['users'] });
       if (res.inviteError) toast.warning(t('tenants.inviteFailed', { error: res.inviteError }));
       else if (res.invited) toast.success(t('tenants.createdInvited', { email: res.invited }));
       else toast.success(reseller ? t('resellers.updated') : t('resellers.created'));
-      onClose();
+      // Generated login details stay on screen until they have been passed on
+      if (res.credentials) setIssued({ credentials: res.credentials, name: admin.name });
+      else onClose();
     },
   });
+  if (issued) return <CredentialsDialog credentials={issued.credentials} name={issued.name} onClose={onClose} />;
   return (
     <Modal
       open
@@ -248,6 +253,14 @@ function ResellerForm({ reseller, onClose }: { reseller: Reseller | null; onClos
               <Field label={t('tenants.adminEmail')} htmlFor="r-admin-mail">
                 <Input id="r-admin-mail" type="email" value={admin.email} onChange={(e) => setAdmin({ ...admin, email: e.target.value })} />
               </Field>
+            </div>
+            <div className="mt-4">
+              <CredentialsChoice
+                value={admin.credentials}
+                onChange={(credentials) => setAdmin({ ...admin, credentials })}
+                mustChange={admin.mustChangePassword}
+                onMustChange={(mustChangePassword) => setAdmin({ ...admin, mustChangePassword })}
+              />
             </div>
           </section>
         )}

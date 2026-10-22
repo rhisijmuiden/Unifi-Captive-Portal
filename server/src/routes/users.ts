@@ -8,7 +8,7 @@ import { audit, publicUser, requireTenantAdmin, requireTenantManager, requireUse
 import { sentOnly } from '../lib/patch.js';
 import { badRequest, forbidden, notFound, translateError } from '../lib/errors.js';
 import { requestLocale } from '../i18n/index.js';
-import { sendInvite } from '../services/tokens.js';
+import { sendInvite, setGeneratedPassword } from '../services/tokens.js';
 import { disableTwoFactor } from '../services/twoFactor.js';
 
 export const userInput = z.object({
@@ -19,7 +19,13 @@ export const userInput = z.object({
   resellerId: z.string().uuid().nullable().optional(),
   isActive: z.boolean().default(true),
   sendInvite: z.boolean().default(true),
+  // invite = e-mail to choose a password, generate = login details shown once to pass on, none = no e-mail (e.g. Microsoft sign-in)
+  credentials: z.enum(['invite', 'generate', 'none']).optional(),
+  mustChangePassword: z.boolean().default(true),
 });
+
+/** Fields that only apply when a user is added. */
+export const userUpdateInput = userInput.omit({ sendInvite: true, credentials: true, mustChangePassword: true }).partial();
 
 /**
  * Who may manage this user: platform admins everyone; reseller admins their own team and the
@@ -89,16 +95,23 @@ export async function userRoutes(app: FastifyInstance) {
       .values({ name: body.name, email: body.email, role: body.role, tenantId: body.tenantId, resellerId: body.resellerId, isActive: body.isActive, locale: requestLocale(req) })
       .returning();
     await audit(req, 'user.created', { email: user.email, role: user.role }, user.tenantId);
+    const how = body.credentials ?? (body.sendInvite ? 'invite' : 'none');
+    if (how === 'generate') {
+      const credentials = await setGeneratedPassword(user, body.mustChangePassword);
+      await audit(req, 'user.password_generated', { email: user.email }, user.tenantId);
+      const fresh = await db.query.users.findFirst({ where: eq(schema.users.id, user.id) });
+      return { user: publicUser(fresh ?? user), inviteError: null, credentials };
+    }
     let inviteError: string | null = null;
-    if (body.sendInvite) await sendInvite(user).catch((err: Error) => (inviteError = translateError(err, requestLocale(req))));
-    return { user: publicUser(user), inviteError };
+    if (how === 'invite') await sendInvite(user).catch((err: Error) => (inviteError = translateError(err, requestLocale(req))));
+    return { user: publicUser(user), inviteError, credentials: null };
   });
 
   app.put<{ Params: { id: string } }>('/api/users/:id', async (req) => {
     const target = await db.query.users.findFirst({ where: eq(schema.users.id, req.params.id) });
     if (!target) throw notFound();
     const me = await requireUserManager(req, target);
-    const body = sentOnly(userInput.omit({ sendInvite: true }).partial().parse(req.body), req.body);
+    const body = sentOnly(userUpdateInput.parse(req.body), req.body);
     if (me.role !== 'superadmin') {
       // Nobody but the platform admin moves people between companies or resellers
       delete body.tenantId;
@@ -135,6 +148,19 @@ export async function userRoutes(app: FastifyInstance) {
     await sendInvite(target);
     await audit(req, 'user.invited', { email: target.email }, target.tenantId);
     return { ok: true };
+  });
+
+  // New login details to pass on when someone cannot use the e-mail link; signs them out everywhere
+  app.post<{ Params: { id: string } }>('/api/users/:id/password', async (req) => {
+    const target = await db.query.users.findFirst({ where: eq(schema.users.id, req.params.id) });
+    if (!target) throw notFound();
+    const me = await requireUserManager(req, target);
+    if (target.id === me.id) throw badRequest('errors.ownPassword');
+    const { mustChangePassword } = z.object({ mustChangePassword: z.boolean().default(true) }).parse(req.body ?? {});
+    const credentials = await setGeneratedPassword(target, mustChangePassword);
+    await db.delete(schema.sessions).where(eq(schema.sessions.userId, target.id));
+    await audit(req, 'user.password_generated', { email: target.email }, target.tenantId);
+    return { credentials };
   });
 
   // For a team member who lost their phone and their recovery codes; they set it up again at the next sign-in

@@ -29,7 +29,7 @@ Like the platform admin, a reseller only manages customers. It does not see thei
 4. Under **RHIS mentions** choose what stays visible:
    - **Show "Powered by RHIS"** (default on): the card at the bottom of the menu and the line under **Info**.
    - **Show "Designed by RHIS"** (default off): bottom right in the admin panel, in the footer of the customers' guest portals and in their e-mails.
-5. Under **First admin** fill in a name and e-mail address. That person receives an invitation to set a password and can then invite colleagues under **Team**.
+5. Under **First admin** fill in a name and e-mail address, and choose **Let them set a password** (an e-mail invitation) or **Generate login details** (shown once, with a ready-made message for WhatsApp; see [login details](security.md#login-details-for-new-users)). That person can then invite colleagues under **Team**.
 
 ## The reseller's admin panel
 

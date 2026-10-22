@@ -7,7 +7,7 @@ import fastifyStatic from '@fastify/static';
 import Fastify from 'fastify';
 import { ZodError } from 'zod';
 import { config } from './config.js';
-import { loadUser } from './lib/auth.js';
+import { loadUser, passwordChangeRequired } from './lib/auth.js';
 import { apiKeyGate, API_V1, isApiV1, logApiRequest } from './api/gate.js';
 import { requestLocale, t } from './i18n/index.js';
 import { AppError } from './lib/errors.js';
@@ -85,6 +85,10 @@ export async function buildApp() {
       return reply.code(403).send({ error: t(requestLocale(req), 'errors.invalidRequest') });
     }
     req.user = await loadUser(req);
+    // Someone signed in with a generated password first chooses their own (or signs out)
+    if (req.user && !TWO_FACTOR_OPEN.test(req.url) && passwordChangeRequired(req.user, req.sessionMethod ?? 'password')) {
+      return reply.code(403).send({ error: t(requestLocale(req), 'errors.passwordChange'), code: 'password_change' });
+    }
     // Someone who must use two-factor sign-in can only set it up (and sign out) until they have
     if (req.user && !TWO_FACTOR_OPEN.test(req.url) && (await needsTwoFactorSetup(req.user, req.sessionMethod ?? 'password'))) {
       return reply.code(403).send({ error: t(requestLocale(req), 'errors.twoFactorSetup'), code: 'two_factor_setup' });

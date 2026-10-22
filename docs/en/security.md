@@ -1,4 +1,4 @@
-# Security and two-factor authentication
+# Security, login details and two-factor authentication
 
 **English** · [Nederlands](../nl/beveiliging.md)
 
@@ -38,6 +38,22 @@ People who sign in with **Microsoft (Entra ID)** do their extra verification at 
 ### API keys
 
 API keys are not affected by 2FA: they are separate credentials with their own scopes, expiry and audit trail (see [API and webhooks](api.md)).
+
+## Login details for new users
+
+When you add a customer, a reseller or a user, you choose how that person gets in:
+
+| Option | What happens |
+| --- | --- |
+| **Let them set a password** | An e-mail with a link to choose a password, valid for 7 days. Needs a working mail server (SMTP). |
+| **Generate login details** | A strong password is created right away. You get the sign-in address, username and password on screen, with a **Copy message** button for a ready-made message to paste into WhatsApp or another chat app. No e-mail is sent. |
+| **No e-mail** (users only) | No invitation and no password, for someone who signs in with Microsoft. |
+
+Generated passwords are 20 random characters in four groups (such as `Q4fWB-Vv98h-b4nse-wRPCK`), without look-alike characters such as `0`/`O` and `1`/`l`. Only a hash is stored: the password is shown once and cannot be looked up later. The sign-in address is the reseller's own admin address when there is one.
+
+With **Choose own password at first sign-in** (on by default) the person must replace the generated password straight after signing in, before they can do anything else; the old password then stops working. Someone who signs in with Microsoft is not asked.
+
+Lost the details, or a user cannot receive e-mail? Under **Users** (or **Team**), the key button **Generate new login details** gives that person a new password and signs them out everywhere. It does not work on your own account: change your own password under **My account**.
 
 ## Other protections
 

@@ -64,7 +64,7 @@ Example: `CP_PUBLIC_URL=https://portal.example.com bash -c "$(curl -fsSL …/ins
 3. Set up your mail server under **System → E-mail (SMTP)**, so invitations and password resets work. See [smtp.md](smtp.md).
 4. Optional: turn on Microsoft Entra under **System → Single sign-on**. See [entra-sso.md](entra-sso.md).
 5. Under **System → Hosting & SSL**, set the public IP address and, optionally, an HTTPS hostname for the admin panel. See [hostnames-ssl.md](hostnames-ssl.md).
-6. Add your first customer under **Customers** and invite a customer admin. The customer connects their console as described in [unifi-setup.md](unifi-setup.md).
+6. Add your first customer under **Customers** with a customer admin: invite them by e-mail or generate login details to pass on yourself (see [security.md](security.md#login-details-for-new-users)). The customer connects their console as described in [unifi-setup.md](unifi-setup.md).
 
 Ports: **8080** (admin panel, also directly), **80** and **443** (Caddy: guest portals and HTTPS). Forward 80 and 443 from the internet to the server.
 

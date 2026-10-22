@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes, randomInt } from 'node:crypto';
 import { hash, verify } from '@node-rs/argon2';
 import { config } from '../config.js';
 
@@ -23,3 +23,12 @@ export const sha256 = (value: string) => createHash('sha256').update(value).dige
 
 export const hashPassword = (password: string) => hash(password, { memoryCost: 19456, timeCost: 2, parallelism: 1 });
 export const verifyPassword = (passwordHash: string, password: string) => verify(passwordHash, password).catch(() => false);
+
+// No look-alikes (0/O, 1/l/I), so a password read out or retyped from a chat message stays correct
+const PASSWORD_CHARS = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+/** A strong password that is easy to copy: four groups of five characters (about 116 bits). */
+export function generatePassword() {
+  const groups = Array.from({ length: 4 }, () => Array.from({ length: 5 }, () => PASSWORD_CHARS[randomInt(PASSWORD_CHARS.length)]).join(''));
+  return groups.join('-');
+}

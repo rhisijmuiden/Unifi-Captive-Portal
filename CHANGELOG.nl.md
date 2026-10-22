@@ -4,6 +4,17 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [0.7.2-beta.2] - 2026-10-22 (testkanaal)
+
+Gegenereerde inloggegevens, zodat je een nieuwe klant of reseller kant-en-klare inloggegevens via WhatsApp kunt sturen in plaats van een uitnodiging per e-mail.
+
+- Bij het aanmaken van een **klant**, **reseller** of **gebruiker** kies je **Zelf wachtwoord laten instellen** (de uitnodiging per e-mail, zoals voorheen) of **Inloggegevens genereren**. Dat laatste maakt een sterk wachtwoord van 20 tekens en toont het inlogadres, de gebruikersnaam en het wachtwoord één keer, elk met een kopieerknop, plus **Bericht kopiëren** voor een kant-en-klaar bericht om in WhatsApp te plakken. Er gaat geen e-mail uit en alleen een hash van het wachtwoord wordt bewaard.
+- **Eigen wachtwoord kiezen bij eerste keer inloggen** (standaard aan): na het inloggen met een gegenereerd wachtwoord kiest de gebruiker eerst een eigen wachtwoord; tot die tijd wordt al het andere geweigerd. Niet gevraagd na inloggen met Microsoft.
+- **Nieuwe inloggegevens genereren** (sleutelknop onder **Gebruikers** / **Team**) voor iemand die zijn wachtwoord kwijt is of geen e-mail kan ontvangen; meldt die persoon overal af en maakt openstaande uitnodigingslinks ongeldig.
+- Je wachtwoord wijzigen naar hetzelfde wachtwoord wordt geweigerd.
+- API: `credentials: "generate"` bij `admin` (klanten, resellers) en bij `POST /api/v1/users`, en de nieuwe `POST /api/v1/users/{id}/password`.
+- Handleiding: [Inloggegevens voor nieuwe gebruikers](docs/nl/beveiliging.md#inloggegevens-voor-nieuwe-gebruikers).
+
 ## [0.7.2-beta.1] - 2026-10-21 (testkanaal)
 
 Oplossing voor uitgaande mail die als spam wordt gezien (`HELO_MISC_IP`, `KAM_DMARC_QUARANTINE`, `SPF_NONE`).

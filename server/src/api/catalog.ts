@@ -5,7 +5,7 @@ import { planInput, profileInput, invoiceInput } from '../routes/billing.js';
 import { portalInput } from '../routes/portal.js';
 import { adminInput, tenantInput } from '../routes/tenants.js';
 import { resellerInput } from '../routes/resellers.js';
-import { userInput } from '../routes/users.js';
+import { userInput, userUpdateInput } from '../routes/users.js';
 import { stayInput, staysImport } from '../routes/hotel.js';
 import { adInput } from '../routes/ads.js';
 import { voucherInput } from '../routes/vouchers.js';
@@ -180,8 +180,9 @@ export const operations: Operation[] = [
   { method: 'DELETE', route: '/api/mail-templates/:kind', tenant: 'notifications', platform: 'settings', params: [kind, locale], summary: { en: 'Reset an e-mail template to the default', nl: 'E-mailtemplate terugzetten naar standaard' } },
 
   { method: 'GET', route: '/api/users', tenant: 'users', platform: 'users', params: [{ name: 'tenantId', in: 'query', text: { en: 'Platform keys: only users of this customer', nl: 'Platformsleutels: alleen gebruikers van deze klant' } }], summary: { en: 'List users', nl: 'Gebruikers' } },
-  { method: 'POST', route: '/api/users', tenant: 'users', platform: 'users', body: userInput, summary: { en: 'Add a user (and invite by e-mail)', nl: 'Gebruiker toevoegen (en uitnodigen per e-mail)' } },
-  { method: 'PUT', route: '/api/users/:id', tenant: 'users', platform: 'users', params: [id], body: userInput.omit({ sendInvite: true }).partial(), summary: { en: 'Change a user', nl: 'Gebruiker wijzigen' } },
+  { method: 'POST', route: '/api/users', tenant: 'users', platform: 'users', body: userInput, summary: { en: 'Add a user (invite by e-mail or generate login details)', nl: 'Gebruiker toevoegen (uitnodigen per e-mail of inloggegevens genereren)' }, description: { en: 'With `credentials: "generate"` the response holds `credentials` (login URL, username, password) once; only a hash is stored.', nl: 'Met `credentials: "generate"` staan de inloggegevens (inlogadres, gebruikersnaam, wachtwoord) eenmalig in `credentials`; alleen een hash wordt bewaard.' } },
+  { method: 'PUT', route: '/api/users/:id', tenant: 'users', platform: 'users', params: [id], body: userUpdateInput, summary: { en: 'Change a user', nl: 'Gebruiker wijzigen' } },
+  { method: 'POST', route: '/api/users/:id/password', tenant: 'users', platform: 'users', params: [id], body: z.object({ mustChangePassword: z.boolean().default(true) }), summary: { en: 'Generate new login details (signs the user out)', nl: 'Nieuwe inloggegevens genereren (meldt de gebruiker af)' } },
   { method: 'POST', route: '/api/users/:id/invite', tenant: 'users', platform: 'users', params: [id], summary: { en: 'Send the invitation again', nl: 'Uitnodiging opnieuw sturen' } },
   { method: 'DELETE', route: '/api/users/:id', tenant: 'users', platform: 'users', params: [id], summary: { en: 'Delete a user', nl: 'Gebruiker verwijderen' } },
   { method: 'POST', route: '/api/users/:id/reset-2fa', tenant: 'users', platform: 'users', params: [id], summary: { en: "Reset a user's two-factor authentication (lost phone)", nl: 'Tweestapsverificatie van een gebruiker resetten (telefoon kwijt)' } },
@@ -200,7 +201,10 @@ export const operations: Operation[] = [
     platform: 'tenants',
     body: tenantInput.extend({ admin: adminInput }),
     summary: { en: 'Create a customer, optionally with a first admin', nl: 'Klant aanmaken, eventueel met een eerste beheerder' },
-    description: { en: 'With `admin`, that person is invited by e-mail right away.', nl: 'Met `admin` krijgt die persoon meteen een uitnodiging per e-mail.' },
+    description: {
+      en: 'With `admin`, that person is invited by e-mail right away, or with `admin.credentials: "generate"` gets a generated password that the response returns once in `credentials`.',
+      nl: 'Met `admin` krijgt die persoon meteen een uitnodiging per e-mail, of met `admin.credentials: "generate"` een gegenereerd wachtwoord dat het antwoord eenmalig in `credentials` teruggeeft.',
+    },
   },
   { method: 'PUT', route: '/api/tenants/:id', platform: 'tenants', params: [id], body: tenantInput.partial(), summary: { en: 'Change or suspend a customer', nl: 'Klant wijzigen of opschorten' } },
   { method: 'DELETE', route: '/api/tenants/:id', platform: 'tenants', params: [id], summary: { en: 'Delete a customer with all its data', nl: 'Klant met al zijn gegevens verwijderen' } },
@@ -211,7 +215,7 @@ export const operations: Operation[] = [
     route: '/api/resellers',
     platform: 'resellers',
     body: resellerInput.extend({ admin: adminInput }),
-    summary: { en: 'Create a reseller, optionally inviting its first admin', nl: 'Reseller aanmaken, eventueel met een uitnodiging voor de eerste beheerder' },
+    summary: { en: 'Create a reseller, optionally with a first admin (invited or with generated login details)', nl: 'Reseller aanmaken, eventueel met een eerste beheerder (uitnodiging of gegenereerde inloggegevens)' },
   },
   { method: 'PUT', route: '/api/resellers/:id', platform: 'resellers', params: [id], body: resellerInput.partial(), summary: { en: 'Change a reseller: brand, admin hostname, RHIS mentions, limit or status', nl: 'Reseller wijzigen: merk, beheeradres, RHIS-vermeldingen, limiet of status' } },
   { method: 'DELETE', route: '/api/resellers/:id', platform: 'resellers', params: [id], summary: { en: 'Delete a reseller without customers', nl: 'Reseller zonder klanten verwijderen' } },
