@@ -30,6 +30,7 @@ See the [roadmap](ROADMAP.md) for what works today and what is coming.
 - **Billing customers** from the main admin panel: plans and subscriptions per customer, invoices with gapless numbers, VAT and your logo as PDF and e-mail, online payment through your own Mollie or Stripe account, reminders, and optionally pausing a customer's guest portal while invoices stay unpaid. Customers see and pay their invoices in their own environment.
 - **Backups and restore**: encrypted (AES-256) full and incremental backups of the database and data folder to **SCP**, **FTPS**, FTP or a local folder, on a schedule per location with retention, and restoring from the remote location in the web interface with a safety copy and automatic rollback.
 - **Full REST API and webhooks**: a customer API for everything in a customer's environment and a platform API for customers, users, server settings, billing, backups and updates. API keys with read/write scopes, expiry and rate limit, an audit trail per key, signed webhooks with retries, and OpenAPI documentation in English and Dutch with an explorer to try it out.
+- **Platform statistics** for the platform admin: guest sign-ins, unique devices and active customers across all resellers and customers, a trend against the previous period, a weekday × hour heatmap of busy moments, per reseller and per customer, filters for period, reseller and customer, and export as CSV or PDF report.
 - **Notifications and reports**: an e-mail as soon as a hostname is live (A record validated and SSL in place) and a monthly report with guests, registrations, payments and peak times.
 - **Monitoring and live dashboard**: consoles are checked every 5 minutes, with an e-mail (and webhook) when a console or access point stays offline and when it is back. A live dashboard per customer shows guests online, today by hour against last week, sign-in methods, guests per access point and the latest sign-ins.
 - **E-mail template designer**: every e-mail, visual or in HTML, per language, per customer and platform-wide.
@@ -65,6 +66,7 @@ Then open `http://<server-ip>:8080` and create the first administrator account. 
 - [Notifications, monitoring, live dashboard, reports and e-mail templates](docs/en/notifications-mail.md)
 - [Security, login details and two-factor authentication](docs/en/security.md): generated login details, authenticator app, recovery codes, required 2FA, lost phone
 - [White-label resellers](docs/en/resellers.md): partners with their own brand, customer limit, own admin address and RHIS mentions per reseller
+- [Platform statistics](docs/en/statistics.md): guests per reseller and customer, busy moments, trends, CSV and PDF export
 - [Billing customers](docs/en/billing.md): plans, subscriptions, invoices, online payment, reminders and pausing portals
 - [Backups and restore](docs/en/backups.md): SCP, FTPS and FTP locations, schedule, encryption, restore and disaster recovery
 - [API and webhooks](docs/en/api.md): API keys and scopes, customer and platform API, rate limits, webhooks and signatures, OpenAPI

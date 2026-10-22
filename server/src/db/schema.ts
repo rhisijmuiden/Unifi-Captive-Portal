@@ -288,6 +288,8 @@ export const guestSessions = pgTable(
   (t) => [
     index('guest_sessions_tenant_idx').on(t.tenantId, t.createdAt),
     index('guest_sessions_authorized_idx').on(t.tenantId, t.authorizedAt),
+    // Platform statistics look across all customers by sign-in time
+    index('guest_sessions_authorized_at_idx').on(t.authorizedAt),
     index('guest_sessions_hotel_idx').on(t.hotelStayId),
   ],
 );

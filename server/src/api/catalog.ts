@@ -46,6 +46,7 @@ export const scopes: Record<Audience, Record<string, Text>> = {
     billing: { en: 'Billing: plans, subscriptions and invoices', nl: 'Facturatie: plannen, abonnementen en facturen' },
     backups: { en: 'Backups (restoring stays in the web interface)', nl: 'Back-ups (terugzetten blijft in de webinterface)' },
     system: { en: 'Version, updates and overview', nl: 'Versie, updates en overzicht' },
+    statistics: { en: 'Platform statistics across all customers', nl: 'Platformstatistieken over alle klanten' },
   },
 };
 
@@ -74,6 +75,14 @@ const id: Param = { name: 'id', in: 'path', required: true, text: { en: 'Id (UUI
 const kind: Param = { name: 'kind', in: 'path', required: true, text: { en: 'Template kind, e.g. invite or guestWelcome', nl: 'Soort template, bv. invite of guestWelcome' } };
 const locale: Param = { name: 'locale', in: 'query', required: true, enum: ['en', 'nl'], text: { en: 'Language of the template', nl: 'Taal van de template' } };
 const month: Param = { name: 'month', in: 'query', text: { en: 'Month as YYYY-MM (default: last month)', nl: 'Maand als JJJJ-MM (standaard: vorige maand)' } };
+
+const statsParams: Param[] = [
+  { name: 'from', in: 'query', text: { en: 'First day as YYYY-MM-DD (default: 29 days before to)', nl: 'Eerste dag als JJJJ-MM-DD (standaard: 29 dagen voor to)' } },
+  { name: 'to', in: 'query', text: { en: 'Last day as YYYY-MM-DD (default: today)', nl: 'Laatste dag als JJJJ-MM-DD (standaard: vandaag)' } },
+  { name: 'reseller', in: 'query', text: { en: 'Reseller id, or direct for customers without a reseller', nl: 'Id van een reseller, of direct voor klanten zonder reseller' } },
+  { name: 'tenant', in: 'query', text: { en: 'Customer id', nl: 'Id van een klant' } },
+  { name: 'granularity', in: 'query', enum: ['day', 'week', 'month'], text: { en: 'Bars per day, week or month (default: by period length)', nl: 'Staven per dag, week of maand (standaard: naar lengte van de periode)' } },
+];
 
 const consoleCreate = z.object({ name: z.string(), apiKey: z.string(), sites: sitesInput }).and(connectionInput);
 const consoleUpdate = z.object({ name: z.string().optional(), apiKey: z.string().optional(), verifyTls: z.boolean().optional(), sites: sitesInput.optional() });
@@ -268,6 +277,21 @@ export const operations: Operation[] = [
   { method: 'POST', route: '/api/backups/targets/:id/run', platform: 'backups', params: [id], body: z.object({ type: z.enum(['full', 'incremental']) }), summary: { en: 'Start a backup now', nl: 'Nu een back-up maken' } },
   { method: 'GET', route: '/api/backups/targets/:id/sets', platform: 'backups', params: [id], summary: { en: 'Backups stored on a location', nl: 'Back-ups op een locatie' } },
 
+  {
+    method: 'GET',
+    route: '/api/platform/stats',
+    platform: 'statistics',
+    params: statsParams,
+    summary: { en: 'Statistics across customers: totals, trend, weekday × hour heatmap, per reseller and per customer', nl: 'Statistieken over klanten: totalen, verloop, heatmap weekdag × uur, per reseller en per klant' },
+  },
+  {
+    method: 'GET',
+    route: '/api/platform/stats/export',
+    platform: 'statistics',
+    params: [...statsParams, { name: 'format', in: 'query', enum: ['csv', 'pdf'], text: { en: 'csv (default) or pdf', nl: 'csv (standaard) of pdf' } }, { name: 'lang', in: 'query', enum: ['en', 'nl'], text: { en: 'Language of the report', nl: 'Taal van het rapport' } }],
+    produces: 'text/csv',
+    summary: { en: 'Download the statistics as CSV or PDF report', nl: 'Statistieken downloaden als CSV of pdf-rapport' },
+  },
   { method: 'GET', route: '/api/system/info', platform: 'system', summary: { en: 'Version, channel and host details', nl: 'Versie, kanaal en servergegevens' } },
   { method: 'GET', route: '/api/system/updates', platform: 'system', params: [{ name: 'force', in: 'query', text: { en: '1 = skip the cache', nl: '1 = cache overslaan' } }], summary: { en: 'Check for updates', nl: 'Controleren op updates' } },
   { method: 'GET', route: '/api/system/update/status', platform: 'system', summary: { en: 'Status of a running update', nl: 'Status van een lopende update' } },

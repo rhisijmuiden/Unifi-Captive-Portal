@@ -20,6 +20,7 @@ import { NotificationsPage } from './pages/Notifications';
 import { PaymentsPage } from './pages/Payments';
 import { PortalSettingsPage } from './pages/PortalSettings';
 import { ReportsPage } from './pages/Reports';
+import { StatisticsPage } from './pages/Statistics';
 import { VoucherPrintPage, VouchersPage } from './pages/Vouchers';
 import { HostingSettingsPage, SecuritySettingsPage, SmtpSettingsPage, SsoSettingsPage } from './pages/Settings';
 import { LivePage } from './pages/Live';
@@ -91,6 +92,7 @@ const router = createBrowserRouter([
       { path: 'tenants', element: <RequireAuth roles={['superadmin', 'reseller_admin']}><TenantsPage /></RequireAuth> },
       { path: 'resellers', element: <RequireAuth roles={['superadmin']}><ResellersPage /></RequireAuth> },
       { path: 'branding', element: <RequireAuth roles={['reseller_admin']}><BrandingPage /></RequireAuth> },
+      { path: 'statistics', element: <RequireAuth roles={['superadmin']}><StatisticsPage /></RequireAuth> },
       { path: 'billing', element: <RequireAuth roles={['superadmin']}><BillingPage /></RequireAuth> },
       { path: 'invoices', element: <RequireAuth roles={['tenant_admin']}><InvoicesPage /></RequireAuth> },
       { path: 'users', element: <RequireAuth roles={['superadmin', 'tenant_admin', 'reseller_admin']}><UsersPage /></RequireAuth> },

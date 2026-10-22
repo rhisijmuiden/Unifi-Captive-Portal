@@ -1,0 +1,1 @@
+CREATE INDEX "guest_sessions_authorized_at_idx" ON "guest_sessions" USING btree ("authorized_at");
