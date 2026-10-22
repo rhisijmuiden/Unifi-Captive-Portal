@@ -11,7 +11,7 @@ import { AccountPage } from './pages/Account';
 import { BackupsPage } from './pages/Backups';
 import { BillingPage } from './pages/Billing';
 import { InvoicesPage } from './pages/Invoices';
-import { ForgotPasswordPage, LoginPage, ResetPasswordPage, SetupPage, TwoFactorRequiredPage } from './pages/AuthPages';
+import { ChangePasswordPage, ForgotPasswordPage, LoginPage, ResetPasswordPage, SetupPage, TwoFactorRequiredPage } from './pages/AuthPages';
 import { DashboardPage } from './pages/Dashboard';
 import { ConsolesPage } from './pages/Consoles';
 import { GuestsPage } from './pages/Guests';
@@ -56,6 +56,7 @@ function RequireAuth({ children, roles }: { children: ReactNode; roles?: string[
     );
   if (data?.needsSetup) return <Navigate to="/setup" replace />;
   if (!data?.user) return <Navigate to="/login" replace />;
+  if (data.passwordChangeRequired) return <Navigate to="/change-password" replace />;
   if (data.twoFactorSetupRequired) return <Navigate to="/two-factor" replace />;
   if (roles && !roles.includes(data.user.role)) return <Navigate to="/" replace />;
   return <Suspense fallback={<Spinner />}>{children}</Suspense>;
@@ -76,6 +77,7 @@ const router = createBrowserRouter([
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
   { path: '/two-factor', element: <TwoFactorRequiredPage /> },
+  { path: '/change-password', element: <ChangePasswordPage /> },
   { path: '/vouchers/print', element: <RequireAuth roles={TENANT}><VoucherPrintPage /></RequireAuth> },
   {
     path: '/',

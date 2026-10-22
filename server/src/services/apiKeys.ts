@@ -60,6 +60,7 @@ export async function authenticateKey(header: string | undefined): Promise<KeyAu
     tenantId: key.tenantId,
     resellerId: null,
     isActive: true,
+    mustChangePassword: false,
     entraOid: null,
     // No saved language: API errors follow Accept-Language or X-Locale
     locale: null,

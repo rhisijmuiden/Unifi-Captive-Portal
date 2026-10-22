@@ -8,7 +8,8 @@ import { clearResellerCache } from '../services/resellers.js';
 import { sentOnly } from '../lib/patch.js';
 import { badRequest, notFound, translateError } from '../lib/errors.js';
 import { requestLocale } from '../i18n/index.js';
-import { sendInvite } from '../services/tokens.js';
+import { sendInvite, setGeneratedPassword } from '../services/tokens.js';
+import type { User } from '../db/schema.js';
 import { emit } from '../services/webhooks.js';
 
 export const tenantInput = z.object({
@@ -25,11 +26,32 @@ export const tenantInput = z.object({
   resellerId: z.string().uuid().nullable().optional(),
 });
 
-// Optional first administrator, invited by e-mail right away
+// How a new user gets in: an e-mail to choose a password, or a generated password the admin passes on
+export const credentialsInput = z.enum(['invite', 'generate']).default('invite');
+
+// Optional first administrator, invited by e-mail right away or given generated login details
 export const adminInput = z
-  .object({ name: z.string().trim().min(1).max(120), email: z.string().trim().toLowerCase().email() })
+  .object({
+    name: z.string().trim().min(1).max(120),
+    email: z.string().trim().toLowerCase().email(),
+    credentials: credentialsInput,
+    // With generated login details: choose an own password at the first sign-in
+    mustChangePassword: z.boolean().default(true),
+  })
   .nullable()
   .optional();
+
+/** Sends the invitation or generates the password for a newly created first admin. */
+export async function welcomeAdmin(req: FastifyRequest, user: User, admin: NonNullable<z.infer<typeof adminInput>>) {
+  if (admin.credentials === 'generate') {
+    const credentials = await setGeneratedPassword(user, admin.mustChangePassword);
+    await audit(req, 'user.password_generated', { email: user.email }, user.tenantId);
+    return { invited: null, inviteError: null, credentials };
+  }
+  let inviteError: string | null = null;
+  await sendInvite(user).catch((err: Error) => (inviteError = translateError(err, requestLocale(req))));
+  return { invited: user.email, inviteError, credentials: null };
+}
 
 /** Platform admins see every customer, reseller admins only their own. */
 function listScope(req: FastifyRequest) {
@@ -88,12 +110,9 @@ export async function tenantRoutes(app: FastifyInstance) {
     });
     await audit(req, 'tenant.created', { name: tenant.name, resellerId: tenant.resellerId }, tenant.id);
     emit(null, 'tenant.created', { tenant, admin: user?.email ?? null });
-    let inviteError: string | null = null;
-    if (user) {
-      await audit(req, 'user.created', { email: user.email, role: user.role }, tenant.id);
-      await sendInvite(user).catch((err: Error) => (inviteError = translateError(err, requestLocale(req))));
-    }
-    return { tenant, invited: user?.email ?? null, inviteError };
+    if (!user || !admin) return { tenant, invited: null, inviteError: null, credentials: null };
+    await audit(req, 'user.created', { email: user.email, role: user.role }, tenant.id);
+    return { tenant, ...(await welcomeAdmin(req, user, admin)) };
   });
 
   app.put<{ Params: { id: string } }>('/api/tenants/:id', async (req) => {

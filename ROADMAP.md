@@ -2,7 +2,7 @@
 
 **English** · [Nederlands](ROADMAP.nl.md)
 
-Last updated: 21 October 2026. This roadmap is updated after every major build.
+Last updated: 22 October 2026. This roadmap is updated after every major build.
 
 Legend: ✅ done · 🚧 in progress · 📋 planned
 
@@ -85,6 +85,11 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - ✅ **Monitoring**: an e-mail and webhook when a console or access point stays offline longer than the customer's threshold, and when it is back
 - ✅ **Two-factor authentication (2FA)** for admins and customers, with recovery codes and policies per platform and per customer
 - ✅ **Hotel/PMS link**: guests sign in with room number and surname until departure; stays by hand, CSV, API or synced from Apaleo and Mews
+
+## Improvements after v0.7 🚧
+
+- ✅ Better mail delivery: EHLO name, DKIM key generation and a deliverability check (0.7.2-beta.1)
+- 🚧 **Generate login details** when creating a customer, reseller or user, shown once with a ready-made message for WhatsApp, and choosing an own password at first sign-in (0.7.2-beta.2, test channel)
 
 ## Later
 

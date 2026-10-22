@@ -80,6 +80,9 @@ export async function accountSuspended(user: Pick<User, 'tenantId' | 'resellerId
 
 export const purgeExpiredSessions = () => db.delete(schema.sessions).where(lt(schema.sessions.expiresAt, new Date()));
 
+/** A generated password must be replaced first; Microsoft sign-ins never use it, so they are not held up. */
+export const passwordChangeRequired = (user: User, method: 'password' | 'entra') => user.mustChangePassword && method === 'password';
+
 export function requireUser(req: FastifyRequest): User {
   if (!req.user) throw unauthorized();
   return req.user;
@@ -127,6 +130,7 @@ export function publicUser(u: User) {
     resellerId: u.resellerId,
     isActive: u.isActive,
     hasPassword: Boolean(u.passwordHash),
+    mustChangePassword: u.mustChangePassword,
     ssoLinked: Boolean(u.entraOid),
     twoFactorEnabled: Boolean(u.totpEnabledAt),
     lastLoginAt: u.lastLoginAt,

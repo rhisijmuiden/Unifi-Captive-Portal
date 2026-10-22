@@ -54,6 +54,8 @@ curl -X POST https://portal.example.com/api/v1/tenants \
   -d '{"name": "Hotel De Haven", "slug": "hotel-de-haven", "admin": {"name": "Anna", "email": "anna@dehaven.nl"}}'
 ```
 
+With `"credentials": "generate"` in `admin` no e-mail is sent; the answer holds `credentials` (`loginUrl`, `email`, `password`, `mustChangePassword`) once instead. The same works for `POST /api/v1/resellers` and `POST /api/v1/users`, and `POST /api/v1/users/{id}/password` generates new login details for an existing user.
+
 Answers are JSON. Errors look like `{"error": "…"}`:
 
 | Status | Meaning |

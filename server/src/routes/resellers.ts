@@ -3,14 +3,13 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db, schema } from '../db/index.js';
 import { audit, requireReseller, requireSuperadmin } from '../lib/auth.js';
-import { badRequest, notFound, translateError } from '../lib/errors.js';
+import { badRequest, notFound } from '../lib/errors.js';
 import { isValidHostname, normalizeHostname } from '../lib/hostname.js';
 import { sentOnly } from '../lib/patch.js';
 import { requestLocale } from '../i18n/index.js';
 import { adminHostnames, clearHostnameCache } from '../services/hostnames.js';
 import { clearResellerCache, publicBrand } from '../services/resellers.js';
-import { sendInvite } from '../services/tokens.js';
-import { adminInput } from './tenants.js';
+import { adminInput, welcomeAdmin } from './tenants.js';
 
 const optional = <T extends z.ZodType>(s: T) => s.nullable().optional().or(z.literal('').transform(() => null));
 const media = z.string().regex(/^\/portal\/media\/[0-9a-f-]{36}$/, 'errors.imageType');
@@ -88,12 +87,9 @@ export async function resellerRoutes(app: FastifyInstance) {
     });
     changed();
     await audit(req, 'reseller.created', { name: reseller.name }, null);
-    let inviteError: string | null = null;
-    if (user) {
-      await audit(req, 'user.created', { email: user.email, role: user.role }, null);
-      await sendInvite(user).catch((err: Error) => (inviteError = translateError(err, requestLocale(req))));
-    }
-    return { reseller, invited: user?.email ?? null, inviteError };
+    if (!user || !admin) return { reseller, invited: null, inviteError: null, credentials: null };
+    await audit(req, 'user.created', { email: user.email, role: user.role }, null);
+    return { reseller, ...(await welcomeAdmin(req, user, admin)) };
   });
 
   app.put<{ Params: { id: string } }>('/api/resellers/:id', async (req) => {

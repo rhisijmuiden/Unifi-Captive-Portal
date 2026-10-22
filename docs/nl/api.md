@@ -54,6 +54,8 @@ curl -X POST https://portal.voorbeeld.nl/api/v1/tenants \
   -d '{"name": "Hotel De Haven", "slug": "hotel-de-haven", "admin": {"name": "Anna", "email": "anna@dehaven.nl"}}'
 ```
 
+Met `"credentials": "generate"` in `admin` gaat er geen e-mail uit; het antwoord bevat dan eenmalig `credentials` (`loginUrl`, `email`, `password`, `mustChangePassword`). Hetzelfde werkt voor `POST /api/v1/resellers` en `POST /api/v1/users`, en `POST /api/v1/users/{id}/password` genereert nieuwe inloggegevens voor een bestaande gebruiker.
+
 Antwoorden zijn JSON. Fouten zien eruit als `{"error": "…"}`:
 
 | Status | Betekenis |

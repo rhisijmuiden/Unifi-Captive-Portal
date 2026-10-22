@@ -64,7 +64,7 @@ Voorbeeld: `CP_PUBLIC_URL=https://portal.rhis.nl bash -c "$(curl -fsSL …/insta
 3. Stel onder **Systeem → E-mail (SMTP)** je mailserver in, zodat uitnodigingen en wachtwoordherstel werken. Zie [smtp.md](smtp.md).
 4. Optioneel: zet onder **Systeem → Single sign-on** Microsoft Entra aan. Zie [entra-sso.md](entra-sso.md).
 5. Stel onder **Systeem → Hosting & SSL** het publieke IP-adres in en eventueel een HTTPS-hostnaam voor het beheerpaneel. Zie [hostnamen-ssl.md](hostnamen-ssl.md).
-6. Voeg onder **Klanten** je eerste klant toe en nodig een klantbeheerder uit. De klant koppelt zijn console zoals beschreven in [unifi-koppelen.md](unifi-koppelen.md).
+6. Voeg onder **Klanten** je eerste klant toe met een klantbeheerder: nodig die uit per e-mail of genereer inloggegevens die je zelf doorgeeft (zie [beveiliging.md](beveiliging.md#inloggegevens-voor-nieuwe-gebruikers)). De klant koppelt zijn console zoals beschreven in [unifi-koppelen.md](unifi-koppelen.md).
 
 Poorten: **8080** (beheerpaneel, ook rechtstreeks), **80** en **443** (Caddy: gastportalen en HTTPS). Stuur 80 en 443 vanaf internet door naar de server.
 

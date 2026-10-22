@@ -45,6 +45,8 @@ export type User = {
   resellerId: string | null;
   isActive: boolean;
   hasPassword: boolean;
+  /** Signed in with a generated password and still has to choose an own one */
+  mustChangePassword: boolean;
   ssoLinked: boolean;
   twoFactorEnabled: boolean;
   lastLoginAt: string | null;
@@ -68,6 +70,8 @@ export type Tenant = {
 export type AuthState = {
   needsSetup: boolean;
   user: User | null;
+  /** Signed in with a generated password: an own password must be chosen first */
+  passwordChangeRequired: boolean;
   /** Signed in, but the policy requires two-factor authentication that is not set up yet */
   twoFactorSetupRequired: boolean;
   /** Password accepted, waiting for the code from the authenticator app */

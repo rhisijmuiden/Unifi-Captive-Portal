@@ -2,7 +2,7 @@
 
 [English](ROADMAP.md) · **Nederlands**
 
-Laatst bijgewerkt: 21 oktober 2026. Deze roadmap wordt na elke grote build bijgewerkt.
+Laatst bijgewerkt: 22 oktober 2026. Deze roadmap wordt na elke grote build bijgewerkt.
 
 Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 
@@ -85,6 +85,11 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - ✅ **Monitoring**: een e-mail en webhook als een console of access point langer offline is dan de klant instelt, en als hij weer werkt
 - ✅ **Tweestapsverificatie (2FA)** voor beheerders en klanten, met herstelcodes en beleid per platform en per klant
 - ✅ **Hotel/PMS-koppeling**: gasten loggen in met kamernummer en achternaam tot vertrek; verblijven handmatig, via CSV, API of gesynchroniseerd uit Apaleo en Mews
+
+## Verbeteringen na v0.7 🚧
+
+- ✅ Betere bezorging van mail: EHLO-naam, DKIM-sleutel genereren en een afleverbaarheidscontrole (0.7.2-beta.1)
+- 🚧 **Inloggegevens genereren** bij het aanmaken van een klant, reseller of gebruiker, één keer getoond met een kant-en-klaar bericht voor WhatsApp, en een eigen wachtwoord kiezen bij de eerste keer inloggen (0.7.2-beta.2, testkanaal)
 
 ## Later
 

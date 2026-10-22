@@ -216,6 +216,7 @@ export function TwoFactorRequiredPage() {
   const refresh = useRefreshAuth();
   const navigate = useNavigate();
   if (!data?.user) return <Navigate to="/login" replace />;
+  if (data.passwordChangeRequired) return <Navigate to="/change-password" replace />;
   if (!data.twoFactorSetupRequired) return <Navigate to="/" replace />;
   const logout = async () => {
     await api.post('/auth/logout');
@@ -230,6 +231,61 @@ export function TwoFactorRequiredPage() {
           navigate('/');
         }}
       />
+      <p className="mt-6 text-center text-sm">
+        <button type="button" className="text-muted hover:text-ink" onClick={logout}>
+          {t('nav.logout')}
+        </button>
+      </p>
+    </AuthShell>
+  );
+}
+
+/** After signing in with a generated password: the user chooses their own before anything else. */
+export function ChangePasswordPage() {
+  const { t } = useTranslation();
+  const { data } = useAuth();
+  const refresh = useRefreshAuth();
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ password: '', confirm: '' });
+  const save = useMutation({
+    mutationFn: () => {
+      if (form.password !== form.confirm) throw new Error(t('auth.passwordsDiffer'));
+      return api.post('/auth/password', { password: form.password });
+    },
+    onSuccess: async () => {
+      await refresh();
+      toast.success(t('account.passwordChanged'));
+      navigate('/');
+    },
+  });
+  if (!data?.user) return <Navigate to="/login" replace />;
+  if (!data.passwordChangeRequired) return <Navigate to="/" replace />;
+  const logout = async () => {
+    await api.post('/auth/logout');
+    await refresh();
+    navigate('/login');
+  };
+  return (
+    <AuthShell title={t('credentials.changeTitle')} subtitle={t('credentials.changeSubtitle')}>
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save.mutate();
+        }}
+      >
+        <input type="email" autoComplete="username" value={data.user.email} readOnly hidden />
+        <Field label={t('account.newPassword')} htmlFor="pw" hint={t('auth.passwordHint')}>
+          <Input id="pw" type="password" autoComplete="new-password" autoFocus required minLength={10} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+        </Field>
+        <Field label={t('auth.repeatPassword')} htmlFor="pw2">
+          <Input id="pw2" type="password" autoComplete="new-password" required value={form.confirm} onChange={(e) => setForm({ ...form, confirm: e.target.value })} />
+        </Field>
+        {save.error && <p className="text-sm text-offline">{save.error.message}</p>}
+        <Button type="submit" variant="accent" className="h-11 w-full" loading={save.isPending}>
+          {t('credentials.changeSave')} <ArrowRight className="size-4" />
+        </Button>
+      </form>
       <p className="mt-6 text-center text-sm">
         <button type="button" className="text-muted hover:text-ink" onClick={logout}>
           {t('nav.logout')}

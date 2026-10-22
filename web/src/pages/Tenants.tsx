@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { Badge, Button, Card, EmptyState, Field, Input, Modal, PageHeader, Select, Spinner, Textarea } from '../components/ui';
+import { CredentialsChoice, CredentialsDialog, type CredentialsMode, type GeneratedCredentials } from '../components/Credentials';
 import { api, type Tenant } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { formatDate } from '../lib/format';
@@ -30,14 +31,15 @@ function TenantForm({ tenant, onClose, resellers }: { tenant: Tenant | null; onC
     // Only the platform admin assigns a customer to a reseller
     ...(resellers ? { resellerId: tenant?.resellerId ?? '' } : {}),
   });
-  const [admin, setAdmin] = useState({ name: '', email: '' });
+  const [admin, setAdmin] = useState({ name: '', email: '', credentials: 'invite' as CredentialsMode, mustChangePassword: true });
+  const [issued, setIssued] = useState<{ credentials: GeneratedCredentials; name: string } | null>(null);
   const [slugTouched, setSlugTouched] = useState(Boolean(tenant));
   const body = () => ('resellerId' in form ? { ...form, resellerId: form.resellerId || null } : form);
   const save = useMutation({
     mutationFn: () =>
       tenant
-        ? api.put<{ invited?: string | null; inviteError?: string | null }>(`/tenants/${tenant.id}`, body())
-        : api.post<{ invited?: string | null; inviteError?: string | null }>('/tenants', { ...body(), admin: admin.email.trim() ? admin : null }),
+        ? api.put<{ invited?: string | null; inviteError?: string | null; credentials?: GeneratedCredentials | null }>(`/tenants/${tenant.id}`, body())
+        : api.post<{ invited?: string | null; inviteError?: string | null; credentials?: GeneratedCredentials | null }>('/tenants', { ...body(), admin: admin.email.trim() ? admin : null }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['tenants'] });
       qc.invalidateQueries({ queryKey: ['users'] });
@@ -45,9 +47,12 @@ function TenantForm({ tenant, onClose, resellers }: { tenant: Tenant | null; onC
       if (res.inviteError) toast.warning(t('tenants.inviteFailed', { error: res.inviteError }));
       else if (res.invited) toast.success(t('tenants.createdInvited', { email: res.invited }));
       else toast.success(tenant ? t('tenants.updated') : t('tenants.created'));
-      onClose();
+      // Generated login details stay on screen until they have been passed on
+      if (res.credentials) setIssued({ credentials: res.credentials, name: admin.name });
+      else onClose();
     },
   });
+  if (issued) return <CredentialsDialog credentials={issued.credentials} name={issued.name} onClose={onClose} />;
   return (
     <Modal
       open
@@ -118,6 +123,14 @@ function TenantForm({ tenant, onClose, resellers }: { tenant: Tenant | null; onC
               <Field label={t('tenants.adminEmail')} htmlFor="t-admin-mail">
                 <Input id="t-admin-mail" type="email" value={admin.email} onChange={(e) => setAdmin({ ...admin, email: e.target.value })} />
               </Field>
+            </div>
+            <div className="mt-4">
+              <CredentialsChoice
+                value={admin.credentials}
+                onChange={(credentials) => setAdmin({ ...admin, credentials })}
+                mustChange={admin.mustChangePassword}
+                onMustChange={(mustChangePassword) => setAdmin({ ...admin, mustChangePassword })}
+              />
             </div>
           </div>
         )}

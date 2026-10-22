@@ -34,7 +34,7 @@ Zie de [roadmap](ROADMAP.nl.md) voor wat er al werkt en wat eraan komt.
 - **Monitoring en live dashboard**: consoles worden elke 5 minuten gecontroleerd, met een e-mail (en webhook) als een console of access point te lang offline is en als hij weer werkt. Een live dashboard per klant toont gasten online, vandaag per uur tegenover vorige week, manieren van inloggen, gasten per access point en de laatste aanmeldingen.
 - **Mail-template ontwerper**: elke e-mail, visueel of in HTML, per taal, per klant en platformbreed.
 - **Eigen hostnamen met automatisch SSL**: Caddy op poort 80/443 met Let's Encrypt-certificaten op aanvraag, pas nadat het DNS-record is gecontroleerd. Ook het beheerpaneel kan een eigen HTTPS-hostnaam krijgen.
-- **Klanten (tenants) en gebruikers** met vier rollen: platformbeheerder, reseller-beheerder, klantbeheerder en medewerker. Uitnodigen per e-mail. De platformbeheerder beheert de klanten en de server (publiek IP-adres, hostnaam en SSL van het beheerpaneel, e-mail, SSO); consoles, portals, hostnamen en gasten horen in de eigen omgeving van elke klant.
+- **Klanten (tenants) en gebruikers** met vier rollen: platformbeheerder, reseller-beheerder, klantbeheerder en medewerker. Uitnodigen per e-mail, of inloggegevens genereren (één keer getoond, met een kant-en-klaar bericht om in WhatsApp te plakken) waarbij de gebruiker bij de eerste keer inloggen een eigen wachtwoord kiest. De platformbeheerder beheert de klanten en de server (publiek IP-adres, hostnaam en SSL van het beheerpaneel, e-mail, SSO); consoles, portals, hostnamen en gasten horen in de eigen omgeving van elke klant.
 - **Microsoft Entra ID single sign-on** (OpenID Connect met PKCE), naast of in plaats van inloggen met wachtwoord.
 - **Tweestapsverificatie** met een authenticator-app (TOTP) en herstelcodes, die de platformbeheerder verplicht kan maken voor platformbeheerders en klanten, en klanten voor hun eigen team.
 - **Eigen mailserver (SMTP)**: STARTTLS of TLS, minimale TLS-versie, gebruikersnaam/wachtwoord of OAuth 2.0 (Microsoft 365), DKIM-ondertekening en een testknop.
@@ -63,7 +63,7 @@ Open daarna `http://<ip-van-de-server>:8080` en maak het eerste beheerdersaccoun
 - [Hotellogin](docs/nl/hotellogin.md): kamernummer en achternaam, CSV-import, Apaleo en Mews
 - [Nieuwsbrief, AVG, feedback en advertenties](docs/nl/marketing-feedback-advertenties.md): Mailchimp, HubSpot, verwijderverzoeken, enquête, Google-review, splashvideo
 - [Notificaties, monitoring, live dashboard, rapportages en e-mailtemplates](docs/nl/notificaties-mail.md)
-- [Beveiliging en tweestapsverificatie](docs/nl/beveiliging.md): authenticator-app, herstelcodes, verplichte 2FA, telefoon kwijt
+- [Beveiliging, inloggegevens en tweestapsverificatie](docs/nl/beveiliging.md): gegenereerde inloggegevens, authenticator-app, herstelcodes, verplichte 2FA, telefoon kwijt
 - [White-label resellers](docs/nl/resellers.md): partners met hun eigen merk, klantlimiet, eigen beheeradres en RHIS-vermeldingen per reseller
 - [Klanten factureren](docs/nl/facturatie.md): plannen, abonnementen, facturen, online betalen, herinneringen en portalen pauzeren
 - [Back-ups en herstel](docs/nl/backups.md): SCP-, FTPS- en FTP-locaties, schema, versleuteling, herstellen en calamiteitenherstel

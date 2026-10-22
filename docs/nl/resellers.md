@@ -29,7 +29,7 @@ Net als de platformbeheerder beheert een reseller alleen klanten. Hij ziet hun c
 4. Kies onder **RHIS-vermeldingen** wat zichtbaar blijft:
    - **Toon "Powered by RHIS"** (standaard aan): de kaart onderaan het menu en de regel onder **Info**.
    - **Toon "Designed by RHIS"** (standaard uit): rechtsonder in het beheerpaneel, in de voettekst van de gastportalen van de klanten en in hun e-mails.
-5. Vul onder **Eerste beheerder** een naam en e-mailadres in. Die persoon krijgt een uitnodiging om een wachtwoord in te stellen en kan daarna collega's uitnodigen onder **Team**.
+5. Vul onder **Eerste beheerder** een naam en e-mailadres in en kies **Zelf wachtwoord laten instellen** (uitnodiging per e-mail) of **Inloggegevens genereren** (één keer getoond, met een kant-en-klaar bericht voor WhatsApp; zie [inloggegevens](beveiliging.md#inloggegevens-voor-nieuwe-gebruikers)). Die persoon kan daarna collega's uitnodigen onder **Team**.
 
 ## Het beheerpaneel van de reseller
 

@@ -64,6 +64,8 @@ export const users = pgTable(
     // Reseller admins belong to a reseller instead of a customer
     resellerId: uuid('reseller_id').references(() => resellers.id, { onDelete: 'cascade' }),
     isActive: boolean('is_active').notNull().default(true),
+    // Set when an admin generated the password: the user chooses their own at the first sign-in
+    mustChangePassword: boolean('must_change_password').notNull().default(false),
     entraOid: text('entra_oid').unique(),
     // Preferred language for the interface and e-mails (null = follow the browser)
     locale: text('locale'),

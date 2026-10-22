@@ -2,7 +2,7 @@ import { and, eq, gt, isNull } from 'drizzle-orm';
 import { baseUrlForUser } from './resellers.js';
 import { db, schema } from '../db/index.js';
 import type { User } from '../db/schema.js';
-import { randomToken, sha256 } from '../lib/crypto.js';
+import { generatePassword, hashPassword, randomToken, sha256 } from '../lib/crypto.js';
 import { DEFAULT_LOCALE, normalizeLocale } from '../i18n/index.js';
 import { sendTemplate } from './mailTemplates.js';
 
@@ -39,3 +39,17 @@ export async function sendPasswordReset(user: User) {
   const locale = normalizeLocale(user.locale) ?? DEFAULT_LOCALE;
   await sendTemplate(user.email, 'passwordReset', locale, null, { vars: { name: user.name, email: user.email, actionUrl: url }, brandOf: user });
 }
+
+/**
+ * Gives the user a generated password instead of an invitation, for the admin to pass on (e.g. by chat).
+ * The password is returned once and only its hash is kept.
+ */
+export async function setGeneratedPassword(user: User, mustChange = true) {
+  const password = generatePassword();
+  await db.update(schema.users).set({ passwordHash: await hashPassword(password), mustChangePassword: mustChange }).where(eq(schema.users.id, user.id));
+  // Open invitation and reset links would otherwise still let someone else pick the password
+  await db.update(schema.userTokens).set({ usedAt: new Date() }).where(and(eq(schema.userTokens.userId, user.id), isNull(schema.userTokens.usedAt)));
+  return { loginUrl: `${await baseUrlForUser(user)}/login`, email: user.email, password, mustChangePassword: mustChange };
+}
+
+export type GeneratedCredentials = Awaited<ReturnType<typeof setGeneratedPassword>>;
