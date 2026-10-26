@@ -21,6 +21,8 @@ export const notificationSettingsSchema = z.object({
   // Monitoring: an e-mail when a console (or an access point) stays offline this long, and when it is back
   consoleOffline: z.boolean().default(true),
   deviceOffline: z.boolean().default(false),
+  // A console that joins a linked Fabric but is not linked to the portal yet
+  fabricConsoleFound: z.boolean().default(true),
   offlineMinutes: z.coerce.number().int().min(5).max(1440).default(10),
   // Customer admins get the notifications; extra addresses can be added
   notifyAdmins: z.boolean().default(true),

@@ -92,6 +92,13 @@
       "when": 1792654350609,
       "tag": "0012_platform_stats",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792974136266,
+      "tag": "0013_unifi_fabrics",
+      "breakpoints": true
     }
   ]
 }

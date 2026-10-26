@@ -21,7 +21,7 @@ See the [roadmap](ROADMAP.md) for what works today and what is coming.
 
 ## What's included (v1.0)
 
-- **UniFi integration**: connect UniFi OS consoles (UDM, UCG, Dream Router, Cloud Key, self-hosted Network) through the UniFi Site Manager cloud or directly, using the official UniFi Network API. Guests are recognised by access point and let through with time, data and speed limits.
+- **UniFi integration**: connect UniFi OS consoles (UDM, UCG, Dream Router, Cloud Key, self-hosted Network) through the UniFi Site Manager cloud, a whole UniFi Fabric with one key, or directly, using the official UniFi Network API. Guests are recognised by access point and let through with time, data and speed limits.
 - **Guest portal** as external portal server, designed in a **drag-and-drop portal editor** with templates, images, colours and fonts, in English and Dutch (the customer picks the languages, the guest picks one).
 - **Ways to connect**: free with one tap, registration by e-mail (with marketing opt-in), **vouchers** with a print sheet, **paid access** through Mollie or Stripe with packages and an adjustable time to pay, **SMS code** (Twilio or MessageBird), **hotel login** with room number and surname (by hand, CSV, API, Apaleo or Mews), and **Continue with Facebook, Google, Apple or Microsoft**.
 - **Marketing and GDPR**: newsletter opt-ins with export to **Mailchimp** or **HubSpot** (automatic or by hand) and CSV, a retention period for guests without opt-in, and a **Privacy** link on every guest page where guests ask for their data to be erased (confirmed by e-mail, also removed at the newsletter provider).
@@ -56,7 +56,7 @@ Then open `http://<server-ip>:8080` and create the first administrator account. 
 ## Guides
 
 - [Installation](docs/en/installation.md): LXC, VM and physical server, first start, configuration file
-- [Connecting a UniFi console](docs/en/unifi-setup.md): Site Manager or direct, hotspot settings, pre-authorization, troubleshooting
+- [Connecting a UniFi console](docs/en/unifi-setup.md): Site Manager, UniFi Fabric or direct, hotspot settings, pre-authorization, troubleshooting
 - [Hostnames and SSL](docs/en/hostnames-ssl.md): DNS records, automatic certificates, HTTPS for the admin panel
 - [Portal editor](docs/en/portal-editor.md): blocks, templates, images and languages
 - [Guest access](docs/en/guest-access.md): sign-in methods, vouchers, Mollie and Stripe, time to pay, Facebook login, pre-authorization

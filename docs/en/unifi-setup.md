@@ -10,12 +10,13 @@ This guide connects a UniFi OS console to your customer environment and sends th
 2. The platform recognises your company by the access point the guest is connected to, and shows **your** portal.
 3. When the guest clicks **Connect**, the platform asks your console, through the official UniFi Network API, to let the device through with your time, data and speed limits.
 
-The platform reaches your console in one of two ways:
+The platform reaches your console in one of three ways:
 
 | Method | When to use | Needs |
 | --- | --- | --- |
 | **UniFi Site Manager** (recommended) | Any UniFi OS console that is linked to your UI account | UniFi OS 5.0.3 or newer, UniFi Network 9.1 or newer, a Site Manager API key |
 | **Direct** | Self-hosted UniFi Network application, or no cloud access wanted | UniFi Network 9.1 or newer, a local API key, and the platform must be able to reach the console over HTTPS |
+| **UniFi Fabric** | Your consoles are members of a [UniFi Fabric](#unifi-fabric) (or one Site Manager organisation) | The same versions as Site Manager, and one API key created in the Fabric or organisation |
 
 ## Supported consoles
 
@@ -50,13 +51,44 @@ Check the versions under **UniFi OS → Settings → Control Plane → Updates**
 ## Step 2: Connect the console in the platform
 
 1. Open **UniFi consoles** and click **Connect console**.
-2. Choose **Through UniFi Site Manager** or **Direct** and click **Next**.
+2. Choose **Through UniFi Site Manager** or **Direct** and click **Next**. Consoles in a UniFi Fabric? Choose **Through a UniFi Fabric** and follow [UniFi Fabric](#unifi-fabric).
 3. Paste the API key.
    - Site Manager: click **Find consoles** and pick your console.
    - Direct: enter the console address, for example `https://192.168.1.1`. Turn **Verify certificate** off while the console still uses its default self-signed certificate.
 4. Click **Test connection**, choose the site(s) your guest network belongs to and click **Connect**.
 
 The platform now fetches your access points. It refreshes this list every hour; after adding access points you can click the refresh button on the console card.
+
+## UniFi Fabric
+
+A UniFi Fabric groups many sites and consoles under one organisation in Site Manager. The platform links a Fabric with **one** API key and reaches every console through the same Site Manager cloud connection, so nothing needs to be opened on the consoles.
+
+### Create the key
+
+1. Sign in at [unifi.ui.com](https://unifi.ui.com) and open the **organisation of your Fabric** (top left).
+2. Go to **Settings → API Keys** (or **API** in the menu) and click **Create API Key**.
+3. Give the key access to **Site Manager** and **Network**, and to **all sites** that should use the portal. Copy the key; you only see it once.
+
+The key must be created by the **owner** of the consoles or in the organisation itself. A key of an invited admin gives *user is not the owner of this host*, or simply leaves consoles out. The platform then shows a clear message telling you to create the key as the owner.
+
+### Link the Fabric
+
+1. Open **UniFi consoles**, click **Connect console** and choose **Through a UniFi Fabric**.
+2. Enter a name (for example the name of the Fabric), paste the key and click **Check key**.
+3. Tick the consoles whose guests use this portal (or **Select all**) and click **Link consoles**. Each console is linked with all its sites; you can narrow the sites per console afterwards with the pencil button.
+
+The Fabric gets its own card on the **UniFi consoles** page:
+
+- **Replace the key once**: edit the Fabric and paste the new key. It is checked first and then used by all consoles of the Fabric. A console of a Fabric does not have its own key field.
+- **New consoles**: the platform checks the Fabric every 30 minutes. When a console joins that is not linked yet, the card shows *1 console not linked yet* with a **Link consoles** button, you get an e-mail (switch it off under **Notifications → New console in a Fabric**) and the webhook event `fabric.console_found` is sent.
+- **Disconnect**: deleting the Fabric also disconnects its consoles.
+
+### Hotspot settings in a Fabric
+
+A Fabric can enforce settings on its sites through **Canvas** (for example the same Wi-Fi network on every site). Settings that Canvas manages can no longer be changed in the Network application of a site.
+
+- If the guest Wi-Fi is managed by Canvas, turn on **Hotspot** for that network in the Fabric.
+- Set the hotspot portal (*External portal server*, pre-authorization) as in step 3 below, on each site. Using a **Blueprint** for new sites? Set it up in the source site of the Blueprint, so new sites get it right away.
 
 ## Step 3: Set up the guest network in UniFi
 
@@ -88,6 +120,8 @@ The menu names differ slightly between Network versions; the steps are the same.
 | *Connecting did not work* | Open **Guests**: the error is shown next to the visit. *Device not found on the network* means the console did not list the device yet; try again after a few seconds. *API key rejected* means the key was deleted or belongs to another account. |
 | The portal does not open at all | Check that the external portal server is the platform IP and that this IP is in the pre-authorization allowances. |
 | Certificate warning on the phone | Your hostname does not have its certificate yet; see [Hostnames and SSL](hostnames-ssl.md). |
+| *UniFi refused the API key: it was not created by the owner of the console* | The key belongs to an invited admin. Create it as the owner of the console, or in the organisation of your Fabric (see [UniFi Fabric](#unifi-fabric)). |
+| A console of the Fabric is missing from the list | The key has no access to that site, or the console is in another Fabric. Edit the key's site access in unifi.ui.com; one key covers one Fabric. |
 | Console status *Error* with *Console unreachable* | Direct: the platform cannot reach the console address. Site Manager: the console is offline or not linked to the account of the API key. |
 
 ## Privacy

@@ -16,6 +16,7 @@ import { authRoutes } from './routes/auth.js';
 import { backupRoutes } from './routes/backups.js';
 import { billingRoutes } from './routes/billing.js';
 import { consoleRoutes } from './routes/consoles.js';
+import { fabricRoutes } from './routes/fabrics.js';
 import { editorRoutes } from './routes/editor.js';
 import { guestPortalRoutes } from './routes/guestPortal.js';
 import { liveRoutes } from './routes/live.js';
@@ -127,6 +128,7 @@ export async function buildApp() {
   await app.register(settingsRoutes);
   await app.register(systemRoutes);
   await app.register(consoleRoutes);
+  await app.register(fabricRoutes);
   await app.register(hostnameRoutes);
   await app.register(portalRoutes);
   await app.register(editorRoutes);

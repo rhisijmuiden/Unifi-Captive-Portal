@@ -4,6 +4,18 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [1.0.1-beta.2] - 2026-10-26 (test channel)
+
+Link consoles that are members of a UniFi Fabric, with one API key for the whole Fabric.
+
+- **Connect console** now offers three choices: **Through UniFi Site Manager**, **Direct** and the new **Through a UniFi Fabric**.
+- A Fabric is linked with **one** Site Manager key; tick several consoles at once and each is linked with all its sites (narrow them per console afterwards).
+- Each Fabric gets its own card on **UniFi consoles**: replace the key once for all its consoles, check for new consoles, or disconnect the Fabric with its consoles.
+- **New consoles in a Fabric** are detected every 30 minutes: the card shows them with a **Link consoles** button, customers get an e-mail (new notification *New console in a Fabric*, with its own e-mail template) and the webhook event `fabric.console_found` is sent.
+- A key that was not created by the console owner (*user is not the owner of this host*) now gives a clear message explaining how to create the right key.
+- The console list of a Site Manager key now reads every page, so large Fabrics and organisations are listed in full.
+- New API endpoints under `/api/v1/fabrics` (scope `consoles`); guides updated with a UniFi Fabric section (key, linking, Canvas and Blueprint hotspot settings, troubleshooting).
+
 ## [1.0.1-beta.1] - 2026-10-23 (test channel)
 
 Easy password reset for users, customers and resellers, without deleting and re-adding the account.

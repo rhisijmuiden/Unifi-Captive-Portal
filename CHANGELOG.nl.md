@@ -4,6 +4,18 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [1.0.1-beta.2] - 2026-10-26 (testkanaal)
+
+Consoles koppelen die lid zijn van een UniFi Fabric, met één API-sleutel voor de hele Fabric.
+
+- **Console koppelen** biedt nu drie keuzes: **Via UniFi Site Manager**, **Rechtstreeks** en het nieuwe **Via een UniFi Fabric**.
+- Een Fabric koppel je met **één** Site Manager-sleutel; vink meerdere consoles tegelijk aan en elke console wordt met al zijn sites gekoppeld (daarna per console aan te passen).
+- Elke Fabric krijgt een eigen kaart op **UniFi-consoles**: de sleutel één keer vervangen voor al zijn consoles, controleren op nieuwe consoles, of de Fabric met zijn consoles ontkoppelen.
+- **Nieuwe consoles in een Fabric** worden elke 30 minuten opgemerkt: de kaart toont ze met een knop **Consoles koppelen**, klanten krijgen een e-mail (nieuwe melding *Nieuwe console in een Fabric*, met een eigen e-mailtemplate) en de webhook-gebeurtenis `fabric.console_found` wordt verstuurd.
+- Een sleutel die niet door de eigenaar van de console is aangemaakt (*user is not the owner of this host*) geeft nu een duidelijke melding met uitleg hoe je de juiste sleutel maakt.
+- De consolelijst van een Site Manager-sleutel leest nu alle pagina's, zodat grote Fabrics en organisaties volledig worden getoond.
+- Nieuwe API-endpoints onder `/api/v1/fabrics` (scope `consoles`); handleidingen bijgewerkt met een onderdeel UniFi Fabric (sleutel, koppelen, hotspot-instellingen met Canvas en Blueprint, problemen oplossen).
+
 ## [1.0.1-beta.1] - 2026-10-23 (testkanaal)
 
 Eenvoudig wachtwoord resetten voor gebruikers, klanten en resellers, zonder het account te verwijderen en opnieuw aan te maken.

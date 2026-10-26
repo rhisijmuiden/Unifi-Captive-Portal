@@ -8,7 +8,7 @@ import { api } from '../lib/api';
 import { formatDate } from '../lib/format';
 import { useTenantScope } from '../lib/tenant';
 
-type Settings = { hostnameLive: boolean; monthlyReport: boolean; consoleOffline: boolean; deviceOffline: boolean; offlineMinutes: number; notifyAdmins: boolean; recipients: string[] };
+type Settings = { hostnameLive: boolean; monthlyReport: boolean; consoleOffline: boolean; deviceOffline: boolean; fabricConsoleFound: boolean; offlineMinutes: number; notifyAdmins: boolean; recipients: string[] };
 type LogEntry = { id: string; kind: string; ref: string; recipients: string[]; status: 'sent' | 'failed' | 'skipped' | 'sending'; error: string | null; createdAt: string };
 
 const tones = { sent: 'online', failed: 'offline', skipped: 'neutral', sending: 'warning' } as const;
@@ -62,6 +62,7 @@ export function NotificationsPage() {
             <div className="space-y-5 p-6">
               <Switch checked={form.consoleOffline} onChange={(v) => update({ consoleOffline: v })} label={t('notifications.consoleOffline')} description={t('notifications.consoleOfflineHint')} />
               <Switch checked={form.deviceOffline} onChange={(v) => update({ deviceOffline: v })} label={t('notifications.deviceOffline')} description={t('notifications.deviceOfflineHint')} />
+              <Switch checked={form.fabricConsoleFound} onChange={(v) => update({ fabricConsoleFound: v })} label={t('notifications.fabricConsoleFound')} description={t('notifications.fabricConsoleFoundHint')} />
               <Field label={t('notifications.offlineMinutes')} hint={t('notifications.offlineMinutesHint')}>
                 <Select value={form.offlineMinutes} onChange={(e) => update({ offlineMinutes: Number(e.target.value) })} disabled={!scope.canManage}>
                   {[5, 10, 15, 30, 60, 120].map((m) => (

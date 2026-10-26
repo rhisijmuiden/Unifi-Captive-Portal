@@ -46,6 +46,7 @@ export type MailKind =
   | 'consoleOnline'
   | 'deviceOffline'
   | 'deviceOnline'
+  | 'fabricConsoleFound'
   | 'guestWelcome'
   | 'guestPrivacy'
   | 'paymentReceipt';
@@ -69,6 +70,7 @@ export const mailKinds: Record<MailKind, { tenant: boolean; vars: string[]; data
   consoleOnline: { tenant: false, vars: ['tenantName', 'consoleName', 'since', 'downtime', 'actionUrl'], data: false },
   deviceOffline: { tenant: false, vars: ['tenantName', 'deviceName', 'model', 'siteName', 'since', 'actionUrl'], data: false },
   deviceOnline: { tenant: false, vars: ['tenantName', 'deviceName', 'model', 'siteName', 'since', 'downtime', 'actionUrl'], data: false },
+  fabricConsoleFound: { tenant: false, vars: ['tenantName', 'fabricName', 'consoleNames', 'actionUrl'], data: false },
   guestWelcome: { tenant: true, vars: ['name', 'email', 'networkName', 'validUntil'], data: false },
   guestPrivacy: { tenant: true, vars: ['email', 'networkName', 'actionUrl'], data: false },
   paymentReceipt: { tenant: true, vars: ['name', 'email', 'networkName', 'package', 'amount', 'reference', 'date', 'validUntil'], data: true },
@@ -109,6 +111,8 @@ export const sampleVars: Record<string, string> = {
   siteName: 'Default',
   since: '20-10-2026 14:32',
   downtime: '42 min',
+  fabricName: 'Hotelgroep Fabric',
+  consoleNames: 'UCG Ultra Amsterdam, UDM Pro Utrecht',
 };
 
 export const defaultMailTheme: MailTheme = {

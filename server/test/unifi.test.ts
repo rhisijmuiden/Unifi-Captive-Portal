@@ -22,6 +22,15 @@ const server = createServer(async (req, res) => {
   const raw = await readBody(req);
   calls.push({ method: req.method!, url: req.url!, key: String(req.headers['x-api-key']), body: raw ? JSON.parse(raw) : null });
   const send = (status: number, body: unknown) => res.writeHead(status, { 'content-type': 'application/json' }).end(JSON.stringify(body));
+  // A Fabric key: 150 consoles over two pages
+  if (req.headers['x-api-key'] === 'fabric-key-123' && url.pathname === '/v1/hosts') {
+    const token = url.searchParams.get('nextToken');
+    const ids = token === 'page-2' ? [100, 150] : [0, 100];
+    const data = Array.from({ length: ids[1] - ids[0] }, (_, i) => ({ id: `fabric-host-${ids[0] + i}`, type: 'console', reportedState: { name: `Site ${ids[0] + i}` } }));
+    return send(200, { data, nextToken: token === 'page-2' ? null : 'page-2' });
+  }
+  // A key of an invited admin, refused for consoles it does not own
+  if (req.headers['x-api-key'] === 'invited-key-123') return send(403, { message: 'user is not the owner of this host' });
   if (req.headers['x-api-key'] !== 'good-key-123') return send(401, { message: 'unauthorized' });
   if (url.pathname === '/v1/hosts') return send(200, { data: [{ id: 'host-1', type: 'console', reportedState: { name: 'UDM Pro', hardware: { name: 'UniFi Dream Machine Pro' }, version: '4.3.6' } }] });
   const base = '/v1/connector/consoles/host-1/proxy/network/integration/v1';
@@ -60,6 +69,17 @@ test('MAC addresses are normalised to lower case with colons', () => {
 test('Site Manager consoles are listed with a readable name', async () => {
   const hosts = await unifi.listSiteManagerHosts('good-key-123');
   assert.deepEqual(hosts, [{ id: 'host-1', name: 'UDM Pro', model: 'UniFi Dream Machine Pro', version: '4.3.6' }]);
+});
+
+test('every page of consoles is fetched for a large Fabric', async () => {
+  const hosts = await unifi.listSiteManagerHosts('fabric-key-123');
+  assert.equal(hosts.length, 150);
+  assert.equal(hosts.at(-1)?.name, 'Site 149');
+  assert.ok(calls.some((c) => c.url.includes('nextToken=page-2')), 'second page fetched');
+});
+
+test('a key that is not from the console owner is recognised', async () => {
+  await assert.rejects(unifi.listSites({ ...target, apiKey: 'invited-key-123' }), (err: InstanceType<typeof unifi.UnifiError>) => err.reason === 'notOwner' && err.status === 403);
 });
 
 test('a rejected API key gives a clear error', async () => {

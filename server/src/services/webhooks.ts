@@ -21,6 +21,7 @@ export const webhookEvents: Record<Audience, Record<string, Text>> = {
     'console.online': { en: 'A console can be reached again', nl: 'Een console is weer bereikbaar' },
     'device.offline': { en: 'An access point went offline', nl: 'Een access point is offline gegaan' },
     'device.online': { en: 'An access point is back online', nl: 'Een access point is weer online' },
+    'fabric.console_found': { en: 'A new console joined a linked Fabric', nl: 'Er is een nieuwe console bijgekomen in een gekoppelde Fabric' },
     'invoice.issued': { en: 'You received an invoice', nl: 'Je hebt een factuur ontvangen' },
     'invoice.paid': { en: 'An invoice of yours was paid', nl: 'Een factuur van jou is betaald' },
   },

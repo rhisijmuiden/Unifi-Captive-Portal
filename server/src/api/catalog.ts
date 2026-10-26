@@ -1,5 +1,6 @@
 import { z, type ZodType } from 'zod';
 import { connectionInput, sitesInput } from '../routes/consoles.js';
+import { fabricInput, fabricLinkInput, fabricUpdate } from '../routes/fabrics.js';
 import { packageInput } from '../routes/payments.js';
 import { planInput, profileInput, invoiceInput } from '../routes/billing.js';
 import { portalInput } from '../routes/portal.js';
@@ -101,6 +102,12 @@ export const operations: Operation[] = [
   { method: 'PUT', route: '/api/consoles/:id', tenant: 'consoles', params: [id], body: consoleUpdate, summary: { en: 'Change a console', nl: 'Console wijzigen' } },
   { method: 'POST', route: '/api/consoles/:id/sync', tenant: 'consoles', params: [id], summary: { en: 'Synchronise access points now', nl: 'Access points nu synchroniseren' } },
   { method: 'DELETE', route: '/api/consoles/:id', tenant: 'consoles', params: [id], summary: { en: 'Disconnect a console', nl: 'Console ontkoppelen' } },
+  { method: 'GET', route: '/api/fabrics', tenant: 'consoles', summary: { en: 'List linked UniFi Fabrics with their consoles that are not linked yet', nl: 'Gekoppelde UniFi Fabrics met hun nog niet gekoppelde consoles' } },
+  { method: 'POST', route: '/api/fabrics', tenant: 'consoles', body: fabricInput, summary: { en: 'Link a UniFi Fabric with one Site Manager API key', nl: 'UniFi Fabric koppelen met één Site Manager-API-sleutel' } },
+  { method: 'PUT', route: '/api/fabrics/:id', tenant: 'consoles', params: [id], body: fabricUpdate, summary: { en: 'Rename a Fabric or replace its key (for all its consoles)', nl: 'Fabric hernoemen of de sleutel vervangen (voor al zijn consoles)' } },
+  { method: 'POST', route: '/api/fabrics/:id/check', tenant: 'consoles', params: [id], summary: { en: 'Refresh the consoles of a Fabric now', nl: 'Consoles van een Fabric nu vernieuwen' } },
+  { method: 'POST', route: '/api/fabrics/:id/consoles', tenant: 'consoles', params: [id], body: fabricLinkInput, summary: { en: 'Link consoles of a Fabric, with all their sites', nl: 'Consoles van een Fabric koppelen, met al hun sites' } },
+  { method: 'DELETE', route: '/api/fabrics/:id', tenant: 'consoles', params: [id], summary: { en: 'Unlink a Fabric and its consoles', nl: 'Fabric en zijn consoles ontkoppelen' } },
 
   { method: 'GET', route: '/api/hostnames', tenant: 'hostnames', summary: { en: 'List hostnames with DNS and SSL status', nl: 'Hostnames met DNS- en SSL-status' } },
   { method: 'POST', route: '/api/hostnames', tenant: 'hostnames', body: z.object({ hostname: z.string() }), summary: { en: 'Add a hostname (certificate follows automatically)', nl: 'Hostname toevoegen (certificaat volgt automatisch)' } },
