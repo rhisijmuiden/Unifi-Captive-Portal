@@ -34,10 +34,11 @@ function publicConsole(c: Console) {
 const reload = async (id: string) => (await db.query.consoles.findFirst({ where: eq(schema.consoles.id, id) }))!;
 
 /** UniFi errors are shown as-is (they come from the console); everything else is a server error. */
-async function unifi<T>(fn: () => Promise<T>) {
+export async function unifi<T>(fn: () => Promise<T>) {
   try {
     return await fn();
   } catch (err) {
+    if (err instanceof UnifiError && err.reason === 'notOwner') throw badRequest('errors.unifiNotOwner');
     if (err instanceof UnifiError) throw badRequest('errors.unifi', { reason: err.message });
     throw err;
   }
@@ -130,6 +131,7 @@ export async function consoleRoutes(app: FastifyInstance) {
     const tenantId = tenantScope(req, true);
     const existing = await db.query.consoles.findFirst({ where: and(eq(schema.consoles.id, req.params.id), eq(schema.consoles.tenantId, tenantId)) });
     if (!existing) throw notFound();
+    if (body.apiKey && existing.fabricId) throw badRequest('errors.consoleKeyFromFabric');
     const [updated] = await db
       .update(schema.consoles)
       .set({

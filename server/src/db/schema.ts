@@ -141,6 +141,29 @@ export const healthStatus = pgEnum('health_status', ['unknown', 'ok', 'error']);
 export const hostnameStatus = pgEnum('hostname_status', ['pending', 'dns_ok', 'active', 'error']);
 export const guestStatus = pgEnum('guest_status', ['pending', 'authorized', 'failed']);
 
+export type FabricHost = { id: string; name: string; model: string | null; version: string | null };
+
+/**
+ * A UniFi Fabric (or Site Manager organisation): one API key that reaches many consoles.
+ * Its consoles get a copy of the key, so replacing it here replaces it for all of them.
+ */
+export const unifiFabrics = pgTable('unifi_fabrics', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  apiKey: text('api_key').notNull(),
+  status: healthStatus('status').notNull().default('unknown'),
+  lastError: text('last_error'),
+  lastCheckAt: timestamp('last_check_at', { withTimezone: true }),
+  // The consoles the key reached at the last check
+  hosts: jsonb('hosts').$type<FabricHost[]>().notNull().default([]),
+  // Every console id ever seen, so only consoles that join the Fabric later are reported as new
+  knownHostIds: jsonb('known_host_ids').$type<string[]>().notNull().default([]),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const consoles = pgTable('consoles', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id')
@@ -150,6 +173,8 @@ export const consoles = pgTable('consoles', {
   connection: consoleConnection('connection').notNull(),
   // Site Manager host id (connection = site_manager)
   hostId: text('host_id'),
+  // Set when the console was linked through a Fabric; the key then comes from the Fabric
+  fabricId: uuid('fabric_id').references(() => unifiFabrics.id, { onDelete: 'cascade' }),
   // https://<console-address> (connection = direct)
   baseUrl: text('base_url'),
   apiKey: text('api_key').notNull(),
@@ -295,6 +320,7 @@ export const guestSessions = pgTable(
 );
 
 export type Console = typeof consoles.$inferSelect;
+export type UnifiFabric = typeof unifiFabrics.$inferSelect;
 export type ConsoleSite = typeof consoleSites.$inferSelect;
 export type Hostname = typeof hostnames.$inferSelect;
 export type PortalSettings = typeof portalSettings.$inferSelect;

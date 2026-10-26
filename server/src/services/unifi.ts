@@ -15,6 +15,7 @@ export class UnifiError extends Error {
   constructor(
     message: string,
     public status?: number,
+    public reason?: 'notOwner',
   ) {
     super(message);
   }
@@ -73,6 +74,8 @@ async function request<T>(url: string, apiKey: string, init: { method?: string; 
   const body = text ? (JSON.parse(text) as unknown) : null;
   if (!res.ok) {
     const msg = (body as { message?: string } | null)?.message ?? res.statusText;
+    // A key of an invited admin (not the owner or the Fabric's organisation) is refused per console
+    if (res.status === 403 && /owner/i.test(msg)) throw new UnifiError(`API key is not from the console owner (${msg})`, 403, 'notOwner');
     if (res.status === 401 || res.status === 403) throw new UnifiError(`API key rejected (${res.status})`, res.status);
     throw new UnifiError(`UniFi API ${res.status}: ${msg}`, res.status);
   }
@@ -92,10 +95,21 @@ async function all<T>(t: ConsoleTarget, path: string): Promise<T[]> {
   }
 }
 
-/** Consoles on the Site Manager account of this API key, for the "pick your console" list. */
+/**
+ * Consoles on the Site Manager account or Fabric of this API key, for the "pick your console" list.
+ * A Fabric can hold many consoles, so every page is fetched.
+ */
 export async function listSiteManagerHosts(apiKey: string) {
-  const res = await request<{ data: UnifiHost[] }>(`${SITE_MANAGER_URL}/v1/hosts`, apiKey);
-  return res.data
+  const hosts: UnifiHost[] = [];
+  let nextToken: string | undefined;
+  for (let page = 0; page < 50; page++) {
+    const qs = new URLSearchParams({ pageSize: '100', ...(nextToken ? { nextToken } : {}) });
+    const res = await request<{ data: UnifiHost[]; nextToken?: string | null }>(`${SITE_MANAGER_URL}/v1/hosts?${qs}`, apiKey);
+    hosts.push(...res.data);
+    if (!res.nextToken || res.nextToken === nextToken || !res.data.length) break;
+    nextToken = res.nextToken;
+  }
+  return hosts
     .filter((h) => !h.type || h.type === 'console' || h.type === 'network-server')
     .map((h) => ({
       id: h.id,

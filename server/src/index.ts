@@ -7,6 +7,7 @@ import { buildApp } from './app.js';
 import { runScheduledBackups } from './services/backups.js';
 import { pollInvoicePayments, runBilling } from './services/billing.js';
 import { syncAllConsoles } from './services/consoles.js';
+import { checkAllFabrics } from './services/fabrics.js';
 import { purgeOldStays, syncAllHotels } from './services/hotel.js';
 import { purgeOldCodes } from './services/sms.js';
 import { runRetention, syncAllContacts } from './services/marketing.js';
@@ -27,6 +28,8 @@ const jobs = [
   // Checks every console: keeps the access-point list current (so guests on new access points are
   // recognised) and tracks outages; customers are alerted once an outage passes their threshold
   every(5 * 60_000, () => syncAllConsoles().then(() => runMonitoringAlerts())),
+  // Fabrics: consoles that join a linked Fabric later are reported to the customer to link
+  every(30 * 60_000, checkAllFabrics),
   // Hotel stays from a connected PMS (Apaleo, Mews); a guest whose room is not found triggers an extra sync
   every(10 * 60_000, syncAllHotels),
   every(24 * 3600_000, () => Promise.all([purgeOldCodes(), purgeOldStays()])),

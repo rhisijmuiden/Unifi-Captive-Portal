@@ -161,6 +161,15 @@ export function defaultMailTemplate(kind: MailKind, locale: Locale): MailContent
         { type: 'button', label: m('monitoringButton'), url: '{{actionUrl}}' },
       ],
     },
+    fabricConsoleFound: {
+      subject: m('fabricConsoleFoundSubject'),
+      blocks: [
+        { type: 'heading', text: m('fabricConsoleFoundTitle') },
+        { type: 'text', text: m('fabricConsoleFoundBody') },
+        { type: 'text', text: '{{consoleNames}}' },
+        { type: 'button', label: m('fabricConsoleFoundButton'), url: '{{actionUrl}}' },
+      ],
+    },
     guestWelcome: { subject: m('welcomeSubject'), blocks: [{ type: 'heading', text: m('welcomeTitle') }, { type: 'text', text: m('welcomeBody') }] },
     guestPrivacy: {
       subject: m('privacySubject'),

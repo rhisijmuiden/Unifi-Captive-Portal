@@ -21,7 +21,7 @@ Zie de [roadmap](ROADMAP.nl.md) voor wat er al werkt en wat eraan komt.
 
 ## Wat zit er nu in (v1.0)
 
-- **UniFi-koppeling**: UniFi OS consoles koppelen (UDM, UCG, Dream Router, Cloud Key, zelf gehoste Network) via de UniFi Site Manager-cloud of rechtstreeks, met de officiële UniFi Network API. Gasten worden herkend aan het access point en doorgelaten met limieten voor tijd, data en snelheid.
+- **UniFi-koppeling**: UniFi OS consoles koppelen (UDM, UCG, Dream Router, Cloud Key, zelf gehoste Network) via de UniFi Site Manager-cloud, een hele UniFi Fabric met één sleutel, of rechtstreeks, met de officiële UniFi Network API. Gasten worden herkend aan het access point en doorgelaten met limieten voor tijd, data en snelheid.
 - **Gastportal** als external portal server, ontworpen in een **drag-and-drop portal-editor** met templates, afbeeldingen, kleuren en lettertypen, in het Nederlands en Engels (de klant kiest de talen, de gast kiest er één).
 - **Manieren van verbinden**: gratis met één tik, registreren met e-mail (met toestemming voor marketing), **vouchers** met printvel, **betaalde toegang** via Mollie of Stripe met pakketten en een instelbare tijd om te betalen, een **sms-code** (Twilio of MessageBird), **hotellogin** met kamernummer en achternaam (handmatig, CSV, API, Apaleo of Mews), en **Doorgaan met Facebook, Google, Apple of Microsoft**.
 - **Marketing en AVG**: opt-ins voor de nieuwsbrief met export naar **Mailchimp** of **HubSpot** (automatisch of met de hand) en CSV, een bewaartermijn voor gasten zonder opt-in, en een **Privacy**-link op elke gastpagina waar gasten vragen hun gegevens te wissen (bevestigd per e-mail, ook weggehaald bij de nieuwsbriefprovider).
@@ -56,7 +56,7 @@ Open daarna `http://<ip-van-de-server>:8080` en maak het eerste beheerdersaccoun
 ## Handleidingen
 
 - [Installatie](docs/nl/installatie.md): LXC, VM en fysieke server, eerste start, configuratiebestand
-- [Een UniFi-console koppelen](docs/nl/unifi-koppelen.md): Site Manager of rechtstreeks, hotspot-instellingen, pre-authorization, problemen oplossen
+- [Een UniFi-console koppelen](docs/nl/unifi-koppelen.md): Site Manager, UniFi Fabric of rechtstreeks, hotspot-instellingen, pre-authorization, problemen oplossen
 - [Hostnamen en SSL](docs/nl/hostnamen-ssl.md): DNS-records, automatische certificaten, HTTPS voor het beheerpaneel
 - [Portal-editor](docs/nl/portaal-editor.md): blokken, templates, afbeeldingen en talen
 - [Gasttoegang](docs/nl/gasttoegang.md): manieren van inloggen, vouchers, Mollie en Stripe, tijd om te betalen, inloggen met Facebook, pre-autorisatie
