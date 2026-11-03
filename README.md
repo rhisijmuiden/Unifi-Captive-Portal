@@ -92,4 +92,12 @@ Then open `http://<server-ip>:8080` and create the first administrator account. 
 
 ## License
 
-© RHIS. All rights reserved.
+Copyright © RHIS.
+
+Captive Portal is free software: you can redistribute it and/or modify it under the terms of the **GNU Affero General Public License version 3** (AGPL-3.0-only), as published by the Free Software Foundation. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See [LICENSE](LICENSE) for the full text.
+
+What this means in practice:
+
+- You may use, study, change and share the software, also commercially.
+- If you share it, or a changed version, you share the source code under the same license.
+- If you run a **changed version** as a service on a network (for example a hosted platform for your customers), section 13 asks you to offer its users the source code of that version. The **Info** dialog of the admin panel always shows the license and a link to the source code of the running version; when you change the code, point `UPDATE_REPO` to your own public repository so that link stays correct.

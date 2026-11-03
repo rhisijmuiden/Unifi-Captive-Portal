@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowUpCircle, CheckCircle2, ExternalLink, FlaskConical, HardDriveDownload, RefreshCw, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { ArrowUpCircle, CheckCircle2, ExternalLink, Scale, FlaskConical, HardDriveDownload, RefreshCw, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -13,6 +13,9 @@ import { Badge, Button, cx, Modal, Spinner, Switch } from './ui';
 type Info = {
   version: string;
   repository: string;
+  license?: string;
+  licenseUrl?: string;
+  sourceUrl?: string;
   node?: string;
   hostname?: string;
   uptimeSeconds?: number;
@@ -224,8 +227,24 @@ export function InfoDialog({ open, onClose }: { open: boolean; onClose: () => vo
         <p className="text-sm text-muted">{t('info.managed')}</p>
       )}
 
+      {/* Always shown, also for resellers: the AGPL asks that every user can get the source code */}
+      <div className="mt-6 flex items-start gap-3 rounded-xl border border-line p-4 text-xs text-muted">
+        <Scale className="mt-0.5 size-4 shrink-0 text-accent" />
+        <p>
+          {t('info.licenseText')}{' '}
+          <a className="text-accent hover:underline" href={info.data?.licenseUrl ?? 'https://www.gnu.org/licenses/agpl-3.0.html'} target="_blank" rel="noopener">
+            GNU AGPL v3
+          </a>
+          . {t('info.licenseSource')}{' '}
+          <a className="text-accent hover:underline" href={info.data?.sourceUrl ?? info.data?.repository ?? '#'} target="_blank" rel="noopener">
+            {t('info.sourceOfVersion', { version: info.data?.version ?? auth?.version ?? '' })}
+          </a>
+          .
+        </p>
+      </div>
+
       {(!brand || brand.showPoweredBy) && (
-        <p className="mt-6 text-xs text-muted">
+        <p className="mt-4 text-xs text-muted">
           {t('info.source')}{' '}
           <a className="text-accent hover:underline" href={info.data?.repository ?? '#'} target="_blank" rel="noopener">
             GitHub

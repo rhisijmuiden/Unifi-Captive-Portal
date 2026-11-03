@@ -144,5 +144,19 @@ export function systemInfo() {
     uptimeSeconds: Math.round(uptime()),
     processUptimeSeconds: Math.round(process.uptime()),
     repository: `https://github.com/${config.updateRepo}`,
+    ...licenseInfo(),
+  };
+}
+
+/**
+ * The application is licensed under the GNU AGPL v3. Section 13 asks that everyone who uses it
+ * over the network can get the source code of the running version, so the Info dialog links to it.
+ */
+export function licenseInfo() {
+  const repository = `https://github.com/${config.updateRepo}`;
+  return {
+    license: 'AGPL-3.0-only',
+    licenseUrl: `${repository}/blob/main/LICENSE`,
+    sourceUrl: `${repository}/tree/v${config.version}`,
   };
 }

@@ -7,7 +7,7 @@ import { requestLocale } from '../i18n/index.js';
 import { badRequest, translateError } from '../lib/errors.js';
 import { getSettings } from '../services/settings.js';
 import { tenantIdsOfReseller } from '../services/resellers.js';
-import { checkForUpdates, readUpdateStatus, requestUpdate, selfUpdateEnabled, systemInfo } from '../services/updater.js';
+import { checkForUpdates, licenseInfo, readUpdateStatus, requestUpdate, selfUpdateEnabled, systemInfo } from '../services/updater.js';
 
 export async function systemRoutes(app: FastifyInstance) {
   app.get('/api/health', async () => ({ ok: true }));
@@ -16,7 +16,7 @@ export async function systemRoutes(app: FastifyInstance) {
     const user = requireUser(req);
     const info = systemInfo();
     // Customers only see the version; host details are for platform admins
-    if (user.role !== 'superadmin') return { version: info.version, repository: info.repository };
+    if (user.role !== 'superadmin') return { version: info.version, repository: info.repository, ...licenseInfo() };
     const { updateChannel } = await getSettings('system');
     return { ...info, channel: updateChannel, selfUpdate: await selfUpdateEnabled(), update: await readUpdateStatus() };
   });

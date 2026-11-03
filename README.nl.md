@@ -92,4 +92,12 @@ Open daarna `http://<ip-van-de-server>:8080` en maak het eerste beheerdersaccoun
 
 ## Licentie
 
-© RHIS. Alle rechten voorbehouden.
+Copyright © RHIS.
+
+Captive Portal is vrije software: je mag het verspreiden en/of aanpassen onder de voorwaarden van de **GNU Affero General Public License versie 3** (AGPL-3.0-only), zoals gepubliceerd door de Free Software Foundation. Het wordt verspreid in de hoop dat het nuttig is, maar ZONDER ENIGE GARANTIE; zelfs zonder de impliciete garantie van VERKOOPBAARHEID of GESCHIKTHEID VOOR EEN BEPAALD DOEL. Zie [LICENSE](LICENSE) voor de volledige (Engelse) tekst; alleen die tekst is juridisch bindend.
+
+Wat dit in de praktijk betekent:
+
+- Je mag de software gebruiken, bestuderen, aanpassen en delen, ook commercieel.
+- Deel je de software of een aangepaste versie, dan deel je de broncode onder dezelfde licentie.
+- Draai je een **aangepaste versie** als dienst op een netwerk (bijvoorbeeld een gehost platform voor je klanten), dan vraagt artikel 13 dat je de gebruikers de broncode van die versie aanbiedt. Het **Info**-venster van het beheerpaneel toont altijd de licentie en een link naar de broncode van de draaiende versie; pas je de code aan, zet `UPDATE_REPO` dan op je eigen openbare repository zodat die link klopt.

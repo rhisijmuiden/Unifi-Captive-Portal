@@ -495,6 +495,9 @@ const nl = {
     notEnabled: 'Updaten vanuit de interface werkt na installatie met de officiële installer. Handmatig:',
     managed: 'Updates worden beheerd door je platformbeheerder.',
     source: 'Broncode en roadmap op',
+    licenseText: 'Vrije software, gelicenseerd onder de',
+    licenseSource: 'Je mag het gebruiken, aanpassen en delen onder de voorwaarden van die licentie. Bekijk de',
+    sourceOfVersion: 'broncode van versie {{version}}',
     status: {
       queued: 'Update staat in de wachtrij',
       backup: 'Back-up van de database maken',
