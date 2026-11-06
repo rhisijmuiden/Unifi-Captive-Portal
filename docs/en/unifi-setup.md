@@ -123,6 +123,7 @@ The menu names differ slightly between Network versions; the steps are the same.
 | *UniFi refused the API key: it was not created by the owner of the console* | The key belongs to an invited admin. Create it as the owner of the console, or in the organisation of your Fabric (see [UniFi Fabric](#unifi-fabric)). |
 | A console of the Fabric is missing from the list | The key has no access to that site, or the console is in another Fabric. Edit the key's site access in unifi.ui.com; one key covers one Fabric. |
 | Console status *Error* with *Console unreachable* | Direct: the platform cannot reach the console address. Site Manager: the console is offline or not linked to the account of the API key. |
+| A guest removed in UniFi is online again | With *Ask for access* and *Remember approved devices* on, the portal lets an approved device back in by itself. **Revoke** or **Reject** it under **Access & sign-in → Access requests**, or block the client in UniFi. See [Ask for access](guest-access.md#ask-for-access). |
 
 ## Privacy
 

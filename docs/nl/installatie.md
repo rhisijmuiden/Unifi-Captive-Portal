@@ -50,6 +50,7 @@ De installer kun je veilig opnieuw draaien; bestaande instellingen en gegevens b
 | Variabele | Betekenis | Standaard |
 | --- | --- | --- |
 | `CP_REF` | Versie (tag) of branch om te installeren, bijv. `v0.1.0` | nieuwste release, anders `main` |
+| `CP_REPO_URL` | Git-repository om van te installeren: een fork, of een lokale git-bundle (zie [Ontwikkelen](ontwikkelen.md#een-niet-gepubliceerde-versie-testen)) | dit project op GitHub |
 | `CP_PUBLIC_URL` | Adres waarop de beheeromgeving bereikbaar is | `http://<server-ip>:8080` |
 | `CP_NODE_MAJOR` | Node.js-hoofdversie | `24` |
 | `CP_ACME_EMAIL` | E-mailadres voor meldingen van Let's Encrypt over verlopende certificaten | leeg |

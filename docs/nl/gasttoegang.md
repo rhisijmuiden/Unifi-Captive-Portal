@@ -12,6 +12,7 @@ Bij **Captive portals → Toegang & inloggen** kies je hoe gasten online komen. 
 | **Betalen voor toegang** | Kiest een pakket en betaalt met Mollie of Stripe. | Het geld, direct op je eigen rekening. |
 | **Sms-code** | Typt een mobiel nummer en de code uit de sms. | Een bevestigd telefoonnummer. Zie [Sms en sociale login](sms-en-sociale-login.md). |
 | **Kamernummer en achternaam** | Typt kamernummer en achternaam. | Hotelgasten online tot vertrek. Zie [Hotellogin](hotellogin.md). |
+| **Toegang vragen** | Geeft een naam en wacht tot iemand die jij kiest per e-mail goedkeurt of afwijst. | Zeggenschap over elk nieuw apparaat. Zie [Toegang vragen](#toegang-vragen). |
 | **Doorgaan met Facebook** | Logt in met Facebook. | Naam en e-mailadres van Facebook. |
 | **Doorgaan met Google, Apple of Microsoft** | Logt in met dat account. | Naam en e-mailadres. Zie [Sms en sociale login](sms-en-sociale-login.md). |
 
@@ -22,6 +23,52 @@ Op dezelfde pagina stel je de voorwaarden in (per taal), of akkoord gaan verplic
 - **Naam** en **Telefoonnummer** kunnen elk *niet vragen*, *optioneel* of *verplicht* zijn.
 - **Toestemming vragen voor nieuws en aanbiedingen** voegt een apart, niet aangevinkt vakje toe. Alleen gasten die het aanvinken hebben *opt-in* in de gastenlijst; gebruik alleen die voor marketing.
 - **Welkomstmail sturen** stuurt de e-mail *Welkom voor gasten*; die pas je aan bij **Gast-e-mails**.
+
+## Toegang vragen
+
+De gast vraagt om toegang en mensen die jij kiest beslissen per e-mail. Handig voor een privénetwerk waar je elk apparaat wilt kennen.
+
+**Instellen**, bij **Toegang & inloggen**:
+
+1. Zet **Toegang vragen** aan.
+2. Vul bij **Beheerders die beslissen** één e-mailadres per regel in (hoogstens 20).
+3. Kies of je **Goedgekeurde apparaten onthouden** wilt (zie hieronder) en klik op **Opslaan**.
+
+De verzoeken gaan via de uitgaande mail van het platform, dus [SMTP](smtp.md) moet ingesteld zijn. Zolang er geen beheerder is of de mail niet werkt, zien gasten *Toegang vragen* niet.
+
+**Wat er gebeurt:**
+
+1. De gast vult een naam in, en eventueel een e-mailadres en een bericht, en tikt op *Toegang vragen*.
+2. Iedere beheerder krijgt de e-mail *Toegangsverzoek (beheerders)* met de naam, het bericht, het netwerk en het apparaat, en een eigen link. Deze e-mail pas je aan bij **Gast-e-mails**.
+3. De gast ziet een wachtpagina die elke paar seconden zelf controleert.
+4. De beheerder opent de link en klikt op **Goedkeuren** of **Afwijzen**. Alleen de link openen beslist niets, dus mailscanners die links volgen kunnen geen verzoek goedkeuren. De eerste beslissing telt; de andere beheerders zien wie er besliste.
+5. **Goedgekeurd**: het apparaat gaat online voor de standaardtijd online, met de limieten van het portaal. **Afgewezen**: de gast krijgt dat te zien.
+
+Een verzoek waarover binnen 24 uur niemand beslist, verloopt; de gast kan het dan opnieuw vragen.
+
+**Goedgekeurde apparaten onthouden**
+
+- **Aan** (standaard): een goedgekeurd apparaat komt bij latere bezoeken vanzelf binnen, zonder opnieuw te vragen, totdat je de goedkeuring intrekt.
+- **Uit**: de gast vraagt het elk bezoek opnieuw.
+
+**Verzoeken beheren**
+
+De lijst **Verzoeken om toegang** op dezelfde pagina toont elk verzoek met de status en wie besliste. Het laatste verzoek van een apparaat bepaalt wat ermee gebeurt.
+
+| Knop | Effect |
+| --- | --- |
+| **Goedkeuren** / **Afwijzen** | Beslist over een wachtend verzoek, net als de link in de e-mail. |
+| **Intrekken** | Beëindigt de onthouden goedkeuring. Het apparaat houdt zijn huidige toegang tot die afloopt en moet daarna opnieuw vragen. |
+| **Deblokkeren** | Heft een afwijzing op, zodat het apparaat opnieuw kan vragen. |
+
+Een afgewezen apparaat ziet geen manier om te verbinden, met welke inlogmethode ook, totdat je het deblokkeert.
+
+**Goed om te weten**
+
+- Een gast verwijderen in UniFi (bijvoorbeeld in Hotspot Manager) beëindigt de huidige toegang, maar met *Goedgekeurde apparaten onthouden* aan laat het portaal het apparaat bij het volgende bezoek meteen weer binnen. Wil je een apparaat buiten houden, gebruik dan hier **Intrekken** of **Afwijzen**.
+- Voor een harde blokkade, los van het portaal: open de client in UniFi Network en kies **Block**. UniFi weigert het apparaat dan al op wifiniveau; dat maak je ook in UniFi weer ongedaan.
+- Telefoons gebruiken vaak per wifinetwerk een ander willekeurig apparaatadres (MAC), en sommige wisselen het na een tijd. Een apparaat met een nieuw adres telt als nieuw apparaat en moet opnieuw vragen.
+- Of het inlogvenster van de telefoon na goedkeuring vanzelf sluit, bepaalt de telefoon. De gast kan het sluiten zodra die ziet dat hij verbonden is.
 
 ## Vouchers
 

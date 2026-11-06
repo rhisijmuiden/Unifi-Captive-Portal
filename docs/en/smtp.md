@@ -44,6 +44,19 @@ Server `smtp.gmail.com`, port `587`, STARTTLS, with an **app password** of the s
 
 Prefer port 587 with STARTTLS or 465 with TLS, and sign in with a mailbox of the sender domain. If your server only relays by IP (for example a Proxmox Mail Gateway), add this server's IP address to its trusted relay networks.
 
+## A relay service
+
+No mail server of your own, for example for a home network? An SMTP relay service such as SMTP2GO, Brevo or Mailgun works with **Username and password**. Verify your sender address or domain with the service first, then use the SMTP user it gives you. Most offer STARTTLS on port 587 (or 2525 when 587 is blocked) and TLS on 465.
+
+## Troubleshooting
+
+| Error | Cause and fix |
+| --- | --- |
+| `wrong version number` (SSL routines) | Security does not match the port: **TLS/SSL** on a STARTTLS port. Use **STARTTLS** with port 587 or 2525, or **TLS/SSL** with port 465. |
+| `535 5.7.139 Authentication unsuccessful, SmtpClientAuthentication is disabled` | Microsoft has turned off password login for SMTP. Personal outlook.com and hotmail.com accounts cannot send through the app; use a relay service or Google with an app password. For Microsoft 365, use OAuth 2.0 (see above). |
+| `535` or `Invalid login` with other providers | Wrong username or password, or the provider wants an app password instead of the account password. |
+| Time-out | The port is blocked on the way out; many internet providers block port 25 and sometimes 587. Try 2525 or 465. |
+
 ## Keeping mail out of spam
 
 Spam filters look at three things: the name the app greets the mail server with, and the SPF, DKIM and DMARC records of the sender domain. Click **Check DNS** under **Deliverability check** to see all of them for the settings in the form.

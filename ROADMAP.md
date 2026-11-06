@@ -2,7 +2,7 @@
 
 **English** · [Nederlands](ROADMAP.nl.md)
 
-Last updated: 22 October 2026. This roadmap is updated after every major build.
+Last updated: 5 November 2026. This roadmap is updated after every major build.
 
 Legend: ✅ done · 🚧 in progress · 📋 planned
 
@@ -98,6 +98,7 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - 🧪 **Easy password reset (1.0.1-beta.1)**: reset e-mail or new login details for users, customers and resellers, from Users, Customers and Resellers.
 - 🧪 **UniFi Fabric (1.0.1-beta.2)**: link consoles of a UniFi Fabric with one API key, several at once, with alerts for consoles that join the Fabric later.
 - 🧪 **Open source under the GNU AGPL v3 (1.0.1-beta.3)**: `LICENSE` file, license in all manifests and in the Info dialog with a link to the source code of the running version.
+- 🧪 **Ask for access (1.0.1-beta.4)**: guests ask to be let on and approvers you choose approve or reject by e-mail; approved devices are connected (and optionally remembered), rejected devices stay off until unblocked. Plus a Dockerfile and docker-compose.yml for testing in containers.
 
 ## Later
 

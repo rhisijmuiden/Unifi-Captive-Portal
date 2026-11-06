@@ -43,8 +43,8 @@ export type BlockType = PortalBlock['type'];
 export type NoId<T> = T extends unknown ? Omit<T, 'id'> : never;
 export type PortalDesign = { version: 1; theme: PortalTheme; blocks: PortalBlock[] };
 
-export type LoginMethod = 'free' | 'email' | 'sms' | 'voucher' | 'room' | 'payment' | 'facebook' | 'google' | 'apple' | 'microsoft';
-export const loginMethods: LoginMethod[] = ['free', 'email', 'sms', 'voucher', 'room', 'payment', 'facebook', 'google', 'apple', 'microsoft'];
+export type LoginMethod = 'free' | 'email' | 'sms' | 'voucher' | 'room' | 'payment' | 'approval' | 'facebook' | 'google' | 'apple' | 'microsoft';
+export const loginMethods: LoginMethod[] = ['free', 'email', 'sms', 'voucher', 'room', 'payment', 'approval', 'facebook', 'google', 'apple', 'microsoft'];
 /** Sign-in with an account elsewhere; on the guest page these share one tab with a button each. */
 export type SocialMethod = 'facebook' | 'google' | 'apple' | 'microsoft';
 export const socialMethods: SocialMethod[] = ['google', 'apple', 'microsoft', 'facebook'];
@@ -52,7 +52,7 @@ export const isSocial = (m: string): m is SocialMethod => (socialMethods as stri
 /** A tab on the guest page: one login method, or all social sign-ins together. */
 type LoginTab = Exclude<LoginMethod, SocialMethod> | 'social';
 const tabOf = (m: LoginMethod): LoginTab => (isSocial(m) ? 'social' : m);
-const loginTabs: LoginTab[] = ['free', 'email', 'sms', 'voucher', 'room', 'payment', 'social'];
+const loginTabs: LoginTab[] = ['free', 'email', 'sms', 'voucher', 'room', 'payment', 'approval', 'social'];
 export type FieldMode = 'off' | 'optional' | 'required';
 
 export type LoginContext = {
@@ -65,7 +65,7 @@ export type LoginContext = {
   action: string;
   active?: LoginMethod;
   error?: string;
-  values?: Partial<Record<'name' | 'email' | 'phone' | 'code' | 'package' | 'room' | 'surname', string>>;
+  values?: Partial<Record<'name' | 'email' | 'phone' | 'code' | 'package' | 'room' | 'surname' | 'message', string>>;
   /** SMS: a code was sent to this (masked) number; the form now asks for the code. */
   smsSent?: { masked: string; canResend: boolean };
   /** SMS: the country code assumed for numbers without one, shown as a hint. */
@@ -261,6 +261,7 @@ const methodLabel = (s: GuestStrings, m: LoginMethod) =>
     voucher: s.methodVoucher,
     room: s.methodRoom,
     payment: s.methodPayment,
+    approval: s.methodApproval,
     facebook: s.methodFacebook,
     google: s.methodGoogle,
     apple: s.methodApple,
@@ -350,6 +351,13 @@ function methodForm(m: Exclude<LoginMethod, SocialMethod>, ctx: RenderContext, c
       `<p class="cp-field"><span>${esc(s.choosePackage)}</span></p><div class="cp-pkgs">${pkgs}</div>` +
       field(s.emailForReceipt, login.paymentEmail, input('email', 'email', login.paymentEmail, v.email, ' autocomplete="email" maxlength="254"'), s);
     button = s.pay;
+  } else if (m === 'approval') {
+    fields =
+      `<p class="cp-sent">${esc(s.approvalIntro)}</p>` +
+      field(s.name, 'required', input('name', 'text', 'required', v.name, ' autocomplete="name" maxlength="120"'), s) +
+      field(s.email, 'optional', input('email', 'email', 'optional', v.email, ' autocomplete="email" maxlength="254"'), s) +
+      field(s.approvalMessage, 'optional', `<textarea class="cp-input" name="message" maxlength="500">${esc(v.message ?? '')}</textarea>`, s);
+    button = s.approvalSend;
   }
   return `${open()}${fields}${termsCheck(s, login)}<button class="cp-btn" type="submit">${esc(button)}</button></form>`;
 }

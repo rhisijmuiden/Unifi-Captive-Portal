@@ -189,6 +189,16 @@ export function defaultMailTemplate(kind: MailKind, locale: Locale): MailContent
         { type: 'text', text: m('receiptKeep') },
       ],
     },
+    accessRequest: {
+      subject: m('accessRequestSubject'),
+      blocks: [
+        { type: 'heading', text: m('accessRequestTitle') },
+        { type: 'text', text: m('accessRequestBody') },
+        { type: 'data' },
+        { type: 'button', label: m('accessRequestButton'), url: '{{actionUrl}}' },
+        { type: 'text', text: m('accessRequestIgnore') },
+      ],
+    },
   };
   const { subject, blocks } = spec[kind];
   const design = { version: 1 as const, theme: { ...defaultMailTheme }, blocks: blocks.map(block) };

@@ -2,7 +2,7 @@
 
 [English](ROADMAP.md) · **Nederlands**
 
-Laatst bijgewerkt: 22 oktober 2026. Deze roadmap wordt na elke grote build bijgewerkt.
+Laatst bijgewerkt: 5 november 2026. Deze roadmap wordt na elke grote build bijgewerkt.
 
 Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 
@@ -98,6 +98,7 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - 🧪 **Eenvoudig wachtwoord resetten (1.0.1-beta.1)**: reset-e-mail of nieuwe inloggegevens voor gebruikers, klanten en resellers, vanuit Gebruikers, Klanten en Resellers.
 - 🧪 **UniFi Fabric (1.0.1-beta.2)**: consoles van een UniFi Fabric koppelen met één API-sleutel, meerdere tegelijk, met een melding voor consoles die later bij de Fabric komen.
 - 🧪 **Open source onder de GNU AGPL v3 (1.0.1-beta.3)**: `LICENSE`-bestand, licentie in alle manifesten en in het Info-venster met een link naar de broncode van de draaiende versie.
+- 🧪 **Toegang vragen (1.0.1-beta.4)**: gasten vragen toegang en beheerders die jij kiest keuren het per e-mail goed of af; goedgekeurde apparaten worden verbonden (en desgewenst onthouden), afgewezen apparaten blijven van het netwerk totdat ze gedeblokkeerd worden. Plus een Dockerfile en docker-compose.yml om in containers te testen.
 
 ## Later
 

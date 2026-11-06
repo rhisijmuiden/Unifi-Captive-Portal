@@ -5,7 +5,7 @@ import type { PortalSettings } from '../db/schema.js';
 import { DEFAULT_LOCALE, normalizeLocale, t, type Locale } from '../i18n/index.js';
 import { authorizeSession, createGuestSession, designFor, getPortalSettings, isExpired, resolveSite } from '../services/guests.js';
 import { hostnameTenant, tenantPortalOrigin } from '../services/hostnames.js';
-import { sendGuestMail } from '../services/notifications.js';
+import { formatDateTime, sendGuestMail } from '../services/notifications.js';
 import { packageName, PaymentError, refreshPayment, startPayment, verifyStripeSignature } from '../services/payments.js';
 import { adminBaseUrl } from '../services/settings.js';
 import { getTenantSettings } from '../services/tenantSettings.js';
@@ -19,12 +19,26 @@ import { completePrivacyRequest, createPrivacyRequest, findPrivacyRequest, knows
 import { audit } from '../lib/auth.js';
 import type { GuestSession, PortalAd } from '../db/schema.js';
 import { oidcConfigured, oidcLoginUrl, oidcProfile, oidcProviders, type OidcProvider } from '../services/socialLogin.js';
+import {
+  approvalReady,
+  createAccessRequest,
+  decide,
+  deviceGate,
+  dropRequest,
+  findByToken,
+  gateFor,
+  grantRequestedVisit,
+  grantVisit,
+  latestForDevice,
+  sendAccessRequestMails,
+  viewStatus,
+} from '../services/accessRequests.js';
 import { fill, guestStrings, moneyLabel, type GuestStrings } from '../shared/guestStrings.js';
 import { pickText, type LoginContext, type LoginMethod } from '../shared/portalDesign.js';
-import { esc, renderGuestPage, renderMessage } from '../views/portal.js';
+import { esc, renderDetails, renderGuestPage, renderMessage } from '../views/portal.js';
 
 type GuestQuery = { id?: string; ap?: string; ssid?: string; url?: string; t?: string; lang?: string };
-type ConnectBody = Partial<Record<'method' | 'terms' | 'lang' | 'name' | 'email' | 'phone' | 'marketing' | 'code' | 'package' | 'room' | 'surname' | 'resend', string>>;
+type ConnectBody = Partial<Record<'method' | 'terms' | 'lang' | 'name' | 'email' | 'phone' | 'marketing' | 'code' | 'package' | 'room' | 'surname' | 'resend' | 'message', string>>;
 
 const MAC_RE = /^([0-9a-f]{2}[:-]?){5}[0-9a-f]{2}$/i;
 const EMAIL_RE = /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[a-z]{2,}$/i;
@@ -99,6 +113,7 @@ async function loginContext(p: PortalSettings, locale: Locale, action: string): 
     const social = await getTenantSettings(p.tenantId, 'social');
     methods = methods.filter((m) => (m === 'facebook' ? facebookConfigured(social) : (oidcProviders as string[]).includes(m) ? oidcConfigured(social, m as OidcProvider) : true));
   }
+  if (methods.includes('approval') && !(await approvalReady(p.auth))) methods = methods.filter((m) => m !== 'approval');
   let smsCountry: string | undefined;
   if (methods.includes('sms')) {
     const sms = await getTenantSettings(p.tenantId, 'sms');
@@ -222,12 +237,48 @@ export async function guestPortalRoutes(app: FastifyInstance) {
 
   const expired = (reply: FastifyReply, locale: Locale) => html(reply, renderMessage(locale, t(locale, 'portal.expiredTitle'), t(locale, 'portal.expiredBody')), 410);
 
+  const pageOpts = async (p: PortalSettings, path: string) => ({ design: designFor(p), languages: p.languages, path, privacyHref: await privacyPath(p.tenantId), designedBy: await designedByFor(p.tenantId) });
+
+  const denied = async (reply: FastifyReply, p: PortalSettings, locale: Locale, path: string) => {
+    const g = guestStrings[locale];
+    return html(reply, renderMessage(locale, g.approvalDeniedTitle, g.approvalDeniedBody, await pageOpts(p, path)), 403);
+  };
+
+  /** Connects a visit on an approval, or shows why it could not be done with a way to try again. */
+  const connectApproved = async (reply: FastifyReply, s: GuestSession, p: PortalSettings, locale: Locale, request: Parameters<typeof grantVisit>[1], retryHref: string) => {
+    const result = await grantVisit(s, request, { retries: 1 });
+    if (result.ok) return reply.redirect(`/portal/${s.token}/done`, 303);
+    const g = guestStrings[locale];
+    const retry = `<a class="cp-btn" href="${esc(retryHref)}">${esc(g.retry)}</a>`;
+    return html(reply, renderMessage(locale, g.failedTitle, g.failedBody, { ...(await pageOpts(p, `/portal/${s.token}`)), extra: retry }), 502);
+  };
+
+  /**
+   * "Ask for access" decides before any way of connecting is offered. Only while the method is
+   * switched on: turning it off makes the portal behave as before, rejections included.
+   */
+  const approvalGate = async (req: FastifyRequest, reply: FastifyReply, s: GuestSession, p: PortalSettings, locale: Locale) => {
+    if (!p.auth.methods.includes('approval')) return null;
+    const gate = await deviceGate(s, p.auth);
+    const path = `/portal/${s.token}`;
+    if (gate.kind === 'blocked') return denied(reply, p, locale, path);
+    if (gate.kind === 'waiting') return reply.header('cache-control', 'no-store').redirect(`${path}/approval?lang=${locale}`, 303);
+    if (gate.kind === 'approved') {
+      req.log.info({ session: s.id, request: gate.request.id }, 'approved device connected');
+      return connectApproved(reply, s, p, locale, gate.request, `${path}?lang=${locale}`);
+    }
+    return null;
+  };
+
   app.get<{ Params: { token: string }; Querystring: { lang?: string } }>('/portal/:token', async (req, reply) => {
     const s = await loadSession(req.params.token);
     if (!s || isExpired(s)) return expired(reply, guestLocale(req, req.query.lang, Object.keys(guestStrings)));
     if (s.status === 'authorized' && s.accessUntil && s.accessUntil > new Date()) return reply.redirect(`/portal/${s.token}/done`);
     const p = await getPortalSettings(s.tenantId);
     const locale = guestLocale(req, req.query.lang ?? s.locale, p.languages);
+    // "Ask for access": a rejected device gets nothing, a waiting one its waiting page, an approved one goes on
+    const gated = await approvalGate(req, reply, s, p, locale);
+    if (gated) return gated;
     // A splash advert once per guest page, before the sign-in options
     if (!s.adSeenAt) {
       const ad = await pickAd(s.tenantId, 'before');
@@ -263,6 +314,8 @@ export async function guestPortalRoutes(app: FastifyInstance) {
       const locale = guestLocale(req, body.lang ?? s.locale, p.languages);
       const g: GuestStrings = guestStrings[locale];
       const path = `/portal/${s.token}`;
+      // A rejected or waiting device cannot get around the decision with another way of connecting
+      if (p.auth.methods.includes('approval') && (await deviceGate(s, p.auth)).kind !== 'open') return reply.redirect(`${path}?lang=${locale}`, 303);
       const login = await loginContext(p, locale, `${path}/connect`);
       const method = (login.methods.includes(body.method as LoginMethod) ? body.method : login.methods.length === 1 ? login.methods[0] : null) as LoginMethod | null;
       const values = {
@@ -273,6 +326,8 @@ export async function guestPortalRoutes(app: FastifyInstance) {
         package: clean(body.package, 40),
         room: clean(body.room, 20),
         surname: clean(body.surname, 80),
+        // Line breaks are fine in a message; other control characters are not
+        message: (body.message ?? '').replace(/\r\n?/g, '\n').replace(/[\u0000-\u0009\u000b-\u001f]/g, '').trim().slice(0, 500),
       };
       const fail = (error: string, status = 400, smsSent?: LoginContext['smsSent']) => render(req, reply, p, { locale, path, action: `${path}/connect`, error, active: method ?? undefined, values, status, smsSent });
 
@@ -291,6 +346,29 @@ export async function guestPortalRoutes(app: FastifyInstance) {
       if (method === 'free') {
         const result = await authorizeSession(s, { record: { method, locale } });
         return result.ok ? reply.redirect(`${path}/done`, 303) : failed(result.error);
+      }
+
+      if (method === 'approval') {
+        if (!values.name) return fail(g.nameRequired);
+        if (values.email && !EMAIL_RE.test(values.email)) return fail(g.emailInvalid);
+        const { request, links } = await createAccessRequest({
+          session: s,
+          approvers: p.auth.approvers,
+          name: values.name,
+          email: values.email || null,
+          message: values.message || null,
+          locale,
+        });
+        const origin = (await tenantPortalOrigin(s.tenantId)) ?? (await adminBaseUrl());
+        const sent = await sendAccessRequestMails(request, links, { origin, fallbackLocale: normalizeLocale(p.languages[0]) ?? DEFAULT_LOCALE });
+        if (!sent) {
+          // Nobody heard about it: forget the request so the guest is not left waiting
+          await dropRequest(request.id);
+          req.log.error({ session: s.id }, 'no access request e-mail could be sent');
+          return fail(g.approvalUnavailable, 502);
+        }
+        req.log.info({ session: s.id, request: request.id, approvers: sent }, 'access requested');
+        return reply.redirect(`${path}/approval?lang=${locale}`, 303);
       }
 
       if (method === 'email') {
@@ -620,6 +698,95 @@ export async function guestPortalRoutes(app: FastifyInstance) {
     if (s?.tenantId === ad.tenantId) await countAd(ad.id, 'clicks');
     return reply.header('cache-control', 'no-store').redirect(target);
   });
+
+  // ── "Ask for access": the guest waits, an approver decides ──
+
+  /**
+   * The guest's waiting page. Refreshes by itself; connects the device once approved. Not bound to
+   * the guest page's one-hour limit, because a decision can take longer.
+   */
+  app.get<{ Params: { token: string }; Querystring: { lang?: string } }>('/portal/:token/approval', async (req, reply) => {
+    const s = await loadSession(req.params.token);
+    if (!s) return expired(reply, guestLocale(req, req.query.lang, Object.keys(guestStrings)));
+    if (s.status === 'authorized' && s.accessUntil && s.accessUntil > new Date()) return reply.redirect(`/portal/${s.token}/done`, 303);
+    const p = await getPortalSettings(s.tenantId);
+    const locale = guestLocale(req, req.query.lang ?? s.locale, p.languages);
+    const g = guestStrings[locale];
+    const path = `/portal/${s.token}`;
+    if (!p.auth.methods.includes('approval')) return reply.redirect(`${path}?lang=${locale}`, 303);
+    const latest = await latestForDevice(s.tenantId, s.clientMac);
+    const gate = gateFor(latest, s, p.auth.approvalRemember);
+    if (gate.kind === 'blocked') return denied(reply, p, locale, `${path}/approval`);
+    if (gate.kind === 'approved') return connectApproved(reply, s, p, locale, gate.request, `${path}/approval?lang=${locale}`);
+    if (gate.kind === 'waiting') {
+      const self = `${path}/approval?lang=${locale}`;
+      return html(reply, renderMessage(locale, g.approvalWaitTitle, g.approvalWaitBody, { ...(await pageOpts(p, `${path}/approval`)), refresh: { seconds: 5, url: self } }));
+    }
+    // Nothing open any more: expired unanswered, or an admin cleared the decision
+    if (latest && viewStatus(latest) === 'expired') {
+      const retry = `<a class="cp-btn" href="${esc(path)}?lang=${locale}">${esc(g.retry)}</a>`;
+      return html(reply, renderMessage(locale, g.approvalExpiredTitle, g.approvalExpiredBody, { ...(await pageOpts(p, `${path}/approval`)), extra: retry }));
+    }
+    return reply.redirect(`${path}?lang=${locale}`, 303);
+  });
+
+  /** The approver's page behind the e-mailed link: the request, and buttons that post the decision. */
+  const reviewPage = async (req: FastifyRequest<{ Params: { token: string }; Querystring: { lang?: string } }>, reply: FastifyReply, decision?: 'approve' | 'reject') => {
+    const hit = await findByToken(req.params.token.slice(0, 100));
+    const p = hit ? await getPortalSettings(hit.request.tenantId) : null;
+    const locale = guestLocale(req, req.query.lang, p?.languages ?? Object.keys(guestStrings));
+    const g = guestStrings[locale];
+    const path = req.url.split('?')[0];
+    if (!hit || !p) return html(reply, renderMessage(locale, g.approverExpiredTitle, g.approverExpiredBody), 410);
+    const opts = { design: designFor(p), languages: p.languages, path, designedBy: await designedByFor(p.tenantId) };
+    let request = hit.request;
+
+    if (decision) {
+      const decided = await decide(request.id, decision === 'approve' ? 'approved' : 'rejected', hit.approver);
+      if (decided) {
+        await audit(req, decision === 'approve' ? 'access.approved' : 'access.rejected', { request: decided.id, clientMac: decided.clientMac, by: hit.approver, via: 'email' }, decided.tenantId);
+        if (decided.status === 'approved') {
+          const granted = await grantRequestedVisit(decided);
+          if (!granted.ok) req.log.info({ request: decided.id, error: granted.error }, 'approved device not connected yet; it is when the guest checks back');
+          return html(reply, renderMessage(locale, g.approverApprovedTitle, g.approverApprovedBody, opts));
+        }
+        return html(reply, renderMessage(locale, g.approverRejectedTitle, g.approverRejectedBody, opts));
+      }
+      // Someone else was first, or the request expired meanwhile: show how it stands now
+      request = (await findByToken(req.params.token.slice(0, 100)))?.request ?? request;
+    }
+
+    const status = viewStatus(request);
+    if (status === 'expired') return html(reply, renderMessage(locale, g.approverExpiredTitle, g.approverExpiredBody, opts), 410);
+    const details = renderDetails([
+      [g.name, request.name],
+      [g.email, request.email],
+      [g.approvalMessage, request.message],
+      [g.approverNetwork, request.ssid],
+      [g.approverDevice, request.clientMac],
+      [g.approverRequested, formatDateTime(locale, request.createdAt)],
+    ]);
+    if (status === 'pending') {
+      const action = `${esc(path)}?lang=${locale}`;
+      const buttons = `<form method="post" action="${action}"><button class="cp-btn" type="submit" name="decision" value="approve">${esc(g.approverApprove)}</button><button class="cp-btn cp-btn-outline" style="margin-top:10px" type="submit" name="decision" value="reject">${esc(g.approverReject)}</button></form>`;
+      return html(reply, renderMessage(locale, g.approverTitle, g.approverBody, { ...opts, extra: details + buttons }));
+    }
+    const title = status === 'approved' ? g.approverApprovedTitle : status === 'rejected' ? g.approverRejectedTitle : g.approverTitle;
+    const decided = fill(g.approverDecided, { by: request.decidedBy ?? '—', time: request.decidedAt ? formatDateTime(locale, request.decidedAt) : '—' });
+    return html(reply, renderMessage(locale, title, decided, { ...opts, extra: details }));
+  };
+
+  // The link only shows the request; deciding is a POST, so link scanners in mail filters cannot decide
+  app.get<{ Params: { token: string }; Querystring: { lang?: string } }>('/portal/approval/:token', (req, reply) => reviewPage(req, reply));
+  app.post<{ Params: { token: string }; Querystring: { lang?: string }; Body: { decision?: string } }>(
+    '/portal/approval/:token',
+    // Per link, not per IP: approvers in one office share an address. The tokens cannot be guessed.
+    { config: { rateLimit: { max: 10, timeWindow: '1 minute', keyGenerator: (req: FastifyRequest) => `approval:${(req.params as { token?: string }).token ?? req.ip}` } } },
+    (req, reply) => {
+      const d = req.body?.decision;
+      return reviewPage(req, reply, d === 'approve' || d === 'reject' ? d : undefined);
+    },
+  );
 
   // ── Privacy: guests ask for their data to be erased (GDPR art. 17) ──
 

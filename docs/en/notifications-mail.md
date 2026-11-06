@@ -47,7 +47,7 @@ Use the arrows to browse months and **E-mail this report to me** to send it at o
 
 Every e-mail the platform sends can be designed, visually or in HTML.
 
-- **Customers** (under **Insights → Guest e-mails**) design the e-mails their guests and admins receive: *Welcome for guests*, *Payment receipt*, *Hostname is live* and *Monthly report*.
+- **Customers** (under **Insights → Guest e-mails**) design the e-mails their guests and admins receive: *Welcome for guests*, *Payment receipt*, *Access request (approvers)*, *Hostname is live* and *Monthly report*.
 - **The platform admin** (under **System → E-mail templates**) designs the platform-wide versions of all e-mails, including invitations, password reset and the SMTP test. Customers without their own version get these.
 
 Order: the customer's own version → the platform version → the built-in default. **Back to standard** removes your own version.

@@ -15,6 +15,38 @@ npm run dev                   # API op :8080, Vite op :5173 (proxy naar de API)
 
 Open http://localhost:5173. Bij de eerste keer start de installatiewizard.
 
+## Draaien in containers
+
+Om te testen, of voor een kleine installatie op elke Docker-host. De ondersteunde productie-installatie blijft de installer (Caddy met HTTPS-hostnames, updates vanuit de interface).
+
+```bash
+cp docker.env.example docker.env   # vul APP_SECRET (openssl rand -hex 32) en PUBLIC_URL in
+docker compose --env-file docker.env up -d --build
+```
+
+| Poort | Wat |
+| --- | --- |
+| 8080 | Beheeromgeving |
+| 80 | Gasten: de *External portal server* in UniFi is alleen een IP-adres, dus gasten komen binnen op poort 80 |
+| 8025 | Mailpit, dat elke e-mail opvangt, als `COMPOSE_PROFILES=mailpit` is ingesteld |
+
+- Met Mailpit stel je de SMTP van de app in op host `mail`, poort `1025`, beveiliging *geen*, zonder authenticatie.
+- De database en de gegevens van de app staan in de volumes `db` en `data`. `docker compose down -v` verwijdert ze voor een schone start.
+- Updaten vanuit de interface staat uit in een container: bouw opnieuw met `docker compose up -d --build`.
+- De image naar een andere host zonder registry: `docker save captive-portal:local | gzip > image.tar.gz`, kopieer die met `docker-compose.yml` en `docker.env`, en draai daar `docker load < image.tar.gz` en `docker compose --env-file docker.env up -d`.
+
+## Een niet-gepubliceerde versie testen
+
+Om een branch op een echte server te proberen (bijvoorbeeld een Proxmox-LXC) voordat hij ergens gepusht is, pak je hem in een git-bundle en wijs je de installer daarnaar:
+
+```bash
+git bundle create captive-portal.bundle mijn-branch    # op je eigen machine; commit eerst je wijzigingen
+# kopieer captive-portal.bundle en install/install.sh naar de server, en daar:
+CP_REPO_URL=/root/captive-portal.bundle CP_REF=mijn-branch bash install.sh
+```
+
+Draai de installer opnieuw met een nieuwe bundle om bij te werken. Updates vanuit de interface kijken nog naar GitHub, dus laat die met rust op een testinstallatie.
+
 ## Projectstructuur
 
 ```

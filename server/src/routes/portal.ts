@@ -3,12 +3,15 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { db, schema } from '../db/index.js';
 import { audit, tenantScope } from '../lib/auth.js';
-import { notFound } from '../lib/errors.js';
+import { badRequest, notFound } from '../lib/errors.js';
 import { uuidParam } from '../lib/ids.js';
 import { getPortalSettings } from '../services/guests.js';
 import { formatCode } from '../services/vouchers.js';
 import { guestLocales } from '../shared/guestStrings.js';
 import { loginMethods, type LoginMethod } from '../shared/portalDesign.js';
+import { clearDecision, decide, grantRequestedVisit, listAccessRequests, MAX_APPROVERS } from '../services/accessRequests.js';
+
+export const accessDecisionInput = z.object({ decision: z.enum(['approve', 'reject', 'clear']) });
 
 const texts = z.record(z.string().regex(/^[a-z]{2}$/), z.string().max(5000));
 
@@ -37,6 +40,9 @@ export const portalInput = z.object({
     marketingOptIn: z.boolean(),
     welcomeMail: z.boolean(),
     paymentEmail: fieldMode,
+    // Defaults keep API clients that predate "Ask for access" working
+    approvers: z.array(z.string().trim().toLowerCase().email('errors.emailFormat').max(254)).max(MAX_APPROVERS).default([]),
+    approvalRemember: z.boolean().default(true),
   }),
   languages: z.array(z.enum(guestLocales as [string, ...string[]])).min(1).max(guestLocales.length),
 });
@@ -49,7 +55,11 @@ export async function portalRoutes(app: FastifyInstance) {
 
   app.put('/api/portal-settings', async (req) => {
     const parsed = portalInput.parse(req.body);
-    const values = { ...parsed, languages: [...new Set(parsed.languages)], auth: { ...parsed.auth, methods: [...new Set(parsed.auth.methods)] } };
+    const values = {
+      ...parsed,
+      languages: [...new Set(parsed.languages)],
+      auth: { ...parsed.auth, methods: [...new Set(parsed.auth.methods)], approvers: [...new Set(parsed.auth.approvers)] },
+    };
     const tenantId = tenantScope(req, true);
     const [settings] = await db
       .insert(schema.portalSettings)
@@ -88,6 +98,28 @@ export async function portalRoutes(app: FastifyInstance) {
       guests: sessions.map(({ session: { token: _token, ...s }, siteName, voucherCode, packageName }) => ({ ...s, siteName, voucherCode: voucherCode && formatCode(voucherCode), packageName })),
       stats: { today: today.value, active: online.value },
     };
+  });
+
+  // "Ask for access": the requests, newest first; the latest one per device is the one in force
+  app.get('/api/access-requests', async (req) => {
+    const tenantId = tenantScope(req);
+    return { requests: await listAccessRequests(tenantId) };
+  });
+
+  /** An admin decides an open request, revokes an approval or unblocks a rejected device. */
+  app.post<{ Params: { id: string } }>('/api/access-requests/:id/decision', async (req) => {
+    const tenantId = tenantScope(req, true);
+    const id = uuidParam(req.params.id);
+    const { decision } = accessDecisionInput.parse(req.body);
+    const by = req.user?.email ?? (req.apiKey ? `API key ${req.apiKey.name ?? ''}`.trim() : 'admin');
+    const owned = await db.query.accessRequests.findFirst({ where: and(eq(schema.accessRequests.id, id), eq(schema.accessRequests.tenantId, tenantId)), columns: { id: true } });
+    if (!owned) throw notFound();
+    const updated = decision === 'clear' ? await clearDecision(tenantId, id, by) : await decide(id, decision === 'approve' ? 'approved' : 'rejected', by, { allowExpired: true });
+    if (!updated) throw badRequest('errors.accessRequestDecided');
+    await audit(req, `access.${updated.status}`, { request: updated.id, clientMac: updated.clientMac, via: 'admin' }, tenantId);
+    // Approved: connect the device right away when it is still waiting on the network
+    const connected = updated.status === 'approved' ? (await grantRequestedVisit(updated)).ok : false;
+    return { ok: true, status: updated.status, connected };
   });
 
   // Removes a guest's personal data (e.g. on request under the GDPR)

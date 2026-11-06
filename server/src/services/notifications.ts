@@ -179,6 +179,16 @@ export async function runMonthlyReports(now = new Date()) {
 
 // ── Guest e-mails ────────────────────────────────────────────────────────────
 
+/** Label/value rows for the {{{data}}} block of an e-mail, as HTML and as plain text. */
+export function dataRows(rows: [string, string][]) {
+  const data = rows.length
+    ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:15px;margin:8px 0 16px">${rows
+        .map(([l, v]) => `<tr><td style="padding:8px 0;border-bottom:1px solid #DCE1EB;color:#4F5B73">${esc(l)}</td><td style="padding:8px 0;border-bottom:1px solid #DCE1EB;text-align:right;font-weight:700">${esc(v)}</td></tr>`)
+        .join('')}</table>`
+    : '';
+  return { raw: { data }, dataText: rows.map(([l, v]) => `${l}: ${v}`).join('\n') };
+}
+
 /** Welcome and receipt e-mails to guests; never throws, a failed e-mail must not block access. */
 export async function sendGuestMail(
   kind: Extract<MailKind, 'guestWelcome' | 'paymentReceipt' | 'guestPrivacy'>,
@@ -203,12 +213,7 @@ export async function sendGuestMail(
       date: formatDateTime(locale, input.date ?? new Date()),
     };
     const rows = [...(input.rows ?? []), ...(input.date ? [[t(locale, 'mail.receiptDate'), vars.date] as [string, string]] : [])];
-    const data = rows.length
-      ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:15px;margin:8px 0 16px">${rows
-          .map(([l, v]) => `<tr><td style="padding:8px 0;border-bottom:1px solid #DCE1EB;color:#4F5B73">${esc(l)}</td><td style="padding:8px 0;border-bottom:1px solid #DCE1EB;text-align:right;font-weight:700">${esc(v)}</td></tr>`)
-          .join('')}</table>`
-      : '';
-    const { subject, html, text } = await renderTemplate(kind, locale, tenantId, { vars, raw: { data }, dataText: rows.map(([l, v]) => `${l}: ${v}`).join('\n') });
+    const { subject, html, text } = await renderTemplate(kind, locale, tenantId, { vars, ...dataRows(rows) });
     await sendMail(to, subject, { html, text });
     return true;
   } catch (err) {

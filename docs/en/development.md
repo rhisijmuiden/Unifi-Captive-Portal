@@ -15,6 +15,38 @@ npm run dev                   # API on :8080, Vite on :5173 (proxies to the API)
 
 Open http://localhost:5173. The setup wizard starts the first time.
 
+## Running in containers
+
+For testing, or a small install on any Docker host. The supported production install is still the installer (Caddy with HTTPS hostnames, in-app updates).
+
+```bash
+cp docker.env.example docker.env   # set APP_SECRET (openssl rand -hex 32) and PUBLIC_URL
+docker compose --env-file docker.env up -d --build
+```
+
+| Port | What |
+| --- | --- |
+| 8080 | Admin panel |
+| 80 | Guests: UniFi's *External portal server* is an IP address only, so guests arrive on port 80 |
+| 8025 | Mailpit, which catches every e-mail, when `COMPOSE_PROFILES=mailpit` is set |
+
+- With Mailpit, set the app's SMTP to host `mail`, port `1025`, security *none*, no authentication.
+- The database and the app's data live in the volumes `db` and `data`. `docker compose down -v` deletes them for a clean start.
+- In-app updates are off in a container: rebuild with `docker compose up -d --build` instead.
+- To move the image to another host without a registry: `docker save captive-portal:local | gzip > image.tar.gz`, copy it with `docker-compose.yml` and `docker.env`, then `docker load < image.tar.gz` and `docker compose --env-file docker.env up -d` there.
+
+## Testing an unpublished build
+
+To try a branch on a real server (for example a Proxmox LXC) before it is pushed anywhere, pack it into a git bundle and point the installer at it:
+
+```bash
+git bundle create captive-portal.bundle my-branch      # on your machine; commit your changes first
+# copy captive-portal.bundle and install/install.sh to the server, then there:
+CP_REPO_URL=/root/captive-portal.bundle CP_REF=my-branch bash install.sh
+```
+
+Run the installer again with a new bundle to update. In-app updates still look at GitHub, so leave them alone on a test install.
+
 ## Project layout
 
 ```

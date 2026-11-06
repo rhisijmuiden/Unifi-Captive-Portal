@@ -169,6 +169,9 @@ export async function forgetEmail(tenantId: string, rawEmail: string) {
     .set({ name: null, email: null, phone: null, marketingOptIn: false })
     .where(and(eq(g.tenantId, tenantId), sql`lower(${g.email}) = ${email}`))
     .returning({ id: g.id });
+  // "Ask for access": what the guest typed in the request; the decision itself stays
+  const a = schema.accessRequests;
+  await db.update(a).set({ name: null, email: null, message: null }).where(and(eq(a.tenantId, tenantId), sql`lower(${a.email}) = ${email}`));
   const contacts = await db.delete(schema.guestContacts).where(and(eq(schema.guestContacts.tenantId, tenantId), eq(schema.guestContacts.email, email))).returning({ id: schema.guestContacts.id });
   let providerError: string | null = null;
   try {
@@ -188,6 +191,7 @@ export async function knowsEmail(tenantId: string, email: string) {
     .where(and(eq(schema.guestSessions.tenantId, tenantId), sql`lower(${schema.guestSessions.email}) = ${e}`))
     .limit(1);
   if (hit) return true;
+  if (await db.query.accessRequests.findFirst({ where: and(eq(schema.accessRequests.tenantId, tenantId), sql`lower(${schema.accessRequests.email}) = ${e}`), columns: { id: true } })) return true;
   return Boolean(await db.query.guestContacts.findFirst({ where: and(eq(schema.guestContacts.tenantId, tenantId), eq(schema.guestContacts.email, e)) }));
 }
 

@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BedDouble, Clock, CreditCard, Gauge, HardDrive, Mail, MessageSquareText, MousePointerClick, Palette, PlugZap, Ticket } from 'lucide-react';
+import { BedDouble, Clock, CreditCard, Gauge, HardDrive, Mail, MessageSquareText, MousePointerClick, Palette, PlugZap, Ticket, UserCheck } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
+import { AccessRequests, ApprovalSettings } from '../components/ApprovalSettings';
 import { Copyable, Segmented } from '../components/controls';
 import { AppleIcon, GoogleIcon, MicrosoftIcon, ProviderSettings, RoomLoginCard, Section, SmsSettings, SocialCommon } from '../components/SignInSettings';
 import { Button, Card, Field, Input, PageHeader, Spinner, Switch, Textarea, cx } from '../components/ui';
@@ -13,8 +14,8 @@ import { useTenantScope } from '../lib/tenant';
 
 type Texts = Record<string, string>;
 type FieldMode = 'off' | 'optional' | 'required';
-type Method = 'free' | 'email' | 'sms' | 'voucher' | 'room' | 'payment' | 'facebook' | 'google' | 'apple' | 'microsoft';
-const allMethods: Method[] = ['free', 'email', 'sms', 'voucher', 'room', 'payment', 'facebook', 'google', 'apple', 'microsoft'];
+type Method = 'free' | 'email' | 'sms' | 'voucher' | 'room' | 'payment' | 'approval' | 'facebook' | 'google' | 'apple' | 'microsoft';
+const allMethods: Method[] = ['free', 'email', 'sms', 'voucher', 'room', 'payment', 'approval', 'facebook', 'google', 'apple', 'microsoft'];
 const social = ['facebook', 'google', 'apple', 'microsoft'] as const;
 type PortalSettings = {
   title: Texts;
@@ -27,7 +28,16 @@ type PortalSettings = {
   downKbps: number | null;
   upKbps: number | null;
   successUrl: string | null;
-  auth: { methods: Method[]; emailName: FieldMode; emailPhone: FieldMode; marketingOptIn: boolean; welcomeMail: boolean; paymentEmail: FieldMode };
+  auth: {
+    methods: Method[];
+    emailName: FieldMode;
+    emailPhone: FieldMode;
+    marketingOptIn: boolean;
+    welcomeMail: boolean;
+    paymentEmail: FieldMode;
+    approvers: string[];
+    approvalRemember: boolean;
+  };
   languages: string[];
 };
 
@@ -39,6 +49,7 @@ const methodIcons: Record<Method, ReactNode> = {
   voucher: <Ticket className="size-5" />,
   room: <BedDouble className="size-5" />,
   payment: <CreditCard className="size-5" />,
+  approval: <UserCheck className="size-5" />,
   google: <GoogleIcon />,
   apple: <AppleIcon />,
   microsoft: <MicrosoftIcon />,
@@ -233,6 +244,12 @@ export function PortalSettingsPage() {
 
             {form.auth.methods.includes('sms') && <SmsSettings canManage={scope.canManage} />}
             {form.auth.methods.includes('room') && <RoomLoginCard />}
+            {form.auth.methods.includes('approval') && (
+              <>
+                <ApprovalSettings approvers={form.auth.approvers} remember={form.auth.approvalRemember} onApprovers={(v) => setAuth('approvers', v)} onRemember={(v) => setAuth('approvalRemember', v)} />
+                <AccessRequests canManage={scope.canManage} />
+              </>
+            )}
             {form.auth.methods.includes('facebook') && <FacebookSettings canManage={scope.canManage} />}
             {(['google', 'microsoft', 'apple'] as const).map((p) => form.auth.methods.includes(p) && <ProviderSettings key={p} provider={p} canManage={scope.canManage} />)}
             {social.some((p) => form.auth.methods.includes(p)) && <SocialCommon providers={social.filter((p) => form.auth.methods.includes(p))} canManage={scope.canManage} />}

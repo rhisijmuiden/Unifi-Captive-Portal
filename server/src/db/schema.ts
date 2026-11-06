@@ -243,6 +243,10 @@ export type PortalAuth = {
   marketingOptIn: boolean;
   welcomeMail: boolean;
   paymentEmail: FieldMode;
+  /** "Ask for access": who receives the request by e-mail and decides. */
+  approvers: string[];
+  /** "Ask for access": an approved device is let in by itself on later visits, until the approval is revoked. */
+  approvalRemember: boolean;
 };
 export const defaultPortalAuth: PortalAuth = {
   methods: ['free'],
@@ -251,6 +255,8 @@ export const defaultPortalAuth: PortalAuth = {
   marketingOptIn: false,
   welcomeMail: false,
   paymentEmail: 'required',
+  approvers: [],
+  approvalRemember: true,
 };
 
 export const portalSettings = pgTable('portal_settings', {
@@ -844,6 +850,52 @@ export const privacyRequests = pgTable(
   },
   (t) => [index('privacy_requests_tenant_idx').on(t.tenantId, t.createdAt)],
 );
+
+/**
+ * "Ask for access": a guest's request to be let onto the network, decided by an approver
+ * through a link in an e-mail or by the customer's admin. The latest decision for a device
+ * counts: rejected keeps it off the portal until it is unblocked.
+ */
+export type AccessRequestStatus = 'pending' | 'approved' | 'rejected' | 'revoked' | 'unblocked';
+export const accessRequests = pgTable(
+  'access_requests',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    // The visit the request was made on; the guest's waiting page follows it
+    guestSessionId: uuid('guest_session_id').references(() => guestSessions.id, { onDelete: 'set null' }),
+    clientMac: text('client_mac').notNull(),
+    ssid: text('ssid'),
+    name: text('name'),
+    email: text('email'),
+    message: text('message'),
+    locale: text('locale'),
+    status: text('status').$type<AccessRequestStatus>().notNull().default('pending'),
+    // The approver's e-mail address, or the admin's, who decided
+    decidedBy: text('decided_by'),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('access_requests_device_idx').on(t.tenantId, t.clientMac, t.createdAt), index('access_requests_tenant_idx').on(t.tenantId, t.createdAt)],
+);
+
+/** One link per approver, so the decision shows who made it. Only the token's hash is stored. */
+export const accessRequestLinks = pgTable(
+  'access_request_links',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    requestId: uuid('request_id')
+      .notNull()
+      .references(() => accessRequests.id, { onDelete: 'cascade' }),
+    approver: text('approver').notNull(),
+    tokenHash: text('token_hash').notNull().unique(),
+  },
+  (t) => [index('access_request_links_request_idx').on(t.requestId)],
+);
+
+export type AccessRequest = typeof accessRequests.$inferSelect;
 
 /** Answers to the short survey after signing in. */
 export const surveyResponses = pgTable(

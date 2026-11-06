@@ -123,6 +123,7 @@ De menunamen verschillen per Network-versie een beetje; de stappen zijn hetzelfd
 | *UniFi weigert de API-sleutel: die is niet aangemaakt door de eigenaar van de console* | De sleutel hoort bij een uitgenodigde beheerder. Maak hem aan als eigenaar van de console, of in de organisatie van je Fabric (zie [UniFi Fabric](#unifi-fabric)). |
 | Een console van de Fabric ontbreekt in de lijst | De sleutel heeft geen toegang tot die site, of de console zit in een andere Fabric. Pas de sitetoegang van de sleutel aan in unifi.ui.com; één sleutel geldt voor één Fabric. |
 | Status van de console *Fout* met *Console unreachable* | Rechtstreeks: het platform kan het adres van de console niet bereiken. Site Manager: de console is offline of niet gekoppeld aan het account van de API-sleutel. |
+| Een gast die je in UniFi verwijderde, is weer online | Met *Toegang vragen* en *Goedgekeurde apparaten onthouden* aan laat het portaal een goedgekeurd apparaat vanzelf weer binnen. Gebruik **Intrekken** of **Afwijzen** bij **Toegang & inloggen → Verzoeken om toegang**, of blokkeer de client in UniFi. Zie [Toegang vragen](gasttoegang.md#toegang-vragen). |
 
 ## Privacy
 
