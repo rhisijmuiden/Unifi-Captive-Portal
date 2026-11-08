@@ -3,7 +3,7 @@ import { connectionInput, sitesInput } from '../routes/consoles.js';
 import { fabricInput, fabricLinkInput, fabricUpdate } from '../routes/fabrics.js';
 import { packageInput } from '../routes/payments.js';
 import { planInput, profileInput, invoiceInput } from '../routes/billing.js';
-import { portalInput } from '../routes/portal.js';
+import { accessDecisionInput, portalInput } from '../routes/portal.js';
 import { adminInput, tenantInput } from '../routes/tenants.js';
 import { resellerInput } from '../routes/resellers.js';
 import { userInput, userUpdateInput } from '../routes/users.js';
@@ -172,6 +172,15 @@ export const operations: Operation[] = [
 
   { method: 'GET', route: '/api/guests', tenant: 'guests', params: [{ name: 'limit', in: 'query', type: 'integer', text: { en: 'Maximum number (default 100, max. 500)', nl: 'Maximum aantal (standaard 100, max. 500)' } }], summary: { en: 'Latest guest sessions with statistics', nl: 'Laatste gastsessies met statistieken' } },
   { method: 'DELETE', route: '/api/guests/:id', tenant: 'guests', params: [id], summary: { en: "Delete a guest's personal data (GDPR)", nl: 'Persoonsgegevens van een gast verwijderen (AVG)' } },
+  { method: 'GET', route: '/api/access-requests', tenant: 'guests', summary: { en: '"Ask for access" requests, newest first', nl: 'Verzoeken via "Toegang vragen", nieuwste eerst' } },
+  {
+    method: 'POST',
+    route: '/api/access-requests/:id/decision',
+    tenant: 'guests',
+    params: [id],
+    body: accessDecisionInput,
+    summary: { en: 'Approve or reject a request, or clear a decision (revoke an approval, unblock a device)', nl: 'Verzoek goedkeuren of afwijzen, of een beslissing intrekken (goedkeuring intrekken, apparaat deblokkeren)' },
+  },
 
   { method: 'GET', route: '/api/vouchers', tenant: 'vouchers', summary: { en: 'List vouchers and batches', nl: 'Vouchers en batches' } },
   { method: 'POST', route: '/api/vouchers', tenant: 'vouchers', body: voucherInput, summary: { en: 'Create vouchers', nl: 'Vouchers aanmaken' } },

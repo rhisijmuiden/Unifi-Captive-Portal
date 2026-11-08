@@ -1,6 +1,6 @@
 {
   "name": "@captive-portal/server",
-  "version": "1.0.1-beta.3",
+  "version": "1.0.1-beta.4",
   "license": "AGPL-3.0-only",
   "private": true,
   "type": "module",

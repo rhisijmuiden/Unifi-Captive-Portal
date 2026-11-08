@@ -50,6 +50,7 @@ You can safely run the installer again; existing settings and data are kept.
 | Variable | Meaning | Default |
 | --- | --- | --- |
 | `CP_REF` | Version (tag) or branch to install, e.g. `v0.1.0` | latest release, otherwise `main` |
+| `CP_REPO_URL` | Git repository to install from: a fork, or a local git bundle (see [Development](development.md#testing-an-unpublished-build)) | this project on GitHub |
 | `CP_PUBLIC_URL` | Address where the admin interface is reachable | `http://<server-ip>:8080` |
 | `CP_NODE_MAJOR` | Node.js major version | `24` |
 | `CP_ACME_EMAIL` | E-mail address for Let's Encrypt expiry notices | empty |

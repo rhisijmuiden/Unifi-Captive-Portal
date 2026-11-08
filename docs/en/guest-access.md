@@ -12,6 +12,7 @@ Under **Captive portals → Access & sign-in** you choose how guests get online.
 | **Pay for access** | Chooses a package and pays with Mollie or Stripe. | The money, straight into your own account. |
 | **Text message code** | Types a mobile number and the code from the text. | A confirmed phone number. See [SMS and social login](sms-social-login.md). |
 | **Room number and surname** | Types the room number and surname. | Hotel guests online until departure. See [Hotel login](hotel-login.md). |
+| **Ask for access** | Gives a name and waits while someone you chose approves or rejects by e-mail. | A say over every new device. See [Ask for access](#ask-for-access). |
 | **Continue with Facebook** | Signs in with Facebook. | Name and e-mail address from Facebook. |
 | **Continue with Google, Apple or Microsoft** | Signs in with that account. | Name and e-mail address. See [SMS and social login](sms-social-login.md). |
 
@@ -22,6 +23,52 @@ On the same page you set the terms (per language), whether accepting them is req
 - **Name** and **Phone number** can each be *not asked*, *optional* or *required*.
 - **Ask permission for news and offers** adds a separate, unticked checkbox. Only guests who tick it have *opt-in* in the guest list; use only those for marketing.
 - **Send a welcome e-mail** sends the *Welcome for guests* e-mail; you can change it under **Guest e-mails**.
+
+## Ask for access
+
+The guest asks to be let in, and people you choose decide by e-mail. Use it for a private network where you want to know every device.
+
+**Setting it up**, under **Access & sign-in**:
+
+1. Switch on **Ask for access**.
+2. Under **Approvers**, enter one e-mail address per line (at most 20).
+3. Choose whether to **Remember approved devices** (see below) and click **Save**.
+
+The requests go out with the platform's outgoing mail, so [SMTP](smtp.md) must be set up. Until there is at least one approver and working mail, guests do not see *Ask for access*.
+
+**What happens:**
+
+1. The guest fills in a name, and optionally an e-mail address and a message, and taps *Ask for access*.
+2. Every approver gets the e-mail *Access request (approvers)* with the name, message, network and device, and a personal link. You can change this e-mail under **Guest e-mails**.
+3. The guest sees a waiting page that checks by itself every few seconds.
+4. The approver opens the link and clicks **Approve** or **Reject**. Opening the link alone decides nothing, so mail scanners that follow links cannot approve a request. The first decision counts; the other approvers see who decided.
+5. **Approved**: the device goes online for the default time online, with the limits of the portal. **Rejected**: the guest is told so.
+
+A request that nobody decides within 24 hours expires, and the guest can ask again.
+
+**Remember approved devices**
+
+- **On** (default): an approved device is let in by itself on later visits, without asking again, until you revoke the approval.
+- **Off**: the guest asks again on every visit.
+
+**Managing requests**
+
+The list **Access requests** on the same page shows every request with its status and who decided. The latest request of a device decides what happens to it.
+
+| Button | Effect |
+| --- | --- |
+| **Approve** / **Reject** | Decides a waiting request, just like the link in the e-mail. |
+| **Revoke** | Ends the remembered approval. The device keeps its current access until it ends, then has to ask again. |
+| **Unblock** | Lifts a rejection, so the device can ask again. |
+
+A rejected device sees no way to connect, whatever sign-in method it tries, until you unblock it.
+
+**Good to know**
+
+- Removing a guest in UniFi (for example in Hotspot Manager) ends its current access, but with *Remember approved devices* on, the portal lets the device straight back in on its next visit. To keep a device out, **Revoke** or **Reject** it here.
+- For a hard block, independent of the portal, open the client in UniFi Network and choose **Block**. UniFi then refuses the device at the Wi-Fi level; undo it in UniFi too.
+- Phones often use a different random device address (MAC) per Wi-Fi network, and some change it over time. A device with a new address counts as a new device and has to ask again.
+- Whether the phone's sign-in window closes by itself after approval is up to the phone. The guest can close it once they see they are connected.
 
 ## Vouchers
 

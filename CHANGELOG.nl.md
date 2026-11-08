@@ -4,6 +4,29 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [1.0.1-beta.4] - 2026-11-05 (testkanaal)
+
+Toegang vragen: gasten vragen om op het netwerk te mogen, mensen die jij kiest keuren het per e-mail goed of af.
+
+- Nieuwe manier om verbinding te maken, **Toegang vragen**: de gast geeft zijn naam (en eventueel een e-mailadres en een bericht) en wacht op een pagina die vanzelf ververst.
+- Iedere beheerder die beslist krijgt een e-mail met **een eigen link** naar een pagina met Goedkeuren en Afwijzen. De eerste beslissing telt; de anderen zien wie besliste. Beslissen gaat met een knop op de pagina, zodat linkscanners in mailfilters niet kunnen beslissen.
+- **Goedgekeurd** verbindt het apparaat meteen. Met *Goedgekeurde apparaten onthouden* (standaard aan) komt het bij latere bezoeken vanzelf binnen, totdat de goedkeuring wordt ingetrokken.
+- **Afgewezen** houdt het apparaat van de portal, welke manier van verbinden het ook probeert, totdat een beheerder het deblokkeert.
+- Verzoeken zonder beslissing verlopen na 24 uur; de gast kan het dan opnieuw vragen.
+- Onder **Toegang & inloggen** stelt de beheerder in wie beslist en ziet alle verzoeken, met Goedkeuren, Afwijzen, Intrekken en Deblokkeren. Ook in de API (`/api/access-requests`, scope *guests*).
+- De e-mail aan de beslissers is een sjabloon dat klanten kunnen aanpassen onder **E-mailsjablonen**; een beslisser met een account hier krijgt hem in zijn eigen taal.
+- Het verwijderen van de gegevens van een gast (privacy) wist ook wat hij in zijn verzoeken typte. Beslissingen staan in het auditlog.
+
+### Containers
+
+- Een **Dockerfile** en **docker-compose.yml** draaien de app met PostgreSQL 17 (en eventueel Mailpit) als containers, om te testen of voor een kleine installatie. Zie *Draaien in containers* in de ontwikkelhandleiding.
+
+### Documentatie
+
+- *Toegang vragen* in de handleiding gasttoegang, inclusief wat er gebeurt als je een gast in UniFi verwijdert.
+- SMTP: een relaydienst gebruiken, en een tabel om problemen op te lossen (TLS/STARTTLS verwisseld, outlook.com-accounts, geblokkeerde poorten).
+- Installatie: de optie `CP_REPO_URL`, en hoe je een niet-gepubliceerde versie test vanuit een git-bundle.
+
 ## [1.0.1-beta.3] - 2026-11-03 (testkanaal)
 
 Captive Portal is nu open source onder de GNU AGPL v3.

@@ -49,7 +49,8 @@ export type MailKind =
   | 'fabricConsoleFound'
   | 'guestWelcome'
   | 'guestPrivacy'
-  | 'paymentReceipt';
+  | 'paymentReceipt'
+  | 'accessRequest';
 
 /** Which templates exist, who may change them and which placeholders they offer. */
 export const mailKinds: Record<MailKind, { tenant: boolean; vars: string[]; data: boolean }> = {
@@ -74,6 +75,7 @@ export const mailKinds: Record<MailKind, { tenant: boolean; vars: string[]; data
   guestWelcome: { tenant: true, vars: ['name', 'email', 'networkName', 'validUntil'], data: false },
   guestPrivacy: { tenant: true, vars: ['email', 'networkName', 'actionUrl'], data: false },
   paymentReceipt: { tenant: true, vars: ['name', 'email', 'networkName', 'package', 'amount', 'reference', 'date', 'validUntil'], data: true },
+  accessRequest: { tenant: true, vars: ['name', 'email', 'message', 'networkName', 'ssid', 'device', 'date', 'actionUrl'], data: true },
 };
 export const mailKindList = Object.keys(mailKinds) as MailKind[];
 
@@ -113,6 +115,9 @@ export const sampleVars: Record<string, string> = {
   downtime: '42 min',
   fabricName: 'Hotelgroep Fabric',
   consoleNames: 'UCG Ultra Amsterdam, UDM Pro Utrecht',
+  message: 'Visiting the sales team for the day.',
+  ssid: 'Guest Wi-Fi',
+  device: 'a4:83:e7:12:34:56',
 };
 
 export const defaultMailTheme: MailTheme = {

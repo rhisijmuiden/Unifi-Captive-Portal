@@ -44,6 +44,19 @@ Server `smtp.gmail.com`, poort `587`, STARTTLS, met een **app-wachtwoord** van h
 
 Gebruik bij voorkeur poort 587 met STARTTLS of 465 met TLS, en log in met een mailbox van het afzenderdomein. Relayt je server alleen op IP (bijvoorbeeld een Proxmox Mail Gateway), zet het IP-adres van deze server dan bij de vertrouwde relay-netwerken.
 
+## Een relaydienst
+
+Geen eigen mailserver, bijvoorbeeld voor een thuisnetwerk? Een SMTP-relaydienst zoals SMTP2GO, Brevo of Mailgun werkt met **Gebruikersnaam en wachtwoord**. Verifieer eerst je afzenderadres of -domein bij de dienst en gebruik dan de SMTP-gebruiker die je daar krijgt. De meeste bieden STARTTLS op poort 587 (of 2525 als 587 geblokkeerd is) en TLS op 465.
+
+## Problemen oplossen
+
+| Foutmelding | Oorzaak en oplossing |
+| --- | --- |
+| `wrong version number` (SSL routines) | Beveiliging past niet bij de poort: **TLS/SSL** op een STARTTLS-poort. Gebruik **STARTTLS** met poort 587 of 2525, of **TLS/SSL** met poort 465. |
+| `535 5.7.139 Authentication unsuccessful, SmtpClientAuthentication is disabled` | Microsoft heeft inloggen met een wachtwoord voor SMTP uitgezet. Persoonlijke outlook.com- en hotmail.com-accounts kunnen niet via de app versturen; gebruik een relaydienst of Google met een app-wachtwoord. Voor Microsoft 365: gebruik OAuth 2.0 (zie hierboven). |
+| `535` of `Invalid login` bij andere providers | Verkeerde gebruikersnaam of wachtwoord, of de provider wil een app-wachtwoord in plaats van het accountwachtwoord. |
+| Time-out | De poort wordt onderweg geblokkeerd; veel internetproviders blokkeren poort 25 en soms 587. Probeer 2525 of 465. |
+
 ## Mail uit de spam houden
 
 Spamfilters kijken naar drie dingen: de naam waarmee de app zich bij de mailserver meldt, en de SPF-, DKIM- en DMARC-records van het afzenderdomein. Klik op **DNS controleren** onder **Afleverbaarheidscontrole** om ze allemaal te zien voor de instellingen in het formulier.

@@ -47,7 +47,7 @@ Blader met de pijlen door de maanden en verstuur het rapport direct met **Dit ra
 
 Elke e-mail die het platform verstuurt, kun je ontwerpen, visueel of in HTML.
 
-- **Klanten** (bij **Inzicht → Gast-e-mails**) ontwerpen de e-mails die hun gasten en beheerders krijgen: *Welkom voor gasten*, *Betaalbewijs*, *Hostnaam is live* en *Maandrapportage*.
+- **Klanten** (bij **Inzicht → Gast-e-mails**) ontwerpen de e-mails die hun gasten en beheerders krijgen: *Welkom voor gasten*, *Betaalbewijs*, *Toegangsverzoek (beheerders)*, *Hostnaam is live* en *Maandrapportage*.
 - **De platformbeheerder** (bij **Systeem → E-mailtemplates**) ontwerpt de platformbrede versies van alle e-mails, ook uitnodigingen, wachtwoordherstel en de SMTP-test. Klanten zonder eigen versie krijgen deze.
 
 Volgorde: de eigen versie van de klant → de versie van het platform → de ingebouwde standaard. **Terug naar standaard** verwijdert je eigen versie.

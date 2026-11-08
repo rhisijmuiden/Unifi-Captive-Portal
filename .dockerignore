@@ -1,0 +1,11 @@
+# Built inside the image; never copy host builds or packages (they may be for another OS)
+**/node_modules
+**/dist
+data
+.env
+.env.*
+docker.env
+*.log
+.git
+.github
+docs

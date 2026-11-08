@@ -4,6 +4,29 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [1.0.1-beta.4] - 2026-11-05 (test channel)
+
+Ask for access: guests request to be let on, people you choose approve or reject by e-mail.
+
+- New way to connect, **Ask for access**: the guest gives their name (and optionally an e-mail address and a message) and waits on a page that refreshes by itself.
+- Every approver gets an e-mail with **their own link** to a page with Approve and Reject. The first decision counts; the others see who decided. Deciding is a button on the page, so link scanners in mail filters cannot decide.
+- **Approved** connects the device at once. With *Remember approved devices* (on by default) it is let in by itself on later visits, until the approval is revoked.
+- **Rejected** keeps the device off the portal, whatever way of connecting it tries, until an admin unblocks it.
+- Requests without a decision expire after 24 hours; the guest can then ask again.
+- Under **Access & sign-in** the admin sets the approvers and sees all requests, with Approve, Reject, Revoke and Unblock. Also in the API (`/api/access-requests`, scope *guests*).
+- The approver e-mail is a template customers can change under **E-mail templates**; an approver with an account here gets it in their own language.
+- Erasing a guest's data (privacy) also clears what they typed in their requests. Decisions are in the audit log.
+
+### Containers
+
+- A **Dockerfile** and **docker-compose.yml** run the app with PostgreSQL 17 (and optionally Mailpit) as containers, for testing or a small install. See *Running in containers* in the development guide.
+
+### Docs
+
+- *Ask for access* in the guest access guide, including what happens when a guest is removed in UniFi.
+- SMTP: using a relay service, and a troubleshooting table (TLS/STARTTLS mix-ups, outlook.com accounts, blocked ports).
+- Installation: the `CP_REPO_URL` option, and how to test an unpublished build from a git bundle.
+
 ## [1.0.1-beta.3] - 2026-11-03 (test channel)
 
 Captive Portal is now open source under the GNU AGPL v3.
