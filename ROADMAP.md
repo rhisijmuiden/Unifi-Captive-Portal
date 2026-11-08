@@ -97,6 +97,7 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - ✅ **First official release (1.0.0, 22 October 2026)**: steps 1 to 7 and the improvements above, on both the stable and the test channel. New work continues as 1.0.x and 1.x test versions.
 - 🧪 **Easy password reset (1.0.1-beta.1)**: reset e-mail or new login details for users, customers and resellers, from Users, Customers and Resellers.
 - 🧪 **UniFi Fabric (1.0.1-beta.2)**: link consoles of a UniFi Fabric with one API key, several at once, with alerts for consoles that join the Fabric later.
+- 🧪 **Open source under the GNU AGPL v3 (1.0.1-beta.3)**: `LICENSE` file, license in all manifests and in the Info dialog with a link to the source code of the running version.
 
 ## Later
 

@@ -496,6 +496,9 @@ const en: Messages = {
     notEnabled: 'Updating from the interface works after installing with the official installer. Manually:',
     managed: 'Updates are managed by your platform admin.',
     source: 'Source code and roadmap on',
+    licenseText: 'Free software, licensed under the',
+    licenseSource: 'You may use, change and share it under the terms of that license. Get the',
+    sourceOfVersion: 'source code of version {{version}}',
     status: {
       queued: 'Update queued',
       backup: 'Backing up the database',

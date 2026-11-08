@@ -4,6 +4,15 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [1.0.1-beta.3] - 2026-11-03 (testkanaal)
+
+Captive Portal is nu open source onder de GNU AGPL v3.
+
+- Het project valt onder de **GNU Affero General Public License versie 3** (`AGPL-3.0-only`); de volledige tekst staat in `LICENSE` en het licentieveld van alle pakketmanifesten is ingevuld.
+- Het **Info**-venster toont de licentie met een link naar de broncode van de draaiende versie, voor iedereen (ook voor klanten van een reseller die *Powered by RHIS* verbergt), zoals artikel 13 van de AGPL vraagt voor software die via een netwerk wordt aangeboden.
+- `/api/system/info` geeft nu ook `license`, `licenseUrl` en `sourceUrl` terug.
+- README bijgewerkt met een licentiesectie die uitlegt wat de AGPL in de praktijk betekent.
+
 ## [1.0.1-beta.2] - 2026-10-26 (testkanaal)
 
 Consoles koppelen die lid zijn van een UniFi Fabric, met één API-sleutel voor de hele Fabric.
