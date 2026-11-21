@@ -87,6 +87,7 @@ const en: Messages = {
     loginSubtitle: 'Sign in to manage your captive portals.',
     orEmail: 'or with e-mail',
     email: 'E-mail address',
+    loginName: 'E-mail address or username',
     password: 'Password',
     login: 'Sign in',
     forgot: 'Forgot your password?',
@@ -239,6 +240,9 @@ const en: Messages = {
     changeTitle: 'Choose your own password',
     changeSubtitle: 'You signed in with a password you were given. Choose a password of your own to continue.',
     changeSave: 'Save and continue',
+    firstTitle: 'Welcome! Finish your account',
+    firstSubtitle: 'You signed in with the login details from the installation. Enter your details and choose your own password; you can configure everything else here afterwards.',
+    firstEmailHint: 'From now on you sign in with this address. It is also used for password resets.',
   },
   passwordReset: {
     title: 'Reset password',

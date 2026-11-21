@@ -4,6 +4,19 @@
 
 Alle noemenswaardige wijzigingen per versie. Versies volgen [Semantic Versioning](https://semver.org/lang/nl/); testversies hebben een achtervoegsel zoals `-beta.1`.
 
+## [1.0.1-beta.5] - 2026-11-21 (testkanaal)
+
+Installeren op een kale Debian 13 of vanaf een Proxmox CT-template; daarna toont de console alleen het webadres en de inloggegevens van de beheerder.
+
+- **Proxmox CT-template** bij elke release (`captive-portal-debian-13-amd64.tar.zst` plus `.sha256`), gebouwd op Proxmox' eigen Debian 13-template. Download het in Proxmox onder **CT Templates → Download from URL**; de nieuwste stabiele versie staat altijd op `…/releases/latest/download/captive-portal-debian-13-amd64.tar.zst`. Bij de eerste start richt een container zichzelf in (eigen geheimen, database, HTTPS, beheerder), zonder internet nodig te hebben.
+- **Installer** voor een kale Debian 13 op een server, VM of (LXC-)container: één regel per stap, details in `/var/log/captive-portal-install.log`, werkt met `wget` als `curl` ontbreekt. In een container zonder nesting start hij de service zonder de afscherming van systemd in plaats van te mislukken.
+- Na de installatie tonen het scherm en de console van de server **alleen het webadres, gebruikersnaam `admin` en een gegenereerd wachtwoord**. De consolebanner (ook bij inloggen via SSH) laat het wachtwoord weg zodra het is gewijzigd.
+- **Eerste keer inloggen**: met de gegenereerde gegevens vul je je naam en e-mailadres in en kies je je eigen wachtwoord; de rest stel je in de webinterface in. Het inlogveld accepteert nu een gebruikersnaam of een e-mailadres.
+- `captive-portal-admin` op de server toont het webadres en de inloggegevens, en `captive-portal-admin reset-password` geeft een hoofdbeheerder een nieuw gegenereerd wachtwoord als die is buitengesloten.
+- De installer kiest nu standaard de nieuwste **stabiele** versie (`CP_CHANNEL=test` voor het testkanaal); eerder kon hij een testversie kiezen.
+- Het Proxmox-hulpscript eindigt ook met de inloggegevens.
+- Databasewachtwoorden komen tijdens de installatie niet meer in het systeemlogboek.
+
 ## [1.0.1-beta.4] - 2026-11-05 (testkanaal)
 
 Toegang vragen: gasten vragen om op het netwerk te mogen, mensen die jij kiest keuren het per e-mail goed of af.

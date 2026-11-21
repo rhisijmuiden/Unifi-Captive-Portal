@@ -34,6 +34,7 @@ const nl = {
     slugTaken: 'Deze korte naam is al in gebruik',
     chooseTenant: 'Kies een klant voor deze gebruiker',
     emailTaken: 'Er bestaat al een gebruiker met dit e-mailadres',
+    emailRequired: 'Vul je e-mailadres in',
     ownRole: 'Je kunt je eigen rol of status niet wijzigen',
     deleteSelf: 'Je kunt jezelf niet verwijderen',
     unknownSetting: 'Onbekende instelling',

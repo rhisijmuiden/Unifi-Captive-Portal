@@ -20,5 +20,5 @@ jobs:
       - run: npm run build
       - name: Shell scripts
         run: |
-          for f in install/*.sh ct/*.sh; do bash -n "$f"; done
-          shellcheck -S error install/install.sh install/update.sh install/restore.sh install/caddy.sh
+          for f in install/*.sh ct/*.sh deploy/console/motd; do bash -n "$f"; done
+          shellcheck -S error install/install.sh install/update.sh install/restore.sh install/caddy.sh install/admin.sh ct/build-template.sh deploy/console/motd

@@ -86,6 +86,7 @@ const nl = {
     loginSubtitle: 'Log in om je captive portals te beheren.',
     orEmail: 'of met e-mail',
     email: 'E-mailadres',
+    loginName: 'E-mailadres of gebruikersnaam',
     password: 'Wachtwoord',
     login: 'Inloggen',
     forgot: 'Wachtwoord vergeten?',
@@ -238,6 +239,9 @@ const nl = {
     changeTitle: 'Kies je eigen wachtwoord',
     changeSubtitle: 'Je bent ingelogd met een wachtwoord dat je hebt gekregen. Kies een eigen wachtwoord om verder te gaan.',
     changeSave: 'Opslaan en verder',
+    firstTitle: 'Welkom! Maak je account af',
+    firstSubtitle: 'Je bent ingelogd met de inloggegevens van de installatie. Vul je gegevens in en kies je eigen wachtwoord; de rest stel je daarna hier in.',
+    firstEmailHint: 'Hiermee log je voortaan in. Het adres wordt ook gebruikt om je wachtwoord te herstellen.',
   },
   passwordReset: {
     title: 'Wachtwoord resetten',

@@ -3,6 +3,7 @@
 # Called by install.sh and update.sh; safe to run again.
 #   CP_ACME_EMAIL=you@company.com   address Let's Encrypt uses for expiry notices (optional)
 #   CP_CADDY=0                      skip Caddy (e.g. when you run your own reverse proxy)
+#   CP_CADDY_INSTALL_ONLY=1         only install the package (used while building the Proxmox template)
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/opt/captive-portal}"
@@ -25,6 +26,8 @@ if ! command -v caddy >/dev/null; then
   apt-get update -qq
   apt-get install -y -qq caddy >/dev/null
 fi
+
+[[ "${CP_CADDY_INSTALL_ONLY:-0}" == "1" ]] && { echo "Caddy installed; configuration follows on first start"; exit 0; }
 
 # The ACME e-mail lives in an environment file so updates never lose it
 install -d -m 0755 /etc/systemd/system/caddy.service.d

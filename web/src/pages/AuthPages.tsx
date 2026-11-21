@@ -137,8 +137,8 @@ export function LoginPage() {
             login.mutate();
           }}
         >
-          <Field label={t('auth.email')} htmlFor="email">
-            <Input id="email" type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Field label={t('auth.loginName')} htmlFor="email">
+            <Input id="email" type="text" inputMode="email" autoCapitalize="none" spellCheck={false} autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </Field>
           <Field label={t('auth.password')} htmlFor="password">
             <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
@@ -246,11 +246,13 @@ export function ChangePasswordPage() {
   const { data } = useAuth();
   const refresh = useRefreshAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ password: '', confirm: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
+  // The installer's "admin" account also enters a name and e-mail address (used to sign in from then on)
+  const details = Boolean(data?.accountDetailsRequired);
   const save = useMutation({
     mutationFn: () => {
       if (form.password !== form.confirm) throw new Error(t('auth.passwordsDiffer'));
-      return api.post('/auth/password', { password: form.password });
+      return api.post('/auth/password', details ? { password: form.password, name: form.name, email: form.email } : { password: form.password });
     },
     onSuccess: async () => {
       await refresh();
@@ -266,7 +268,7 @@ export function ChangePasswordPage() {
     navigate('/login');
   };
   return (
-    <AuthShell title={t('credentials.changeTitle')} subtitle={t('credentials.changeSubtitle')}>
+    <AuthShell title={details ? t('credentials.firstTitle') : t('credentials.changeTitle')} subtitle={details ? t('credentials.firstSubtitle') : t('credentials.changeSubtitle')}>
       <form
         className="space-y-4"
         onSubmit={(e) => {
@@ -274,9 +276,20 @@ export function ChangePasswordPage() {
           save.mutate();
         }}
       >
-        <input type="email" autoComplete="username" value={data.user.email} readOnly hidden />
+        {details ? (
+          <>
+            <Field label={t('auth.name')} htmlFor="name">
+              <Input id="name" autoComplete="name" autoFocus required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </Field>
+            <Field label={t('auth.email')} htmlFor="email" hint={t('credentials.firstEmailHint')}>
+              <Input id="email" type="email" autoComplete="username" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            </Field>
+          </>
+        ) : (
+          <input type="email" autoComplete="username" value={data.user.email} readOnly hidden />
+        )}
         <Field label={t('account.newPassword')} htmlFor="pw" hint={t('auth.passwordHint')}>
-          <Input id="pw" type="password" autoComplete="new-password" autoFocus required minLength={10} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+          <Input id="pw" type="password" autoComplete="new-password" autoFocus={!details} required minLength={10} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
         </Field>
         <Field label={t('auth.repeatPassword')} htmlFor="pw2">
           <Input id="pw2" type="password" autoComplete="new-password" required value={form.confirm} onChange={(e) => setForm({ ...form, confirm: e.target.value })} />

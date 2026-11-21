@@ -1,0 +1,7 @@
+[Unit]
+Description=Show the new Captive Portal console banner on all consoles
+
+[Service]
+Type=oneshot
+# agetty re-prints /etc/issue (and /etc/issue.d) on open login prompts
+ExecStart=-/sbin/agetty --reload

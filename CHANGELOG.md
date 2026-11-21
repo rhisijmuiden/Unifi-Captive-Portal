@@ -4,6 +4,19 @@
 
 All notable changes per version. Versions follow [Semantic Versioning](https://semver.org/); test versions carry a suffix such as `-beta.1`.
 
+## [1.0.1-beta.5] - 2026-11-21 (test channel)
+
+Install on a bare Debian 13 or from a Proxmox CT template; afterwards the console shows only the web address and the admin login.
+
+- **Proxmox CT template** with every release (`captive-portal-debian-13-amd64.tar.zst` plus `.sha256`), built on Proxmox's own Debian 13 template. Download it in Proxmox under **CT Templates → Download from URL**; the newest stable version is always at `…/releases/latest/download/captive-portal-debian-13-amd64.tar.zst`. On its first start a container sets itself up (own secrets, database, HTTPS, admin) without needing internet.
+- **Installer** for a bare Debian 13 on a server, VM or (LXC) container: one line per step, details in `/var/log/captive-portal-install.log`, works with `wget` when `curl` is missing. In a container without nesting it starts the service without systemd's sandboxing instead of failing.
+- After installing, the screen and the server console show **only the web address, username `admin` and a generated password**. The console banner (also shown when signing in over SSH) drops the password once it is changed.
+- **First sign-in**: with the generated login you enter your name and e-mail address and choose your own password; the rest is configured in the web interface. The sign-in field now accepts a username or an e-mail address.
+- `captive-portal-admin` on the server shows the web address and login, and `captive-portal-admin reset-password` gives a main administrator a new generated password after a lock-out.
+- The installer now picks the newest **stable** version by default (`CP_CHANNEL=test` for the test channel); before, it could pick a test version.
+- The Proxmox helper script ends with the login details too.
+- Database passwords are no longer written to the system log during installation.
+
 ## [1.0.1-beta.4] - 2026-11-05 (test channel)
 
 Ask for access: guests request to be let on, people you choose approve or reject by e-mail.

@@ -48,5 +48,8 @@ description
 
 msg_ok "Completed successfully!\n"
 echo -e "${CREATING}${GN}${APP} setup has been successfully initialized!${CL}"
-echo -e "${INFO}${YW} Open the admin panel to create the first administrator:${CL}"
-echo -e "${TAB}${GATEWAY}${BGN}http://${IP}:8080${CL}"
+# Only the web address and the main administrator's login; everything else is configured in the web interface
+pct exec "$CTID" -- /usr/local/bin/captive-portal-admin info 2>/dev/null || {
+  echo -e "${INFO}${YW} Open the web interface:${CL}"
+  echo -e "${TAB}${GATEWAY}${BGN}http://${IP}:8080${CL}"
+}

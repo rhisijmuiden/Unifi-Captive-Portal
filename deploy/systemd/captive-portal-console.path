@@ -1,0 +1,9 @@
+[Unit]
+Description=Refresh the console banner when Captive Portal changes it
+
+[Path]
+PathChanged=/var/lib/captive-portal/console.issue
+Unit=captive-portal-console.service
+
+[Install]
+WantedBy=multi-user.target

@@ -21,6 +21,7 @@ import {
   verifyUserCode,
 } from '../services/twoFactor.js';
 import { consumeToken, sendPasswordReset } from '../services/tokens.js';
+import { clearInstallerCredentials, isInstallerAccount } from '../services/installerAdmin.js';
 import { config } from '../config.js';
 import { isLocale, requestLocale } from '../i18n/index.js';
 
@@ -37,6 +38,8 @@ export async function authRoutes(app: FastifyInstance) {
       needsSetup: userCount === 0,
       user: req.user ? publicUser(req.user) : null,
       passwordChangeRequired: req.user ? passwordChangeRequired(req.user, req.sessionMethod ?? 'password') : false,
+      // The admin made by the installer signs in as "admin" and enters their name and e-mail address with the new password
+      accountDetailsRequired: req.user ? isInstallerAccount(req.user) : false,
       twoFactorSetupRequired: req.user ? await needsTwoFactorSetup(req.user, req.sessionMethod ?? 'password') : false,
       twoFactorPending: !req.user && Boolean(await pendingLoginUser(req)),
       sso: { entraEnabled: sso.entraEnabled, buttonLabel: sso.buttonLabel, allowLocalLogin: sso.allowLocalLogin || !sso.entraEnabled },
@@ -172,15 +175,30 @@ export async function authRoutes(app: FastifyInstance) {
 
   app.post('/api/auth/password', async (req) => {
     const user = requireUser(req);
-    const body = z.object({ current: z.string().optional(), password }).parse(req.body);
+    const body = z
+      .object({ current: z.string().optional(), password, name: z.string().trim().min(1).max(200).optional(), email: z.string().trim().toLowerCase().email().optional() })
+      .parse(req.body);
     // Right after signing in with a generated password, that password does not need to be typed again
     const forced = passwordChangeRequired(user, req.sessionMethod ?? 'password');
     if (user.passwordHash && !forced && !(await verifyPassword(user.passwordHash, body.current ?? ''))) {
       throw badRequest('errors.wrongPassword');
     }
     if (user.passwordHash && (await verifyPassword(user.passwordHash, body.password))) throw badRequest('errors.samePassword');
-    await db.update(schema.users).set({ passwordHash: await hashPassword(body.password), mustChangePassword: false }).where(eq(schema.users.id, user.id));
-    await audit(req, 'auth.password_changed');
+    // The installer's "admin" account becomes a normal account with a real e-mail address here
+    const details: { name?: string; email?: string } = {};
+    if (isInstallerAccount(user)) {
+      if (!body.email) throw badRequest('errors.emailRequired');
+      const taken = await db.query.users.findFirst({ where: eq(schema.users.email, body.email) });
+      if (taken && taken.id !== user.id) throw badRequest('errors.emailTaken');
+      details.email = body.email;
+      if (body.name) details.name = body.name;
+    }
+    await db
+      .update(schema.users)
+      .set({ passwordHash: await hashPassword(body.password), mustChangePassword: false, ...details })
+      .where(eq(schema.users.id, user.id));
+    await clearInstallerCredentials(user.id).catch((err) => req.log.warn(err, 'could not clear the console login details'));
+    await audit(req, 'auth.password_changed', details.email ? { email: details.email } : undefined);
     return { ok: true };
   });
 
@@ -197,6 +215,7 @@ export async function authRoutes(app: FastifyInstance) {
     const user = await consumeToken(body.token);
     if (!user || !user.isActive) throw badRequest('errors.linkInvalid');
     await db.update(schema.users).set({ passwordHash: await hashPassword(body.password), mustChangePassword: false }).where(eq(schema.users.id, user.id));
+    await clearInstallerCredentials(user.id).catch((err) => req.log.warn(err, 'could not clear the console login details'));
     // A reset link proves the mailbox, not the phone: with 2FA the code is still needed
     if (user.totpEnabledAt) {
       req.user = user;

@@ -1,0 +1,20 @@
+[Unit]
+Description=Captive Portal first-boot setup (Proxmox template)
+Documentation=https://github.com/rhisijmuiden/Unifi-Captive-Portal/blob/main/docs/en/installation.md
+# Only on a fresh copy of the template; removed when setup succeeded, so a failed setup is retried at the next boot
+ConditionPathExists=/var/lib/captive-portal/firstboot
+After=network-online.target postgresql.service
+# Outside Proxmox the copy has no SSH host keys yet; make them before the SSH server starts
+Before=ssh.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=CP_STAGE=configure
+ExecStartPre=-/usr/bin/ssh-keygen -A
+ExecStart=/opt/captive-portal/install/install.sh
+StandardOutput=journal+console
+TimeoutStartSec=20min
+
+[Install]
+WantedBy=multi-user.target
