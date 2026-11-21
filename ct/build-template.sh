@@ -120,7 +120,8 @@ rm -rf "$ROOT"/var/lib/apt/lists/* "$ROOT"/root/.npm "$ROOT"/root/.cache "$ROOT"
 rm -f "$ROOT"/etc/ssh/ssh_host_*
 : >"$ROOT/etc/machine-id"
 rm -f "$ROOT/var/lib/dbus/machine-id"
-find "$ROOT/var/log" -type f -exec truncate -s 0 {} +
+# -c: no O_CREAT, which fs.protected_regular refuses in sticky folders such as /var/log/postgresql
+find "$ROOT/var/log" -type f -exec truncate -c -s 0 {} + || true
 rm -f "$ROOT/etc/resolv.conf"
 if [[ -e "$WORK/resolv.conf" || -L "$WORK/resolv.conf" ]]; then cp -a "$WORK/resolv.conf" "$ROOT/etc/resolv.conf"; else : >"$ROOT/etc/resolv.conf"; fi
 for m in dev/pts dev sys proc; do umount "$ROOT/$m"; done
