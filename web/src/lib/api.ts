@@ -69,6 +69,8 @@ export type Tenant = {
 
 export type AuthState = {
   needsSetup: boolean;
+  /** Signed in with the installer's "admin" account: name and e-mail address are asked with the new password */
+  accountDetailsRequired: boolean;
   user: User | null;
   /** Signed in with a generated password: an own password must be chosen first */
   passwordChangeRequired: boolean;

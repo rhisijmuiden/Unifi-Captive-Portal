@@ -99,6 +99,7 @@ Legenda: ✅ klaar · 🚧 in ontwikkeling · 📋 gepland
 - 🧪 **UniFi Fabric (1.0.1-beta.2)**: consoles van een UniFi Fabric koppelen met één API-sleutel, meerdere tegelijk, met een melding voor consoles die later bij de Fabric komen.
 - 🧪 **Open source onder de GNU AGPL v3 (1.0.1-beta.3)**: `LICENSE`-bestand, licentie in alle manifesten en in het Info-venster met een link naar de broncode van de draaiende versie.
 - 🧪 **Toegang vragen (1.0.1-beta.4)**: gasten vragen toegang en beheerders die jij kiest keuren het per e-mail goed of af; goedgekeurde apparaten worden verbonden (en desgewenst onthouden), afgewezen apparaten blijven van het netwerk totdat ze gedeblokkeerd worden. Plus een Dockerfile en docker-compose.yml om in containers te testen.
+- 🧪 **Installer en Proxmox CT-template (1.0.1-beta.5)**: bij elke release een kant-en-klaar CT-template, te downloaden in Proxmox met *Download from URL*; een rustigere installer voor kale Debian 13 (server, VM of container). Daarna toont de console alleen het webadres en gegenereerde inloggegevens; naam, e-mail en eigen wachtwoord stel je in bij de eerste keer inloggen.
 
 ## Later
 

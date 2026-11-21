@@ -9,6 +9,7 @@ import { sentOnly } from '../lib/patch.js';
 import { badRequest, forbidden, notFound, translateError } from '../lib/errors.js';
 import { requestLocale } from '../i18n/index.js';
 import { sendInvite, sendPasswordReset, setGeneratedPassword } from '../services/tokens.js';
+import { clearInstallerCredentials } from '../services/installerAdmin.js';
 import { disableTwoFactor } from '../services/twoFactor.js';
 
 export const userInput = z.object({
@@ -175,6 +176,8 @@ export async function userRoutes(app: FastifyInstance) {
     const { mustChangePassword } = z.object({ mustChangePassword: z.boolean().default(true) }).parse(req.body ?? {});
     const credentials = await setGeneratedPassword(target, mustChangePassword);
     await db.delete(schema.sessions).where(eq(schema.sessions.userId, target.id));
+    // The console must not keep showing the installer's password once someone else replaced it
+    await clearInstallerCredentials(target.id).catch((err) => req.log.warn(err, 'could not clear the console login details'));
     await audit(req, 'user.password_generated', { email: target.email }, target.tenantId);
     return { credentials };
   });

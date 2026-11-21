@@ -35,6 +35,7 @@ const en: Messages = {
     slugTaken: 'This short name is already in use',
     chooseTenant: 'Choose a customer for this user',
     emailTaken: 'A user with this e-mail address already exists',
+    emailRequired: 'Enter your e-mail address',
     ownRole: 'You cannot change your own role or status',
     deleteSelf: 'You cannot delete yourself',
     unknownSetting: 'Unknown setting',

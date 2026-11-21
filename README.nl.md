@@ -42,20 +42,21 @@ Zie de [roadmap](ROADMAP.nl.md) voor wat er al werkt en wat eraan komt.
 - **Info & updates**: huidige versie, controleren op updates, kiezen tussen het **stable**- en **test**-kanaal, en de **hele installatie bijwerken** (app plus Debian-pakketten) vanuit de webinterface, met automatische databaseback-up en rollback.
 - **Tweetalig**: Nederlands en Engels in de interface, foutmeldingen en e-mails. Elke gebruiker kiest zijn taal; nieuwe talen voeg je toe met één vertaalbestand.
 - **Moderne beheeromgeving** in de RHIS-huisstijl: menu links, licht en donker thema, werkt op telefoon.
-- **Installatie** als Proxmox LXC (Debian 13) of op een Debian 13 VM of fysieke server. De webinterface draait op **poort 8080**.
+- **Installatie** vanaf een kant-en-klaar **Proxmox CT-template** (Download from URL), met een Proxmox-hulpscript, of op een kale Debian 13 VM, fysieke server of container. Daarna toont de console alleen het webadres en de inloggegevens van de beheerder; de rest stel je in de webinterface in op **poort 8080**.
 
 ## Installeren
 
 | Waar | Commando |
 | --- | --- |
-| **Proxmox LXC** (op de Proxmox-host) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/ct/captive-portal.sh)"` |
+| **Proxmox CT-template** (Proxmox → local → CT Templates → **Download from URL**) | `https://github.com/rhisijmuiden/Unifi-Captive-Portal/releases/latest/download/captive-portal-debian-13-amd64.tar.zst` |
+| **Proxmox-hulpscript** (op de Proxmox-host) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/ct/captive-portal.sh)"` |
 | **Debian 13 VM of server** (als root) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/install/install.sh)"` |
 
-Open daarna `http://<ip-van-de-server>:8080` en maak het eerste beheerdersaccount aan. Poort 80 en 443 gebruikt Caddy voor de gastportalen en HTTPS. Uitgebreide stappen staan in [docs/installatie.md](docs/nl/installatie.md).
+De console toont daarna het webadres, gebruikersnaam `admin` en een gegenereerd wachtwoord. Log in, vul je naam en e-mailadres in en kies je eigen wachtwoord; de rest stel je in de webinterface in. Poort 80 en 443 gebruikt Caddy voor de gastportalen en HTTPS. Uitgebreide stappen staan in [docs/installatie.md](docs/nl/installatie.md).
 
 ## Handleidingen
 
-- [Installatie](docs/nl/installatie.md): LXC, VM en fysieke server, eerste start, configuratiebestand
+- [Installatie](docs/nl/installatie.md): Proxmox CT-template, hulpscript, kale Debian 13, eerste keer inloggen, beheerderswachtwoord kwijt, configuratiebestand
 - [Een UniFi-console koppelen](docs/nl/unifi-koppelen.md): Site Manager, UniFi Fabric of rechtstreeks, hotspot-instellingen, pre-authorization, problemen oplossen
 - [Hostnamen en SSL](docs/nl/hostnamen-ssl.md): DNS-records, automatische certificaten, HTTPS voor het beheerpaneel
 - [Portal-editor](docs/nl/portaal-editor.md): blokken, templates, afbeeldingen en talen

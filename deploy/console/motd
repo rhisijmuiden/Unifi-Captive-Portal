@@ -1,0 +1,5 @@
+#!/bin/sh
+# Shows the Captive Portal web address (and, until it is changed, the first admin login) when signing in
+[ -r /var/lib/captive-portal/console.issue ] || exit 0
+ip="$(hostname -I 2>/dev/null | awk '{print $1}')"
+sed -e "s/\\\\4\({[^}]*}\)\{0,1\}/${ip:-<server-ip>}/g" /var/lib/captive-portal/console.issue

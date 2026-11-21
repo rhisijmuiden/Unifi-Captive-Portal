@@ -99,6 +99,7 @@ Legend: ✅ done · 🚧 in progress · 📋 planned
 - 🧪 **UniFi Fabric (1.0.1-beta.2)**: link consoles of a UniFi Fabric with one API key, several at once, with alerts for consoles that join the Fabric later.
 - 🧪 **Open source under the GNU AGPL v3 (1.0.1-beta.3)**: `LICENSE` file, license in all manifests and in the Info dialog with a link to the source code of the running version.
 - 🧪 **Ask for access (1.0.1-beta.4)**: guests ask to be let on and approvers you choose approve or reject by e-mail; approved devices are connected (and optionally remembered), rejected devices stay off until unblocked. Plus a Dockerfile and docker-compose.yml for testing in containers.
+- 🧪 **Installer and Proxmox CT template (1.0.1-beta.5)**: a ready-made CT template with every release, downloadable in Proxmox with *Download from URL*; a quieter installer for bare Debian 13 (server, VM or container). Afterwards the console shows only the web address and a generated admin login; name, e-mail and own password are set at the first sign-in.
 
 ## Later
 

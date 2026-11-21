@@ -42,20 +42,21 @@ See the [roadmap](ROADMAP.md) for what works today and what is coming.
 - **Info & updates**: current version, check for updates, choose between the **stable** and **test** channel, and **update the whole installation** (app plus Debian packages) from the web interface, with an automatic database backup and rollback.
 - **Bilingual**: English and Dutch in the interface, error messages and e-mails. Every user picks a language; new languages are added with one translation file.
 - **Modern admin interface** in the RHIS house style: menu on the left, light and dark theme, works on phones.
-- **Installation** as a Proxmox LXC (Debian 13) or on a Debian 13 VM or physical server. The web interface runs on **port 8080**.
+- **Installation** from a ready-made **Proxmox CT template** (Download from URL), with a Proxmox helper script, or on a bare Debian 13 VM, physical server or container. Afterwards the console shows only the web address and the admin login; everything else is set up in the web interface on **port 8080**.
 
 ## Install
 
 | Where | Command |
 | --- | --- |
-| **Proxmox LXC** (on the Proxmox host) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/ct/captive-portal.sh)"` |
+| **Proxmox CT template** (Proxmox → local → CT Templates → **Download from URL**) | `https://github.com/rhisijmuiden/Unifi-Captive-Portal/releases/latest/download/captive-portal-debian-13-amd64.tar.zst` |
+| **Proxmox helper script** (on the Proxmox host) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/ct/captive-portal.sh)"` |
 | **Debian 13 VM or server** (as root) | `bash -c "$(curl -fsSL https://raw.githubusercontent.com/rhisijmuiden/Unifi-Captive-Portal/main/install/install.sh)"` |
 
-Then open `http://<server-ip>:8080` and create the first administrator account. Ports 80 and 443 are used by Caddy for the guest portals and HTTPS. Detailed steps are in [docs/en/installation.md](docs/en/installation.md).
+The console then shows the web address, username `admin` and a generated password. Sign in, enter your name and e-mail address and choose your own password; everything else is configured in the web interface. Ports 80 and 443 are used by Caddy for the guest portals and HTTPS. Detailed steps are in [docs/en/installation.md](docs/en/installation.md).
 
 ## Guides
 
-- [Installation](docs/en/installation.md): LXC, VM and physical server, first start, configuration file
+- [Installation](docs/en/installation.md): Proxmox CT template, helper script, bare Debian 13, first sign-in, lost admin password, configuration file
 - [Connecting a UniFi console](docs/en/unifi-setup.md): Site Manager, UniFi Fabric or direct, hotspot settings, pre-authorization, troubleshooting
 - [Hostnames and SSL](docs/en/hostnames-ssl.md): DNS records, automatic certificates, HTTPS for the admin panel
 - [Portal editor](docs/en/portal-editor.md): blocks, templates, images and languages

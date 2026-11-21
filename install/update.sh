@@ -111,8 +111,7 @@ build_and_restart() {
     npm run build --silent &&
     npm prune --omit=dev --no-audit --no-fund --loglevel=error &&
     sudo -u "$APP_USER" bash -c "set -a; . '$ENV_FILE'; set +a; cd '$APP_DIR/server' && node dist/db/migrate.js" &&
-    install -m 0644 deploy/systemd/*.service deploy/systemd/*.path /etc/systemd/system/ &&
-    systemctl daemon-reload &&
+    CP_STAGE=system-files bash "$APP_DIR/install/install.sh" &&
     systemctl restart captive-portal &&
     for _ in $(seq 1 30); do curl -fsS http://127.0.0.1:8080/api/health >/dev/null 2>&1 && return 0; sleep 1; done
   return 1
@@ -145,6 +144,9 @@ fi
 if [[ -f "$APP_DIR/install/caddy.sh" ]]; then
   APP_DIR="$APP_DIR" bash "$APP_DIR/install/caddy.sh" || echo "Caddy setup failed; the app itself was updated"
 fi
+
+# The console banner shows the version; refresh it (older versions have no admin command yet)
+[[ -x "$APP_DIR/install/admin.sh" ]] && { bash "$APP_DIR/install/admin.sh" refresh || echo "Console banner not refreshed"; }
 
 # Remove pre-update backups older than 30 days
 find "$DATA_DIR/backups" -name 'pre-update-*.sql.gz' -mtime +30 -delete
